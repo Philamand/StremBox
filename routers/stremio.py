@@ -1,11 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from constants import MANIFEST
+from dependencies import get_user_service
 from schemas.users import UserFormData
+from services.users import UserService
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -18,9 +20,13 @@ async def index(request: Request):
 
 
 @router.post("/")
-async def create_user(data: Annotated[UserFormData, Form()]):
+async def create_user(
+    data: Annotated[UserFormData, Form()],
+    service: UserService = Depends(get_user_service),
+):
     """Create a new user."""
-    return data
+    user_id = await service.create_user(data)
+    return {"user_id": user_id}
 
 
 @router.get("/manifest.json")
