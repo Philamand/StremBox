@@ -23,10 +23,14 @@ async def get_user_key(
     Returns:
         UserData: The user data corresponding to the provided user key.
     """
-    row = await db_conn.fetchrow(
-        "SELECT id, created_at, sub_expires FROM users WHERE id = $1",
-        user_key,
-    )
+
+    try:
+        row = await db_conn.fetchrow(
+            "SELECT * FROM users WHERE id = $1",
+            user_key,
+        )
+    except asyncpg.exceptions.DataError:
+        raise HTTPException(status_code=401, detail="Invalid user key")
 
     if not row:
         raise HTTPException(status_code=401, detail="Invalid user key")
