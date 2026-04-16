@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel
 
 
@@ -16,7 +18,7 @@ class UserCreateData(BaseModel):
 class UserData(BaseModel):
     """Data for user."""
 
-    id: str
+    id: uuid.UUID
     qbit_host: str
     qbit_port: int
     qbit_user: str
