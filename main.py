@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
 from db.database import lifespan
-from routers import stremio
+from routers import stremio, users
 
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(stremio.router)
+app.include_router(users.router)
