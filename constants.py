@@ -1,3 +1,5 @@
+import os
+
 MANIFEST = {
     "id": "StremBox/Philamand/org.codeberg",
     "version": "1.0.0",
@@ -9,3 +11,5 @@ MANIFEST = {
         {"name": "stream", "types": ["movie", "series"], "idPrefixes": ["tt", "hpy"]}
     ],
 }
+
+STREAMS_BASE_URL: str = os.getenv("STREAMS_BASE_URL", "http://127.0.0.1:5000")
