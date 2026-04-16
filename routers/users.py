@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from dependencies import get_user_service
-from schemas.users import UserFormData
+from schemas.users import UserData
 from services.users import UserService
 
 router = APIRouter()
@@ -20,7 +20,7 @@ async def index(request: Request):
 
 @router.post("/")
 async def create_user(
-    data: Annotated[UserFormData, Form()],
+    data: Annotated[UserData, Form()],
     service: UserService = Depends(get_user_service),
 ):
     """Create a new user."""

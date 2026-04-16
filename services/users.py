@@ -1,6 +1,6 @@
 import asyncpg
 
-from schemas.users import UserFormData
+from schemas.users import UserData
 
 
 class UserService:
@@ -9,7 +9,7 @@ class UserService:
     def __init__(self, conn: asyncpg.Connection):
         self.conn = conn
 
-    async def create_user(self, user: UserFormData) -> str:
+    async def create_user(self, user: UserData) -> str:
         """Create a new user and return the user's ID."""
         result = await self.conn.fetch(
             "INSERT INTO users (qbit_host, qbit_port, qbit_user, qbit_pass, c411_key, torr9_key, lacale_key) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",

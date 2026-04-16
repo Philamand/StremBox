@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
 
-class UserFormData(BaseModel):
-    """Form data for creating a new user."""
+class UserData(BaseModel):
+    """Data for user."""
 
     qbit_host: str
     qbit_port: int
