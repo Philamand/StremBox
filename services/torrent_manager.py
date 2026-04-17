@@ -1,8 +1,9 @@
 import time
 
 import qbittorrentapi
-from config import QBT_HOST, QBT_PASSWORD, QBT_PORT, QBT_USERNAME
 from fastapi import HTTPException
+
+from config import QBT_HOST, QBT_PASSWORD, QBT_PORT, QBT_USERNAME
 
 
 class TorrentManager:
@@ -20,6 +21,11 @@ class TorrentManager:
             urls=download_link,
             is_sequential_download=True,
         )
+
+    def check_torrent(self, hash: str):
+        """Check if a torrent is still active."""
+        torrents = self._client.torrents_info(torrent_hashes=hash)
+        return torrents is not None
 
     def wait_until_added(
         self, hash: str, timeout: float = 30.0, poll_interval: float = 0.5
