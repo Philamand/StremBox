@@ -20,6 +20,7 @@ async def get_stream(
     hash: str,
     request: Request,
     tracker: str | None = None,
+    api_key: str | None = None,
     torrent_manager: TorrentManager = Depends(),
 ):
     """
@@ -29,7 +30,7 @@ async def get_stream(
 
     hash, season, episode = parse_stream_hash(hash)
 
-    await torrent_manager.ensure_torrent_available(hash, tracker)
+    await torrent_manager.ensure_torrent_available(hash, tracker, api_key)
 
     torrent_files = await torrent_manager.get_torrent_files(hash)
 

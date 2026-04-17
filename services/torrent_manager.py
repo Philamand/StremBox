@@ -5,7 +5,7 @@ import qbittorrentapi
 from fastapi import HTTPException
 from qbittorrentapi import TorrentFilesList
 
-from config import C411_API_KEY, QBT_HOST, QBT_PASSWORD, QBT_PORT, QBT_USERNAME
+from config import QBT_HOST, QBT_PASSWORD, QBT_PORT, QBT_USERNAME
 
 
 class TorrentManager:
@@ -16,20 +16,17 @@ class TorrentManager:
         self._client = qbittorrentapi.Client(
             host=QBT_HOST, port=QBT_PORT, username=QBT_USERNAME, password=QBT_PASSWORD
         )
-        self.c411_api_key = C411_API_KEY
 
-    async def add_torrent(self, hash: str, tracker: str):
+    async def add_torrent(self, hash: str, tracker: str, api_key: str | None):
         """Add a torrent URL or magnet link and enable sequential download."""
 
         def _add_torrent_sync():
             if tracker == "c411":
-                if not self.c411_api_key:
+                if not api_key:
                     raise HTTPException(
                         status_code=400, detail="Clé API C411 non configurée"
                     )
-                download_link = (
-                    f"https://c411.org/api?t=get&id={hash}&apikey={self.c411_api_key}"
-                )
+                download_link = f"https://c411.org/api?t=get&id={hash}&apikey={api_key}"
             else:
                 raise HTTPException(status_code=400, detail="Tracker non supporté")
 
@@ -77,7 +74,9 @@ class TorrentManager:
 
         return await asyncio.to_thread(_get_torrent_files_sync)
 
-    async def ensure_torrent_available(self, hash: str, tracker: str | None = None):
+    async def ensure_torrent_available(
+        self, hash: str, tracker: str | None = None, api_key: str | None = None
+    ):
         """Ensure the torrent is available, downloading if necessary."""
         torrent_exists = await self.check_torrent(hash)
 
@@ -87,5 +86,5 @@ class TorrentManager:
         if not tracker:
             raise HTTPException(status_code=404, detail="Torrent introuvable")
 
-        await self.add_torrent(hash, tracker)
+        await self.add_torrent(hash, tracker, api_key)
         await self.wait_until_added(hash)
