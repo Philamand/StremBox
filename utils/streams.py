@@ -5,6 +5,8 @@ from typing import Optional, Tuple
 import aiofiles
 from fastapi import Request
 
+from config import BASE_DIR
+
 
 def parse_range(header: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
     """
@@ -172,19 +174,19 @@ def parse_stream_hash(raw_hash: str) -> Tuple[str, Optional[int], Optional[int]]
 def resolve_file_path(
     torrent_file: str, season: Optional[int], episode: Optional[int]
 ) -> str:
-    """Resolve the path (relative to ``./data/``) for the requested file.
+    """Resolve the path (relative to ``BASE_DIR``) for the requested file.
 
     For plain files, validates that the file exists on disk and returns
     ``torrent_file`` unchanged.  For season/episode requests, scans the
     directory named ``torrent_file`` and returns the first matching entry.
 
     Args:
-        torrent_file: File or directory name under ``./data/``.
+        torrent_file: File or directory name under ``BASE_DIR``.
         season: Target season number, or ``None`` for non-series files.
         episode: Target episode number, or ``None`` for non-series files.
 
     Returns:
-        Relative path under ``./data/`` for the resolved media file.
+        Relative path under ``BASE_DIR`` for the resolved media file.
 
     Raises:
         HTTPException 404: When the directory or matching episode file is not found.
@@ -194,17 +196,17 @@ def resolve_file_path(
     torrent_file = torrent_file.split("/")[-1]
 
     if season is not None and episode is not None:
-        dir_path = "./data/" + torrent_file
+        dir_path = BASE_DIR + torrent_file
         if not os.path.isdir(dir_path):
             raise HTTPException(status_code=404)
         for f in os.listdir(dir_path):
             if check_season_episode(f, season, episode):
-                return torrent_file + "/" + f
+                return BASE_DIR + torrent_file + "/" + f
         raise HTTPException(status_code=404)
 
-    if not os.path.isfile("./data/" + torrent_file):
+    if not os.path.isfile(BASE_DIR + torrent_file):
         raise HTTPException(status_code=404)
-    return torrent_file
+    return BASE_DIR + torrent_file
 
 
 def build_stream_headers(
