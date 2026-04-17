@@ -12,8 +12,9 @@ class UserService:
     async def create_user(self, user: UserCreateData) -> str:
         """Create a new user and return the user's ID."""
         result = await self.conn.fetch(
-            "INSERT INTO users (streamer_url, c411_key, torr9_key, lacale_key) VALUES ($1, $2, $3, $4) RETURNING id",
+            "INSERT INTO users (streamer_url, streamer_token, c411_key, torr9_key, lacale_key) VALUES ($1, $2, $3, $4, $5) RETURNING id",
             user.streamer_url,
+            user.streamer_token,
             user.c411_key,
             user.torr9_key,
             user.lacale_key,

@@ -7,6 +7,7 @@ class UserCreateData(BaseModel):
     """Data for creating a user."""
 
     streamer_url: str
+    streamer_token: str
     c411_key: str | None = None
     torr9_key: str | None = None
     lacale_key: str | None = None
@@ -17,6 +18,7 @@ class UserData(BaseModel):
 
     id: uuid.UUID
     streamer_url: str
+    streamer_token: str
     c411_key: str | None = None
     torr9_key: str | None = None
     lacale_key: str | None = None

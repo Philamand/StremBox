@@ -47,6 +47,7 @@ async def get_torrent_streams(
 
     stremio_service = StremioOrchestrationService(
         user.streamer_url,
+        user.streamer_token,
         c411_service=c411_service,
         torr9_service=torr9_service,
     )
