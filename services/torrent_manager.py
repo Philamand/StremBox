@@ -56,6 +56,6 @@ class TorrentManager:
             detail=f"Timed out after {int(timeout)}s waiting for torrent to be added.",
         )
 
-    def get_files(self, hash: str) -> TorrentFilesList:
+    def get_torrent_files(self, hash: str) -> TorrentFilesList:
         """Return file entries for a given torrent hash."""
         return self._client.torrents_files(hash=hash)
