@@ -492,7 +492,6 @@ class StremioOrchestrationService:
         slow_streams: list[StremioStreamData] = []
 
         for result in results:
-            print(result["torrents"][0]["link"])
             speed_emoji = "🐢"
             tracker, torrent_id = get_torrent_tracker_and_id(
                 result["torrents"][0]["link"]
