@@ -210,15 +210,13 @@ def resolve_file_path(
     """
     from fastapi import HTTPException
 
-    torrent_file = "/" + torrent_file.split("/")[-1]
-
     if season is not None and episode is not None:
-        dir_path = BASE_DIR + torrent_file
+        dir_path = BASE_DIR + os.path.dirname(torrent_file)
         if not os.path.isdir(dir_path):
             raise HTTPException(status_code=404)
         for f in os.listdir(dir_path):
             if check_season_episode(f, season, episode):
-                return BASE_DIR + torrent_file + "/" + f
+                return dir_path + "/" + f
         raise HTTPException(status_code=404)
 
     if not os.path.isfile(BASE_DIR + torrent_file):
