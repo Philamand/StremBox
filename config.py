@@ -6,3 +6,5 @@ QBT_USERNAME = os.getenv("QBT_USERNAME", "admin")
 QBT_PASSWORD = os.getenv("QBT_PASSWORD", "password")
 
 BASE_DIR = os.getenv("BASE_DIR", "./data/")
+
+BEARER_TOKEN = os.getenv("BEARER_TOKEN", "test_token")

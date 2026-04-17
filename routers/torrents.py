@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 
 from services.torrent_manager import TorrentManager
+from utils.security import validate_bearer_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(validate_bearer_token)])
 
 
 @router.get("/")
