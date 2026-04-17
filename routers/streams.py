@@ -23,17 +23,14 @@ async def get_stream(
     tracker: str | None = None,
     torrent_manager: TorrentManager = Depends(),
 ):
+    """
+    Stream a video file from a torrent hash.
+    """
     file_range = request.headers.get("range")
 
     hash, season, episode = parse_stream_hash(hash)
 
-    torrent_exists = await asyncio.to_thread(torrent_manager.check_torrent, hash)
-
-    if not torrent_exists:
-        if not tracker:
-            raise HTTPException(status_code=404, detail="Torrent introuvable")
-        await asyncio.to_thread(torrent_manager.add_torrent, hash, tracker)
-        await asyncio.to_thread(torrent_manager.wait_until_added, hash)
+    await torrent_manager.ensure_torrent_available(hash, tracker)
 
     torrent_files = await asyncio.to_thread(torrent_manager.get_torrent_files, hash)
 

@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import qbittorrentapi
@@ -59,3 +60,16 @@ class TorrentManager:
     def get_torrent_files(self, hash: str) -> TorrentFilesList:
         """Return file entries for a given torrent hash."""
         return self._client.torrents_files(hash=hash)
+
+    async def ensure_torrent_available(self, hash: str, tracker: str | None = None):
+        """Ensure the torrent is available, downloading if necessary."""
+        torrent_exists = await asyncio.to_thread(self.check_torrent, hash)
+
+        if torrent_exists:
+            return
+
+        if not tracker:
+            raise HTTPException(status_code=404, detail="Torrent introuvable")
+
+        await asyncio.to_thread(self.add_torrent, hash, tracker)
+        await asyncio.to_thread(self.wait_until_added, hash)
