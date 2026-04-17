@@ -10,9 +10,9 @@ from aiohttp import ClientTimeout
 from schemas.stremio import (
     StremioStreamData,
     StremioStreamsResponse,
-    StremioTorrentData,
 )
 from schemas.users import UserData
+from services.streamer import StreamerService
 from utils.stremio import (
     check_season_episode,
     check_title_match,
@@ -473,6 +473,9 @@ class StremioOrchestrationService:
         Returns:
             A ``StremioStreamsResponse`` with fast (⚡️) streams first.
         """
+        streamer_service = StreamerService(self.streamer_url)
+        hashes = await streamer_service.get_torrent_hashes()
+
         se = ""
         if type == "series":
             parts = id.split(":")
@@ -489,11 +492,15 @@ class StremioOrchestrationService:
 
         results = sort_dicts_by_seeders_desc(results)
 
-        fast_streams: list[StremioTorrentData] = []
+        fast_streams: list[StremioStreamData] = []
         slow_streams: list[StremioStreamData] = []
 
         for result in results:
-            speed_emoji = "🐢"
+            if result["torrents"][0]["hash"] in hashes:
+                speed_emoji = "⚡️"
+            else:
+                speed_emoji = "🐢"
+
             tracker, torrent_id = get_torrent_tracker_and_id(
                 result["torrents"][0]["link"]
             )
