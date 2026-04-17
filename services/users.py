@@ -12,11 +12,8 @@ class UserService:
     async def create_user(self, user: UserCreateData) -> str:
         """Create a new user and return the user's ID."""
         result = await self.conn.fetch(
-            "INSERT INTO users (qbit_host, qbit_port, qbit_user, qbit_pass, c411_key, torr9_key, lacale_key) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-            user.qbit_host,
-            user.qbit_port,
-            user.qbit_user,
-            user.qbit_pass,
+            "INSERT INTO users (streamer_url, c411_key, torr9_key, lacale_key) VALUES ($1, $2, $3, $4) RETURNING id",
+            user.streamer_url,
             user.c411_key,
             user.torr9_key,
             user.lacale_key,

@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional
 import aiohttp
 from aiohttp import ClientTimeout
 
-from constants import STREAMS_BASE_URL
 from schemas.stremio import (
     StremioStreamData,
     StremioStreamsResponse,
@@ -387,11 +386,13 @@ class StremioOrchestrationService:
 
     def __init__(
         self,
+        streamer_url: str,
         c411_service: C411Service | None = None,
         torr9_service: Torr9Service | None = None,
     ) -> None:
         self.c411 = c411_service
         self.torr9 = torr9_service
+        self.streamer_url = streamer_url
 
     async def _search_movie(self, imdb_id: str) -> list[dict]:
         """Run parallel C411 + Torr9 searches for a movie and return deduplicated results."""
@@ -511,7 +512,7 @@ class StremioOrchestrationService:
                     f"📤 {result['seeders']}  📥 {result['leechers']} | {result['tracker_name']}\n"
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
-                url=f"{STREAMS_BASE_URL}/streams/{result['torrents'][0]['hash']}{se}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}",
+                url=f"{self.streamer_url}/streams/{result['torrents'][0]['hash']}{se}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}",
                 filename=result["name"],
                 videoSize=int(result["size"]),
             )
