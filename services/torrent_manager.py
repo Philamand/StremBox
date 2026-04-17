@@ -25,7 +25,7 @@ class TorrentManager:
     def check_torrent(self, hash: str):
         """Check if a torrent is still active."""
         torrents = self._client.torrents_info(torrent_hashes=hash)
-        return torrents is not None
+        return torrents != []
 
     def wait_until_added(
         self, hash: str, timeout: float = 30.0, poll_interval: float = 0.5
