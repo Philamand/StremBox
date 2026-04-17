@@ -7,6 +7,23 @@ from fastapi import Request
 
 from config import BASE_DIR
 
+# Video file extensions and their MIME types
+VIDEO_MIME_TYPES = {
+    ".mp4": "video/mp4",
+    ".mkv": "video/x-matroska",
+    ".webm": "video/webm",
+    ".avi": "video/x-msvideo",
+    ".mov": "video/quicktime",
+    ".flv": "video/x-flv",
+    ".wmv": "video/x-ms-wmv",
+    ".m3u8": "application/vnd.apple.mpegurl",
+    ".ts": "video/mp2t",
+    ".mpg": "video/mpeg",
+    ".mpeg": "video/mpeg",
+    ".3gp": "video/3gpp",
+    ".ogv": "video/ogg",
+}
+
 
 def parse_range(header: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
     """
@@ -211,11 +228,12 @@ def resolve_file_path(
 
 
 def build_stream_headers(
-    file_range: Optional[str], start: int, end: int, size: int
+    file_path: str, file_range: Optional[str], start: int, end: int, size: int
 ) -> Tuple[dict, int]:
     """Build HTTP response headers and status code for a streaming response.
 
     Args:
+        file_path: Path to the video file being streamed.
         file_range: The raw ``Range`` header value from the request, or ``None``.
         start: Inclusive start byte offset.
         end: Inclusive end byte offset.
@@ -224,10 +242,23 @@ def build_stream_headers(
     Returns:
         A tuple ``(headers, status_code)`` ready to pass to
         :class:`~fastapi.responses.StreamingResponse`.
+
+    Raises:
+        ValueError: If the file is not a supported video format.
     """
+    # Get file extension and determine MIME type
+    file_ext = os.path.splitext(file_path)[1].lower()
+
+    if file_ext not in VIDEO_MIME_TYPES:
+        raise ValueError(
+            f"Unsupported file format '{file_ext}'. Supported formats: {', '.join(VIDEO_MIME_TYPES.keys())}"
+        )
+
+    content_type = VIDEO_MIME_TYPES[file_ext]
+
     headers: dict = {
         "accept-ranges": "bytes",
-        "content-type": "video/x-matroska",
+        "content-type": content_type,
     }
     if file_range is not None:
         headers["content-range"] = f"bytes {start}-{end}/{size}"

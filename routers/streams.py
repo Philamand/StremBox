@@ -46,7 +46,12 @@ async def get_stream(
     if end is None or end >= file_size:
         end = file_size - 1
 
-    headers, status_code = build_stream_headers(file_range, start, end, file_size)
+    try:
+        headers, status_code = build_stream_headers(
+            file_path, file_range, start, end, file_size
+        )
+    except ValueError:
+        raise HTTPException(status_code=415, detail="Fichier non pris en charge")
 
     return StreamingResponse(
         range_file_reader(request, file_path, start, end),
