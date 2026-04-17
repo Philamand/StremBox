@@ -1,6 +1,6 @@
 import asyncpg
 
-from schemas.users import UserCreateData
+from schemas.users import UserCreateData, UserData
 
 
 class UserService:
@@ -19,3 +19,11 @@ class UserService:
             user.lacale_key,
         )
         return result[0]["id"]
+
+    async def get_user(self, user_id: str) -> UserData:
+        """Get a user by their ID."""
+        result = await self.conn.fetch(
+            "SELECT * FROM users WHERE id = $1",
+            user_id,
+        )
+        return UserData(**result[0])

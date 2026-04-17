@@ -14,8 +14,8 @@ async def get_user_service(
 
 
 async def get_user_key(
-    db_conn: asyncpg.Connection = Depends(get_db_conn),
     user_key: str = Path(..., description="Per-user key embedded in the URL"),
+    user_service: UserService = Depends(get_user_service),
 ) -> UserData:
     """
     Extracts the ``user_key`` path parameter and makes the corresponding user object available as a dependency.
@@ -25,16 +25,11 @@ async def get_user_key(
     """
 
     try:
-        row = await db_conn.fetchrow(
-            "SELECT * FROM users WHERE id = $1",
-            user_key,
-        )
+        user = await user_service.get_user(user_key)
     except asyncpg.exceptions.DataError:
         raise HTTPException(status_code=401, detail="Invalid user key")
 
-    if not row:
+    if not user:
         raise HTTPException(status_code=401, detail="Invalid user key")
-
-    user = UserData(**row)
 
     return user
