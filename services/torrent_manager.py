@@ -18,52 +18,68 @@ class TorrentManager:
         )
         self.c411_api_key = C411_API_KEY
 
-    def add_torrent(self, hash: str, tracker: str):
+    async def add_torrent(self, hash: str, tracker: str):
         """Add a torrent URL or magnet link and enable sequential download."""
-        if tracker == "c411":
-            if not self.c411_api_key:
-                raise HTTPException(
-                    status_code=400, detail="Clé API C411 non configurée"
+
+        def _add_torrent_sync():
+            if tracker == "c411":
+                if not self.c411_api_key:
+                    raise HTTPException(
+                        status_code=400, detail="Clé API C411 non configurée"
+                    )
+                download_link = (
+                    f"https://c411.org/api?t=get&id={hash}&apikey={self.c411_api_key}"
                 )
-            download_link = (
-                f"https://c411.org/api?t=get&id={hash}&apikey={self.c411_api_key}"
+            else:
+                raise HTTPException(status_code=400, detail="Tracker non supporté")
+
+            return self._client.torrents_add(
+                urls=download_link,
+                is_sequential_download=True,
             )
-        else:
-            raise HTTPException(status_code=400, detail="Tracker non supporté")
 
-        return self._client.torrents_add(
-            urls=download_link,
-            is_sequential_download=True,
-        )
+        return await asyncio.to_thread(_add_torrent_sync)
 
-    def check_torrent(self, hash: str) -> bool:
+    async def check_torrent(self, hash: str) -> bool:
         """Check if a torrent is still active."""
-        torrents = self._client.torrents_info(torrent_hashes=hash)
-        return torrents != []
 
-    def wait_until_added(
+        def _check_torrent_sync():
+            torrents = self._client.torrents_info(torrent_hashes=hash)
+            return torrents != []
+
+        return await asyncio.to_thread(_check_torrent_sync)
+
+    async def wait_until_added(
         self, hash: str, timeout: float = 30.0, poll_interval: float = 0.5
     ):
         """Poll qBittorrent until a torrent appears or raise on timeout."""
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            torrents = self._client.torrents_info(torrent_hashes=hash)
-            if torrents:
-                return
-            time.sleep(poll_interval)
 
-        raise HTTPException(
-            status_code=504,
-            detail=f"Timed out after {int(timeout)}s waiting for torrent to be added.",
-        )
+        def _wait_until_added_sync():
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                torrents = self._client.torrents_info(torrent_hashes=hash)
+                if torrents:
+                    return
+                time.sleep(poll_interval)
 
-    def get_torrent_files(self, hash: str) -> TorrentFilesList:
+            raise HTTPException(
+                status_code=504,
+                detail=f"Timed out after {int(timeout)}s waiting for torrent to be added.",
+            )
+
+        return await asyncio.to_thread(_wait_until_added_sync)
+
+    async def get_torrent_files(self, hash: str) -> TorrentFilesList:
         """Return file entries for a given torrent hash."""
-        return self._client.torrents_files(hash=hash)
+
+        def _get_torrent_files_sync():
+            return self._client.torrents_files(hash=hash)
+
+        return await asyncio.to_thread(_get_torrent_files_sync)
 
     async def ensure_torrent_available(self, hash: str, tracker: str | None = None):
         """Ensure the torrent is available, downloading if necessary."""
-        torrent_exists = await asyncio.to_thread(self.check_torrent, hash)
+        torrent_exists = await self.check_torrent(hash)
 
         if torrent_exists:
             return
@@ -71,5 +87,5 @@ class TorrentManager:
         if not tracker:
             raise HTTPException(status_code=404, detail="Torrent introuvable")
 
-        await asyncio.to_thread(self.add_torrent, hash, tracker)
-        await asyncio.to_thread(self.wait_until_added, hash)
+        await self.add_torrent(hash, tracker)
+        await self.wait_until_added(hash)

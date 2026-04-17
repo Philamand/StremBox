@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -32,7 +31,7 @@ async def get_stream(
 
     await torrent_manager.ensure_torrent_available(hash, tracker)
 
-    torrent_files = await asyncio.to_thread(torrent_manager.get_torrent_files, hash)
+    torrent_files = await torrent_manager.get_torrent_files(hash)
 
     file_path = resolve_file_path(torrent_files[0].name, season, episode)
     file_size = os.path.getsize(file_path)
