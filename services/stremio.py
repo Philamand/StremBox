@@ -491,6 +491,7 @@ class StremioOrchestrationService:
         slow_streams: list[StremioStreamData] = []
 
         for result in results:
+            print(result["torrents"][0]["link"])
             speed_emoji = "🐢"
             details = parse_torrent_name(result["name"])
             stream = StremioStreamData(
@@ -500,7 +501,7 @@ class StremioOrchestrationService:
                     f"📤 {result['seeders']}  📥 {result['leechers']} | {result['tracker_name']}\n"
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
-                url=f"{STREAMS_BASE_URL}/test{se}",
+                url=f"{STREAMS_BASE_URL}/streams/{result['torrents'][0]['hash']}{se}",
                 filename=result["name"],
                 videoSize=int(result["size"]),
             )
