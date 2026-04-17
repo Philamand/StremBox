@@ -1,6 +1,7 @@
 import logging
 import re
 import unicodedata
+from urllib.parse import urlparse
 
 import aiohttp
 
@@ -413,3 +414,51 @@ def parse_torrent_name(name: str):
         title_parts.append(f"{' '.join(display_langs)}")
 
     return " | ".join(title_parts)
+
+
+def get_torrent_tracker_and_id(link: str) -> tuple:
+    """Extract the tracker and torrent ID from a torrent download link.
+
+    Args:
+        link (str): The torrent download link. Supports formats like:
+                    - https://api.torr9.net/api/v1/torznab/torrents/183639/download?passkey=passkey
+                    - https://c411.org/api?t=get&id=3cea3059a4ece9830bbcb240f1ec028f9e3ebef9&apikey=
+
+    Returns:
+        tuple: A tuple with (tracker, torrent_id).
+              For c411, torrent_id will be None.
+              Returns (None, None) if extraction fails.
+
+    Example:
+        >>> get_torrent_tracker_and_id("https://api.torr9.net/api/v1/torznab/torrents/183639/download?passkey=passkey")
+        ('torr9', '183639')
+        >>> get_torrent_tracker_and_id("https://c411.org/api?t=get&id=3cea3059a4ece9830bbcb240f1ec028f9e3ebef9&apikey=")
+        ('c411', None)
+    """
+    try:
+        parsed_url = urlparse(link)
+        hostname = parsed_url.hostname or ""
+
+        tracker = None
+        if "torr9" in hostname:
+            tracker = "torr9"
+        elif "c411" in hostname:
+            tracker = "c411"
+        else:
+            match = re.search(r"(?:api\.)?(\w+)\.", hostname)
+            if match:
+                tracker = match.group(1)
+
+        torrent_id = None
+        if tracker == "c411":
+            torrent_id = None
+        else:
+            path = parsed_url.path
+            match = re.search(r"/torrents/(\d+)/", path)
+            if match:
+                torrent_id = match.group(1)
+
+        return tracker, torrent_id
+    except Exception as e:
+        logging.error(f"Error extracting torrent ID from {link}: {e}")
+        return None, None
