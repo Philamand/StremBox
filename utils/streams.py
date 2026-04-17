@@ -222,7 +222,6 @@ def resolve_file_path(
         raise HTTPException(status_code=404)
 
     if not os.path.isfile(BASE_DIR + torrent_file):
-        print(BASE_DIR + torrent_file)
         raise HTTPException(status_code=404)
     return BASE_DIR + torrent_file
 
