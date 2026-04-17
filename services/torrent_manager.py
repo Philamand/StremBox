@@ -3,7 +3,7 @@ import time
 
 import qbittorrentapi
 from fastapi import HTTPException
-from qbittorrentapi import TorrentFilesList
+from qbittorrentapi import TorrentFilesList, TorrentInfoList
 
 from config import QBT_HOST, QBT_PASSWORD, QBT_PORT, QBT_USERNAME
 
@@ -76,6 +76,14 @@ class TorrentManager:
             return self._client.torrents_files(hash=hash)
 
         return await asyncio.to_thread(_get_torrent_files_sync)
+
+    async def get_torrent_list(self) -> TorrentInfoList:
+        """Return the list of all torrents."""
+
+        def _get_torrent_list_sync():
+            return self._client.torrents_info()
+
+        return await asyncio.to_thread(_get_torrent_list_sync)
 
     async def ensure_torrent_available(
         self,
