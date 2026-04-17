@@ -18,6 +18,7 @@ from utils.stremio import (
     check_season_episode,
     check_title_match,
     get_torrent_name,
+    get_torrent_tracker_and_id,
     merge_result_into,
     parse_torrent_name,
     sort_dicts_by_seeders_desc,
@@ -493,6 +494,16 @@ class StremioOrchestrationService:
         for result in results:
             print(result["torrents"][0]["link"])
             speed_emoji = "🐢"
+            tracker, torrent_id = get_torrent_tracker_and_id(
+                result["torrents"][0]["link"]
+            )
+            if tracker == "c411":
+                api_key = user.c411_key
+            elif tracker == "torr9":
+                api_key = user.torr9_key
+            else:
+                api_key = None
+
             details = parse_torrent_name(result["name"])
             stream = StremioStreamData(
                 title=(
@@ -501,7 +512,7 @@ class StremioOrchestrationService:
                     f"📤 {result['seeders']}  📥 {result['leechers']} | {result['tracker_name']}\n"
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
-                url=f"{STREAMS_BASE_URL}/streams/{result['torrents'][0]['hash']}{se}",
+                url=f"{STREAMS_BASE_URL}/streams/{result['torrents'][0]['hash']}{se}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}",
                 filename=result["name"],
                 videoSize=int(result["size"]),
             )
