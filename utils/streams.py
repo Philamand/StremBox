@@ -191,6 +191,8 @@ def resolve_file_path(
     """
     from fastapi import HTTPException
 
+    torrent_file = torrent_file.split("/")[-1]
+
     if season is not None and episode is not None:
         dir_path = "./data/" + torrent_file
         if not os.path.isdir(dir_path):
