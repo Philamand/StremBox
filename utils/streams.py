@@ -243,7 +243,7 @@ def build_stream_headers(
     Raises:
         ValueError: If the file is not a supported video format.
     """
-    # Get file extension and determine MIME type
+
     file_ext = os.path.splitext(file_path)[1].lower()
 
     if file_ext not in VIDEO_MIME_TYPES:

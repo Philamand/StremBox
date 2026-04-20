@@ -3,7 +3,12 @@ from unittest.mock import patch
 import pytest
 from fastapi import HTTPException
 
-from utils.streams import check_season_episode, parse_range, resolve_file_path
+from utils.streams import (
+    build_stream_headers,
+    check_season_episode,
+    parse_range,
+    resolve_file_path,
+)
 
 
 class TestParseRange:
@@ -304,3 +309,226 @@ class TestResolveFilePath:
 
         result = resolve_file_path("series/", 1, 5)
         assert "日本語.S01E05.mkv" in result
+
+
+class TestBuildStreamHeaders:
+    """Test suite for the build_stream_headers function."""
+
+    def test_build_stream_headers_mp4_no_range(self):
+        """Test building headers for MP4 file without range."""
+        headers, status_code = build_stream_headers("video.mp4", None, 0, 999, 1000)
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/mp4"
+        assert headers["accept-ranges"] == "bytes"
+        assert headers["content-length"] == "1000"
+        assert "content-range" not in headers
+
+    def test_build_stream_headers_mkv_no_range(self):
+        """Test building headers for MKV file without range."""
+        headers, status_code = build_stream_headers("video.mkv", None, 0, 999, 5000)
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/x-matroska"
+        assert headers["content-length"] == "5000"
+
+    def test_build_stream_headers_webm_no_range(self):
+        """Test building headers for WebM file without range."""
+        headers, status_code = build_stream_headers("video.webm", None, 0, 999, 2000)
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/webm"
+        assert headers["content-length"] == "2000"
+
+    def test_build_stream_headers_with_range(self):
+        """Test building headers for partial range request."""
+        headers, status_code = build_stream_headers(
+            "video.mp4", "bytes=0-499", 0, 499, 1000
+        )
+
+        assert status_code == 206
+        assert headers["content-type"] == "video/mp4"
+        assert headers["content-range"] == "bytes 0-499/1000"
+        assert headers["content-length"] == "500"
+        assert headers["accept-ranges"] == "bytes"
+
+    def test_build_stream_headers_with_range_middle(self):
+        """Test building headers for range in the middle of file."""
+        headers, status_code = build_stream_headers(
+            "video.mp4", "bytes=500-999", 500, 999, 1000
+        )
+
+        assert status_code == 206
+        assert headers["content-range"] == "bytes 500-999/1000"
+        assert headers["content-length"] == "500"
+
+    def test_build_stream_headers_with_range_end(self):
+        """Test building headers for range at end of file."""
+        headers, status_code = build_stream_headers(
+            "video.mp4", "bytes=900-999", 900, 999, 1000
+        )
+
+        assert status_code == 206
+        assert headers["content-range"] == "bytes 900-999/1000"
+        assert headers["content-length"] == "100"
+
+    def test_build_stream_headers_single_byte_range(self):
+        """Test building headers for single byte range."""
+        headers, status_code = build_stream_headers(
+            "video.mp4", "bytes=500-500", 500, 500, 1000
+        )
+
+        assert status_code == 206
+        assert headers["content-range"] == "bytes 500-500/1000"
+        assert headers["content-length"] == "1"
+
+    def test_build_stream_headers_large_file(self):
+        """Test building headers for large file."""
+        large_size = 1024 * 1024 * 1024  # 1GB
+        headers, status_code = build_stream_headers(
+            "video.mp4", None, 0, large_size - 1, large_size
+        )
+
+        assert status_code == 200
+        assert headers["content-length"] == str(large_size)
+
+    def test_build_stream_headers_large_file_with_range(self):
+        """Test building headers for large file with range."""
+        large_size = 1024 * 1024 * 1024  # 1GB
+        start = 500 * 1024 * 1024  # 500MB
+        end = 600 * 1024 * 1024  # 600MB
+
+        headers, status_code = build_stream_headers(
+            "video.mp4", "bytes=500-600", start, end, large_size
+        )
+
+        assert status_code == 206
+        assert headers["content-range"] == f"bytes {start}-{end}/{large_size}"
+
+    def test_build_stream_headers_all_video_formats(self):
+        """Test building headers for all supported video formats."""
+        formats = {
+            ".mp4": "video/mp4",
+            ".mkv": "video/x-matroska",
+            ".webm": "video/webm",
+            ".avi": "video/x-msvideo",
+            ".mov": "video/quicktime",
+            ".flv": "video/x-flv",
+            ".wmv": "video/x-ms-wmv",
+            ".m3u8": "application/vnd.apple.mpegurl",
+            ".ts": "video/mp2t",
+            ".mpg": "video/mpeg",
+            ".mpeg": "video/mpeg",
+            ".3gp": "video/3gpp",
+            ".ogv": "video/ogg",
+        }
+
+        for ext, mime_type in formats.items():
+            headers, status_code = build_stream_headers(
+                f"video{ext}", None, 0, 999, 1000
+            )
+            assert headers["content-type"] == mime_type
+            assert status_code == 200
+
+    def test_build_stream_headers_uppercase_extension(self):
+        """Test building headers for file with uppercase extension."""
+        headers, status_code = build_stream_headers("VIDEO.MP4", None, 0, 999, 1000)
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/mp4"
+
+    def test_build_stream_headers_mixed_case_extension(self):
+        """Test building headers for file with mixed case extension."""
+        headers, status_code = build_stream_headers("Video.MkV", None, 0, 999, 1000)
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/x-matroska"
+
+    def test_build_stream_headers_unsupported_format(self):
+        """Test building headers for unsupported file format."""
+        with pytest.raises(ValueError) as exc_info:
+            build_stream_headers("document.pdf", None, 0, 999, 1000)
+
+        assert "Unsupported file format" in str(exc_info.value)
+        assert ".pdf" in str(exc_info.value)
+
+    def test_build_stream_headers_unsupported_audio_format(self):
+        """Test building headers for unsupported audio format."""
+        with pytest.raises(ValueError) as exc_info:
+            build_stream_headers("audio.mp3", None, 0, 999, 1000)
+
+        assert "Unsupported file format" in str(exc_info.value)
+
+    def test_build_stream_headers_no_extension(self):
+        """Test building headers for file with no extension."""
+        with pytest.raises(ValueError) as exc_info:
+            build_stream_headers("videofile", None, 0, 999, 1000)
+
+        assert "Unsupported file format" in str(exc_info.value)
+
+    def test_build_stream_headers_range_calculations(self):
+        """Test that content-length calculation is correct for ranges."""
+        # Range: bytes 100-199 (100 bytes)
+        headers, _ = build_stream_headers("video.mp4", "bytes=100-199", 100, 199, 1000)
+        assert headers["content-length"] == "100"
+
+        # Range: bytes 0-99 (100 bytes)
+        headers, _ = build_stream_headers("video.mp4", "bytes=0-99", 0, 99, 1000)
+        assert headers["content-length"] == "100"
+
+        # Range: bytes 1000-1999 (1000 bytes)
+        headers, _ = build_stream_headers(
+            "video.mp4", "bytes=1000-1999", 1000, 1999, 5000
+        )
+        assert headers["content-length"] == "1000"
+
+    def test_build_stream_headers_common_mime_types(self):
+        """Test that common video MIME types are correctly assigned."""
+        test_cases = [
+            ("video.mp4", "video/mp4"),
+            ("movie.mkv", "video/x-matroska"),
+            ("clip.webm", "video/webm"),
+            ("stream.m3u8", "application/vnd.apple.mpegurl"),
+        ]
+
+        for file_path, expected_mime in test_cases:
+            headers, _ = build_stream_headers(file_path, None, 0, 999, 1000)
+            assert headers["content-type"] == expected_mime
+
+    def test_build_stream_headers_accept_ranges_always_present(self):
+        """Test that accept-ranges header is always present."""
+        # Without range
+        headers, _ = build_stream_headers("video.mp4", None, 0, 999, 1000)
+        assert headers["accept-ranges"] == "bytes"
+
+        # With range
+        headers, _ = build_stream_headers("video.mp4", "bytes=0-499", 0, 499, 1000)
+        assert headers["accept-ranges"] == "bytes"
+
+    def test_build_stream_headers_path_with_spaces(self):
+        """Test building headers for file path with spaces."""
+        headers, status_code = build_stream_headers(
+            "my video file.mp4", None, 0, 999, 1000
+        )
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/mp4"
+
+    def test_build_stream_headers_path_with_special_chars(self):
+        """Test building headers for file path with special characters."""
+        headers, status_code = build_stream_headers(
+            "/path/to/video-2024[1080p].mkv", None, 0, 999, 1000
+        )
+
+        assert status_code == 200
+        assert headers["content-type"] == "video/x-matroska"
+
+    def test_build_stream_headers_status_codes(self):
+        """Test that correct status codes are returned."""
+        # 200 for full file
+        _, status = build_stream_headers("video.mp4", None, 0, 999, 1000)
+        assert status == 200
+
+        # 206 for range request
+        _, status = build_stream_headers("video.mp4", "bytes=0-499", 0, 499, 1000)
+        assert status == 206
