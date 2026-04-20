@@ -7,5 +7,6 @@ requires-python = ">=3.14"
 dependencies = [
     "aiofiles>=25.1.0",
     "fastapi[standard]>=0.136.0",
+    "pytest>=9.0.3",
     "qbittorrent-api>=2025.11.1",
 ]
