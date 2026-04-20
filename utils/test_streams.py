@@ -1,4 +1,9 @@
-from utils.streams import check_season_episode, parse_range
+from unittest.mock import patch
+
+import pytest
+from fastapi import HTTPException
+
+from utils.streams import check_season_episode, parse_range, resolve_file_path
 
 
 class TestParseRange:
@@ -164,3 +169,138 @@ class TestCheckSeasonEpisode:
         """Test mixed separator styles."""
         assert check_season_episode("show.S01_E05.mkv", 1, 5) is True
         assert check_season_episode("show.S01.E05.mkv", 1, 5) is True
+
+
+class TestResolveFilePath:
+    """Test suite for the resolve_file_path function."""
+
+    @patch("utils.streams.os.path.isfile")
+    def test_resolve_file_path_plain_file_exists(self, mock_isfile):
+        """Test resolving a plain file that exists."""
+        mock_isfile.return_value = True
+        result = resolve_file_path("video.mp4", None, None)
+        assert "video.mp4" in result
+        mock_isfile.assert_called_once()
+
+    @patch("utils.streams.os.path.isfile")
+    def test_resolve_file_path_plain_file_not_found(self, mock_isfile):
+        """Test resolving a plain file that does not exist."""
+        mock_isfile.return_value = False
+        with pytest.raises(HTTPException) as exc_info:
+            resolve_file_path("nonexistent.mp4", None, None)
+        assert exc_info.value.status_code == 404
+
+    @patch("utils.streams.os.path.isdir")
+    @patch("utils.streams.os.listdir")
+    @patch("utils.streams.check_season_episode")
+    def test_resolve_file_path_season_episode_found(
+        self, mock_check, mock_listdir, mock_isdir
+    ):
+        """Test resolving a file with season/episode that matches."""
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ["S01E05.mkv", "S01E06.mkv"]
+        mock_check.side_effect = lambda f, s, e: f == "S01E05.mkv"
+
+        result = resolve_file_path("series/", 1, 5)
+        assert "S01E05.mkv" in result
+        mock_isdir.assert_called_once()
+
+    @patch("utils.streams.os.path.isdir")
+    def test_resolve_file_path_season_episode_dir_not_found(self, mock_isdir):
+        """Test resolving with season/episode when directory does not exist."""
+        mock_isdir.return_value = False
+        with pytest.raises(HTTPException) as exc_info:
+            resolve_file_path("nonexistent/", 1, 5)
+        assert exc_info.value.status_code == 404
+
+    @patch("utils.streams.os.path.isdir")
+    @patch("utils.streams.os.listdir")
+    @patch("utils.streams.check_season_episode")
+    def test_resolve_file_path_season_episode_no_match(
+        self, mock_check, mock_listdir, mock_isdir
+    ):
+        """Test resolving with season/episode when no file matches."""
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ["S01E05.mkv", "S01E06.mkv"]
+        mock_check.return_value = False
+
+        with pytest.raises(HTTPException) as exc_info:
+            resolve_file_path("series/", 2, 10)
+        assert exc_info.value.status_code == 404
+
+    @patch("utils.streams.os.path.isdir")
+    @patch("utils.streams.os.listdir")
+    @patch("utils.streams.check_season_episode")
+    def test_resolve_file_path_multiple_files_first_match(
+        self, mock_check, mock_listdir, mock_isdir
+    ):
+        """Test that the first matching file is returned."""
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ["S01E05.mkv", "S02E05.mkv", "S01E05_alt.mkv"]
+
+        def check_side_effect(f, s, e):
+            return s == 1 and e == 5
+
+        mock_check.side_effect = check_side_effect
+
+        result = resolve_file_path("series/", 1, 5)
+        # Should return the first match
+        assert "S01E05.mkv" in result
+
+    @patch("utils.streams.os.path.isdir")
+    @patch("utils.streams.os.listdir")
+    @patch("utils.streams.check_season_episode")
+    def test_resolve_file_path_empty_directory(
+        self, mock_check, mock_listdir, mock_isdir
+    ):
+        """Test resolving when directory is empty."""
+        mock_isdir.return_value = True
+        mock_listdir.return_value = []
+
+        with pytest.raises(HTTPException) as exc_info:
+            resolve_file_path("series/", 1, 5)
+        assert exc_info.value.status_code == 404
+
+    @patch("utils.streams.os.path.isfile")
+    def test_resolve_file_path_with_subdirectory(self, mock_isfile):
+        """Test resolving a file in a subdirectory."""
+        mock_isfile.return_value = True
+        result = resolve_file_path("movies/action/video.mp4", None, None)
+        assert "movies/action/video.mp4" in result
+
+    @patch("utils.streams.os.path.isfile")
+    def test_resolve_file_path_season_without_episode(self, mock_isfile):
+        """Test that season/episode resolution requires both season and episode."""
+        mock_isfile.return_value = False
+
+        # When season is not None but episode is None, it tries isfile
+        with pytest.raises(HTTPException):
+            resolve_file_path("series/", 1, None)
+
+    @patch("utils.streams.os.path.isdir")
+    @patch("utils.streams.os.listdir")
+    @patch("utils.streams.check_season_episode")
+    def test_resolve_file_path_special_characters_in_filename(
+        self, mock_check, mock_listdir, mock_isdir
+    ):
+        """Test resolving files with special characters."""
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ["Show.Name.S01E05.[1080p].mkv"]
+        mock_check.side_effect = lambda f, s, e: f == "Show.Name.S01E05.[1080p].mkv"
+
+        result = resolve_file_path("series/", 1, 5)
+        assert "Show.Name.S01E05.[1080p].mkv" in result
+
+    @patch("utils.streams.os.path.isdir")
+    @patch("utils.streams.os.listdir")
+    @patch("utils.streams.check_season_episode")
+    def test_resolve_file_path_unicode_filenames(
+        self, mock_check, mock_listdir, mock_isdir
+    ):
+        """Test resolving files with unicode characters."""
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ["日本語.S01E05.mkv"]
+        mock_check.side_effect = lambda f, s, e: f == "日本語.S01E05.mkv"
+
+        result = resolve_file_path("series/", 1, 5)
+        assert "日本語.S01E05.mkv" in result
