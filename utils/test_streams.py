@@ -1,4 +1,4 @@
-from utils.streams import parse_range
+from utils.streams import check_season_episode, parse_range
 
 
 class TestParseRange:
@@ -93,3 +93,74 @@ class TestParseRange:
         start, end = parse_range("bytes=0-0")
         assert start == 0
         assert end == 0
+
+
+class TestCheckSeasonEpisode:
+    """Test suite for the check_season_episode function."""
+
+    def test_check_season_episode_season_episode_format(self):
+        """Test parsing S##E## format."""
+        assert check_season_episode("show.S01E05.mkv", 1, 5) is True
+        assert check_season_episode("show.S01E05.mkv", 1, 6) is False
+        assert check_season_episode("show.S02E03.mkv", 2, 3) is True
+        assert check_season_episode("show.S02E03.mkv", 1, 3) is False
+
+    def test_check_season_episode_saison_format(self):
+        """Test parsing SAISON##E## format (French)."""
+        assert check_season_episode("show.SAISON01E05.mkv", 1, 5) is True
+        assert check_season_episode("show.SAISON02E10.mkv", 2, 10) is True
+        assert check_season_episode("show.SAISON01E05.mkv", 2, 5) is False
+
+    def test_check_season_episode_case_insensitive(self):
+        """Test that season/episode parsing is case insensitive."""
+        assert check_season_episode("show.s01e05.mkv", 1, 5) is True
+        assert check_season_episode("show.SEASON01E05.mkv", 1, 5) is True
+        assert check_season_episode("show.season01e05.mkv", 1, 5) is True
+
+    def test_check_season_episode_with_separators(self):
+        """Test various separator formats."""
+        assert check_season_episode("show.S01-E05.mkv", 1, 5) is True
+        assert check_season_episode("show.S01_E05.mkv", 1, 5) is True
+        assert check_season_episode("show.S01.E05.mkv", 1, 5) is True
+
+    def test_check_season_episode_x_format(self):
+        """Test parsing ##x## format."""
+        assert check_season_episode("show.01x05.mkv", 1, 5) is True
+        assert check_season_episode("show.02x10.mkv", 2, 10) is True
+        assert check_season_episode("show.01x05.mkv", 2, 5) is False
+
+    def test_check_season_episode_season_only(self):
+        """Test parsing season-only format."""
+        assert check_season_episode("show.S01.mkv", 1, 5) is True
+        assert check_season_episode("show.SEASON02.mkv", 2, 3) is True
+        assert check_season_episode("show.S01.mkv", 2, 5) is False
+
+    def test_check_season_episode_episode_range(self):
+        """Test parsing episode ranges (E##-##)."""
+        assert check_season_episode("show.S01E05-E10.mkv", 1, 7) is True
+        assert check_season_episode("show.S01E05-E10.mkv", 1, 5) is True
+        assert check_season_episode("show.S01E05-E10.mkv", 1, 10) is True
+        assert check_season_episode("show.S01E05-E10.mkv", 1, 11) is False
+        assert check_season_episode("show.S01E05-E10.mkv", 1, 4) is False
+
+    def test_check_season_episode_no_match(self):
+        """Test files with no season/episode information."""
+        assert check_season_episode("random_movie.mkv", 1, 5) is False
+        assert check_season_episode("some.file.without.format", 1, 1) is False
+
+    def test_check_season_episode_large_numbers(self):
+        """Test parsing large season/episode numbers."""
+        assert check_season_episode("show.S10E25.mkv", 10, 25) is True
+        assert check_season_episode("show.10x25.mkv", 10, 25) is True
+        assert check_season_episode("show.S99E99.mkv", 99, 99) is True
+
+    def test_check_season_episode_multiple_matches(self):
+        """Test files with multiple season/episode patterns."""
+        assert check_season_episode("S01E05.and.S02E10.mkv", 1, 5) is True
+        assert check_season_episode("S01E05.and.S02E10.mkv", 2, 10) is True
+        assert check_season_episode("S01E05.and.S02E10.mkv", 3, 5) is False
+
+    def test_check_season_episode_mixed_separators(self):
+        """Test mixed separator styles."""
+        assert check_season_episode("show.S01_E05.mkv", 1, 5) is True
+        assert check_season_episode("show.S01.E05.mkv", 1, 5) is True
