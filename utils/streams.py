@@ -124,7 +124,7 @@ async def range_file_reader(
                 remaining -= len(data)
 
 
-def check_season_episode(name, target_season, target_episode):
+def check_season_episode(name: str, target_season: int, target_episode: int) -> bool:
     """Checks if the torrent matches the target season/episode."""
     if target_season is None:
         return True
