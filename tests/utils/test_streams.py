@@ -1,12 +1,13 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from utils.streams import (
     build_stream_headers,
     check_season_episode,
     parse_range,
+    range_file_reader,
     resolve_file_path,
 )
 
@@ -532,3 +533,312 @@ class TestBuildStreamHeaders:
         # 206 for range request
         _, status = build_stream_headers("video.mp4", "bytes=0-499", 0, 499, 1000)
         assert status == 206
+
+
+class MockAsyncFile:
+    """Mock async file object for testing."""
+
+    def __init__(self, data: bytes):
+        self.data = data
+        self.pos = 0
+        self.seek = AsyncMock(side_effect=self._seek_impl)
+        self.read = AsyncMock(side_effect=self._read_impl)
+
+    async def _seek_impl(self, offset: int):
+        """Implementation of seek operation."""
+        self.pos = offset
+
+    async def _read_impl(self, size: int) -> bytes:
+        """Implementation of read operation."""
+        data = self.data[self.pos : self.pos + size]
+        self.pos += len(data)
+        return data
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        pass
+
+
+class TestRangeFileReader:
+    """Test suite for the range_file_reader function."""
+
+    @pytest.fixture
+    def mock_request(self):
+        """Create a mock Request object."""
+        request = MagicMock(spec=Request)
+        request.is_disconnected = AsyncMock(return_value=False)
+        return request
+
+    @pytest.fixture
+    def test_data(self):
+        """Create test data for file content."""
+        return b"0123456789" * 100  # 1000 bytes
+
+    async def collect_chunks(self, generator):
+        """Helper to collect all chunks from async generator."""
+        return [chunk async for chunk in generator]
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_basic(self, mock_open, mock_request, test_data):
+        """Test basic file reading from start to end."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, chunk_size=100)
+        )
+
+        assert b"".join(chunks) == test_data
+        mock_file.seek.assert_called_once_with(0)
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_with_end(self, mock_open, mock_request, test_data):
+        """Test reading with both start and end specified."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(
+                mock_request, "test.txt", start=100, end=199, chunk_size=50
+            )
+        )
+
+        expected = test_data[100:200]
+        assert b"".join(chunks) == expected
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_start_only(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test reading from start to end of file."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=50, chunk_size=50)
+        )
+
+        expected = test_data[50:]
+        assert b"".join(chunks) == expected
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_respects_chunk_size(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test that chunks are of specified size."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, chunk_size=10)
+        )
+
+        for i, chunk in enumerate(chunks[:-1]):
+            assert len(chunk) == 10
+        assert len(chunks) == 100
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_custom_chunk_size(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test with custom chunk size."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, end=99, chunk_size=25)
+        )
+
+        for chunk in chunks[:-1]:
+            assert len(chunk) == 25
+        assert len(chunks[-1]) == 25
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_disconnected_request(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test that reading stops when request is disconnected."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_request.is_disconnected = AsyncMock(
+            side_effect=[False, False, True, False]
+        )
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, chunk_size=100)
+        )
+
+        assert len(chunks) == 2
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_empty_range(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test reading with start > end (empty range)."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(
+                mock_request, "test.txt", start=500, end=499, chunk_size=100
+            )
+        )
+
+        assert len(chunks) == 0
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_start_equals_end(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test reading a single byte."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(
+                mock_request, "test.txt", start=100, end=100, chunk_size=100
+            )
+        )
+
+        assert len(chunks) == 1
+        assert chunks[0] == test_data[100:101]
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_end_exceeds_file_size(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test reading when end exceeds file size."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(
+                mock_request, "test.txt", start=0, end=999999, chunk_size=100
+            )
+        )
+
+        assert b"".join(chunks) == test_data
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_start_beyond_file(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test reading when start is beyond file size."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=999999, chunk_size=100)
+        )
+
+        assert len(chunks) == 0
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_zero_chunk_size(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test with chunk size of 1."""
+        data = b"0123456789"
+        mock_file = MockAsyncFile(data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, chunk_size=1)
+        )
+
+        assert len(chunks) == 10
+        assert b"".join(chunks) == data
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_large_chunk_size(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test with chunk size larger than remaining data."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, chunk_size=5000)
+        )
+
+        assert len(chunks) == 1
+        assert chunks[0] == test_data
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_partial_read(self, mock_open, mock_request):
+        """Test reading partial chunks at end of range."""
+        data = b"0123456789"
+        mock_file = MockAsyncFile(data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        chunks = await self.collect_chunks(
+            range_file_reader(mock_request, "test.txt", start=0, end=4, chunk_size=10)
+        )
+
+        assert len(chunks) == 1
+        assert chunks[0] == b"01234"
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_preserves_filepointer(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test that seek is called with correct position."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        await self.collect_chunks(
+            range_file_reader(
+                mock_request, "test.txt", start=500, end=599, chunk_size=100
+            )
+        )
+
+        mock_file.seek.assert_called_once_with(500)
+
+    @patch("utils.streams.aiofiles.open")
+    @pytest.mark.anyio
+    async def test_range_file_reader_filepath_parameter(
+        self, mock_open, mock_request, test_data
+    ):
+        """Test that correct filepath is passed to aiofiles.open."""
+        mock_file = MockAsyncFile(test_data)
+        mock_open.return_value.__aenter__ = AsyncMock(return_value=mock_file)
+        mock_open.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        await self.collect_chunks(
+            range_file_reader(
+                mock_request, "/path/to/file.mp4", start=0, chunk_size=100
+            )
+        )
+
+        mock_open.assert_called_once_with("/path/to/file.mp4", "rb")
