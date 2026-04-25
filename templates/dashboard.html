@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block content %} {% for torrent in torrent_list %}
+{% extends "base.html" %} {% block content %} {% include
+"components/upload_modal.html" %} {% for torrent in torrent_list %}
 <div
     id="card-{{ torrent.hash }}"
     class="card bg-base-100 w-full shadow-sm mb-4"
@@ -133,4 +134,5 @@
         </div>
     </div>
 </div>
+
 {% endfor %} {% endblock %}

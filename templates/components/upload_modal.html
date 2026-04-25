@@ -1,0 +1,22 @@
+<dialog id="upload_modal" class="modal" aria-labelledby="upload-modal-title">
+    <div class="modal-box">
+        <h3 id="upload-modal-title" class="text-lg font-bold">
+            Ajouter un torrent
+        </h3>
+
+        <fieldset class="fieldset py-4">
+            <legend class="fieldset-legend">Fichier torrent</legend>
+
+            <input
+                type="file"
+                class="file-input"
+                name="torrent_file"
+                accept=".torrent,application/x-bittorrent"
+            />
+        </fieldset>
+    </div>
+
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
