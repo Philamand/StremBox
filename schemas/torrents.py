@@ -11,3 +11,4 @@ class Torrent(BaseModel):
     progress: float
     ratio: float
     added_on: int
+    total_size: int
