@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, File
 
 from services.torrent_manager import TorrentManager
 from utils.security import validate_bearer_token
@@ -16,7 +18,7 @@ async def get_torrent_list(
 
 @router.post("/")
 async def add_torrent_file(
-    torrent_file: bytes,
+    torrent_file: Annotated[bytes, File()],
     torrent_manager: TorrentManager = Depends(),
 ):
     """Add a torrent file."""
