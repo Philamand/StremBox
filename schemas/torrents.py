@@ -8,3 +8,6 @@ class Torrent(BaseModel):
     hash: str
     num_seeds: int
     num_leechs: int
+    progress: float
+    ratio: float
+    added_on: int

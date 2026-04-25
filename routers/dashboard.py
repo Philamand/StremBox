@@ -5,9 +5,11 @@ from fastapi.templating import Jinja2Templates
 from config import HANKO_URL
 from services.torrent_manager import TorrentManager
 from utils.auth import get_user
+from utils.jinja_filters import relative_time
 
 dashboard_router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["relative_time"] = relative_time
 
 
 @dashboard_router.get("/")

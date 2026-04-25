@@ -1,8 +1,10 @@
 {% extends "base.html" %} {% block content %} {% for torrent in torrent_list %}
 <div class="card bg-base-100 w-full shadow-sm mb-4">
-    <div class="card-body">
+    <di class="card-body">
         <h2 class="card-title">{{ torrent.name }}</h2>
-        <p>{{ torrent.num_seeds }} Seeds - {{ torrent.num_leechs }} Leechs</p>
+        <div class="w-full flex items-center">Progression: <progress class="progress {% if torrent.progress == 1 %}progress-success{% else %}progress-secondary{% endif %} ml-2" value="{{ torrent.progress }}" max="1"></progress></div>
+        <p>{{ torrent.num_seeds }} Seeds - {{ torrent.num_leechs }} Leechs - {{ torrent.ratio|round(2) }} Ratio</p>
+        <p>{{ torrent.added_on|relative_time }}</p>
         <div class="grid grid-cols-2 gap-4">
             <button class="btn btn-primary">
                 <svg
