@@ -1,7 +1,7 @@
-{% extends "base.html" %} {% block content %}
-<div class="card bg-base-100 w-full shadow-sm">
+{% extends "base.html" %} {% block content %} {% for torrent in torrent_list %}
+<div class="card bg-base-100 w-full shadow-sm mb-4">
     <div class="card-body">
-        <h2 class="card-title">Card title!</h2>
+        <h2 class="card-title">{{ torrent.name }}</h2>
         <p>
             A card component has a figure, a body part, and inside body there
             are title and actions parts
@@ -11,4 +11,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endfor %} {% endblock %}
