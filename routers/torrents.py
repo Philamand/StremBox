@@ -14,6 +14,16 @@ async def get_torrent_list(
     return await torrent_manager.get_torrent_list()
 
 
+@router.post("/")
+async def add_torrent_file(
+    torrent_file: bytes,
+    torrent_manager: TorrentManager = Depends(),
+):
+    """Add a torrent file."""
+    await torrent_manager.add_torrent_file(torrent_file)
+    return {"message": "Fichier torrent ajouté avec succès"}
+
+
 @router.get("/hashes/")
 async def get_torrent_hashes(
     torrent_manager: TorrentManager = Depends(),

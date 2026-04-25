@@ -17,6 +17,16 @@ class TorrentManager:
             host=QBT_HOST, port=QBT_PORT, username=QBT_USERNAME, password=QBT_PASSWORD
         )
 
+    async def add_torrent_file(self, torrent_file: bytes):
+        """Add a torrent file and enable sequential download."""
+
+        def _add_torrent_sync():
+            self._client.torrents_add(
+                torrent_files=torrent_file, sequential_download=True
+            )
+
+        await asyncio.to_thread(_add_torrent_sync)
+
     async def add_torrent(
         self, hash: str, tracker: str, api_key: str | None, torrent_id: str | None
     ):
