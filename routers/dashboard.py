@@ -25,3 +25,13 @@ async def dashboard(
         name="dashboard.html",
         context={"hanko_url": HANKO_URL, "user": user, "torrent_list": torrent_list},
     )
+
+
+@dashboard_router.delete("/{hash}")
+async def delete_torrent(
+    hash: str,
+    torrent_manager: TorrentManager = Depends(),
+):
+    """Delete a torrent by hash."""
+    await torrent_manager.delete_torrent(hash)
+    return {"message": "Torrent supprimé avec succès"}
