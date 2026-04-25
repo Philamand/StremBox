@@ -1,6 +1,4 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, File
+from fastapi import APIRouter, Depends, UploadFile
 
 from schemas.torrents import Torrent
 from services.torrent_manager import TorrentManager
@@ -20,11 +18,11 @@ async def get_torrent_list(
 
 @router.post("/")
 async def add_torrent_file(
-    torrent_file: Annotated[bytes, File()],
+    torrent_file: UploadFile,
     torrent_manager: TorrentManager = Depends(),
 ):
     """Add a torrent file."""
-    await torrent_manager.add_torrent_file(torrent_file)
+    await torrent_manager.add_torrent_file(torrent_file.file.read())
     return {"message": "Fichier torrent ajouté avec succès"}
 
 
