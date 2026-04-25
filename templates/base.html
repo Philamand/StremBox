@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Streamer</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/daisyui@5"
+            rel="stylesheet"
+            type="text/css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    </head>
+    <body>
+        {% if user %}
+        <div class="navbar bg-base-100 shadow-sm">
+				<div class="flex-1">
+					<button type="button" class="btn btn-ghost text-xl">
+						LibreBox
+					</button>
+				</div>
+				<div class="flex-none">
+					<button
+						type="button"
+						class="btn btn-square btn-ghost"
+						onclick="my_modal_2.showModal()"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="lucide lucide-plus-icon lucide-plus"
+						>
+							<title>Ajouter un torrent</title>
+							<path d="M5 12h14" />
+							<path d="M12 5v14" />
+						</svg>
+					</button>
+				</div>
+			</div>
+
+			<main class="py-4 px-16">
+                {% block content %}
+                {% endblock %}
+			</main>
+        {% else %}
+        <hanko-auth />
+        {% endif %}
+        <script type="module">
+            import { register } from "https://esm.run/@teamhanko/hanko-elements";
+
+            await register("{{ hanko_url }}");
+          </script>
+        </body>
+    </body>
+</html>
