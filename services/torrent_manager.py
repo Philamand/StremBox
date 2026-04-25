@@ -113,3 +113,11 @@ class TorrentManager:
 
         await self.add_torrent(hash, tracker, api_key, torrent_id)
         await self.wait_until_added(hash)
+
+    async def delete_torrent(self, hash: str):
+        """Delete a torrent by hash."""
+
+        def _delete_torrent_sync():
+            self._client.torrents_delete(delete_files=True, torrent_hashes=hash)
+
+        await asyncio.to_thread(_delete_torrent_sync)

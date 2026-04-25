@@ -26,6 +26,16 @@ async def add_torrent_file(
     return {"message": "Fichier torrent ajouté avec succès"}
 
 
+@router.delete("/{hash}")
+async def delete_torrent(
+    hash: str,
+    torrent_manager: TorrentManager = Depends(),
+):
+    """Delete a torrent by hash."""
+    await torrent_manager.delete_torrent(hash)
+    return {"message": "Torrent supprimé avec succès"}
+
+
 @router.get("/hashes/")
 async def get_torrent_hashes(
     torrent_manager: TorrentManager = Depends(),
