@@ -6,3 +6,5 @@ class Torrent(BaseModel):
     dlspeed: int
     upspeed: int
     hash: str
+    num_seeds: int
+    num_leechs: int
