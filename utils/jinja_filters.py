@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from jinja2 import Environment
+
 
 def relative_time(timestamp):
     """Jinja filter: returns French relative time string."""
@@ -31,3 +33,25 @@ def relative_time(timestamp):
             f"Créé il y a {minutes} minutes" if minutes > 1 else "Créé il y a 1 minute"
         )
     return "Créé à l'instant"
+
+
+def format_size(bytes_count: int) -> str:
+    """Jinja filter: converts bytes to human-readable size (B, KB, MB, GB)."""
+    if bytes_count < 0:
+        return "0B"
+    if bytes_count < 1024:
+        return f"{bytes_count}B"
+    kb = bytes_count / 1024
+    if kb < 1024:
+        return f"{kb:.1f}KB"
+    mb = kb / 1024
+    if mb < 1024:
+        return f"{mb:.1f}MB"
+    gb = mb / 1024
+    return f"{gb:.1f}GB"
+
+
+def register_filters(env: Environment) -> None:
+    """Register all custom Jinja filters on the given environment."""
+    env.filters["relative_time"] = relative_time
+    env.filters["format_size"] = format_size
