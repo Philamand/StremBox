@@ -12,8 +12,7 @@ async def get_torrent_list(
     torrent_manager: TorrentManager = Depends(),
 ) -> list[Torrent]:
     """Return the list of all torrents."""
-    torrent_list = await torrent_manager.get_torrent_list()
-    return [Torrent.model_validate(torrent) for torrent in torrent_list]
+    return await torrent_manager.get_torrent_list()
 
 
 @router.post("/")
