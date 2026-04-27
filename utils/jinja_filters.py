@@ -15,7 +15,7 @@ def relative_time(timestamp):
 
     total_seconds = int(delta.total_seconds())
     if total_seconds < 0:
-        return "Créé dans le futur"
+        return "dans le futur"
 
     minutes = total_seconds // 60
     hours = minutes // 60
@@ -23,16 +23,14 @@ def relative_time(timestamp):
     months = days // 30
 
     if months > 0:
-        return f"Créé il y a {months} mois" if months > 1 else "Créé il y a 1 mois"
+        return f"il y a {months} mois" if months > 1 else "il y a 1 mois"
     if days > 0:
-        return f"Créé il y a {days} jours" if days > 1 else "Créé il y a 1 jour"
+        return f"il y a {days} jours" if days > 1 else "il y a 1 jour"
     if hours > 0:
-        return f"Créé il y a {hours} heures" if hours > 1 else "Créé il y a 1 heure"
+        return f"il y a {hours} heures" if hours > 1 else "il y a 1 heure"
     if minutes > 0:
-        return (
-            f"Créé il y a {minutes} minutes" if minutes > 1 else "Créé il y a 1 minute"
-        )
-    return "Créé à l'instant"
+        return f"il y a {minutes} minutes" if minutes > 1 else "il y a 1 minute"
+    return "à l'instant"
 
 
 def format_size(bytes_count: int) -> str:
