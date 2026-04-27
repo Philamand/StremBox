@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Request, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from config import HANKO_URL
@@ -25,6 +25,18 @@ async def dashboard(
         name="dashboard.html",
         context={"hanko_url": HANKO_URL, "user": user, "torrent_list": torrent_list},
     )
+
+
+@dashboard_router.post("/")
+async def add_torrent(
+    torrent_file: UploadFile,
+    user: str = Depends(get_user),
+    torrent_manager: TorrentManager = Depends(),
+):
+    """Add a torrent file and redirect to dashboard."""
+    torrent_content = await torrent_file.read()
+    await torrent_manager.add_torrent_file(torrent_content)
+    return RedirectResponse(url="/", status_code=303)
 
 
 @dashboard_router.delete("/{hash}")

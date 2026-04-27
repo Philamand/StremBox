@@ -4,16 +4,18 @@
             Ajouter un torrent
         </h3>
 
-        <fieldset class="fieldset py-4">
-            <legend class="fieldset-legend">Fichier torrent</legend>
-
+        <form action="/" method="post" enctype="multipart/form-data">
             <input
-                type="file"
                 class="file-input"
+                type="file"
                 name="torrent_file"
-                accept=".torrent,application/x-bittorrent"
+                accept=".torrent"
+                required
             />
-        </fieldset>
+            <button class="btn btn-primary" type="submit">
+                Ajouter Torrent
+            </button>
+        </form>
     </div>
 
     <form method="dialog" class="modal-backdrop">
