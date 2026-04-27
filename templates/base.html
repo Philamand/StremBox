@@ -1,6 +1,9 @@
 <!doctype html>
 <html>
     <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
         <title>Streamer</title>
         <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
         <link
@@ -12,7 +15,7 @@
     </head>
     <body>
         {% if user %}
-			<main class="pt-4 pb-16 px-16">
+			<main class="pt-1 md:pt-4 pb-16 md:px-16">
                 {% block content %}
                 {% endblock %}
                 <div class="dock">

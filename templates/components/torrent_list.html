@@ -4,9 +4,9 @@
     class="card bg-base-100 w-full shadow-sm mb-4"
 >
     <div class="card-body">
-        <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-10">
-                <h2 class="card-title">{{ torrent.name }}</h2>
+        <div class="grid grid-cols-12 md:gap-4">
+            <div class="col-span-12 md:col-span-10">
+                <h2 class="card-title overflow-hidden">{{ torrent.name }}</h2>
                 <div class="w-full flex items-center">
                     Progression:
                     <progress
@@ -21,8 +21,8 @@
                 </p>
                 <p>Créé {{ torrent.added_on|relative_time }}</p>
             </div>
-            <div class="col-span-2 flex flex-col items-end">
-                <div>
+            <div class="col-span-12 md:col-span-2 flex flex-col items-end">
+                <div class="w-full flex flex-row md:flex-col justify-between">
                     <div class="flex">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
