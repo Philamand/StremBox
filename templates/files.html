@@ -1,19 +1,5 @@
 {% extends "base.html" %} {% block content %}
-<div
-    class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100"
->
-    <table class="table">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nom</th>
-                <th>Taille</th>
-                <th>Dernière modification</th>
-            </tr>
-        </thead>
-        <tbody id="file_list_body">
-            {% include "components/file_list.html" %}
-        </tbody>
-    </table>
-</div>
+<ul id="file-list" class="list bg-base-100 rounded-box shadow-md">
+    {% include "components/file_list.html" %}
+</ul>
 {% endblock %}

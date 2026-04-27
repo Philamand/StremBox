@@ -1,7 +1,8 @@
 {% for file in files %}
-<tr>
-    <th>
-        {% if file.is_dir %}<svg
+<li class="list-row">
+    <div>
+        {% if file.is_dir %}
+        <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
@@ -15,8 +16,10 @@
         >
             <path
                 d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
-            /></svg
-        >{% else %}<svg
+            />
+        </svg>
+        {% else %}
+        <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
@@ -31,22 +34,67 @@
             <path
                 d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
             />
-            <path d="M14 2v5a1 1 0 0 0 1 1h5" /></svg
-        >{% endif %}
-    </th>
-    <td>
-        {% if file.is_dir %}<a
-            href=""
+            <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+        </svg>
+        {% endif %}
+    </div>
+    <div>
+        <div
+            {%
+            if
+            file.is_dir
+            %}class="text-blue-500"
             hx-get="/files/?folder={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
-            hx-target="#file_list_body"
+            hx-target="#file-list"
             hx-push-url="true"
-            >{{ file.name }}</a
-        >{% else %}{{ file.name }}{% endif %}
-    </td>
-    <td>{% if file.size %}{{ file.size|filesizeformat }}{% endif %}</td>
-    <td>
-        {% if file.last_modified %}{{
-        file.last_modified|relative_time|capitalize }}{% endif %}
-    </td>
-</tr>
+            {%
+            endif
+            %}
+        >
+            {{ file.name }}
+        </div>
+        {% if file.size %}
+        <div class="text-xs uppercase font-semibold opacity-60">
+            {{ file.size|filesizeformat }}
+        </div>
+        {% endif %}
+    </div>
+    <button class="btn btn-square btn-ghost">
+        <svg
+            class="size-[1.2em]"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+        >
+            <g
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+            >
+                <path d="M6 3L20 12 6 21 6 3z"></path>
+            </g>
+        </svg>
+    </button>
+    <button class="btn btn-square btn-ghost">
+        <svg
+            class="size-[1.2em]"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+        >
+            <g
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+            >
+                <path
+                    d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+                ></path>
+            </g>
+        </svg>
+    </button>
+</li>
+
 {% endfor %}
