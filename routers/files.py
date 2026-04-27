@@ -15,11 +15,14 @@ register_filters(templates.env)
 @router.get("/")
 async def list_files(
     request: Request,
+    folder: str | None = None,
     user: str = Depends(get_user),
     file_manager: FileManager = Depends(),
 ) -> HTMLResponse:
     """Return the list of files from the configured directory."""
-    files = await file_manager.list_files()
+    files = await file_manager.list_files(folder)
     return templates.TemplateResponse(
-        request, "files.html", {"hanko_url": HANKO_URL, "user": user, "files": files}
+        request,
+        "files.html",
+        {"hanko_url": HANKO_URL, "user": user, "files": files, "folder": folder},
     )

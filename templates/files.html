@@ -47,8 +47,15 @@
                         <path d="M14 2v5a1 1 0 0 0 1 1h5" /></svg
                     >{% endif %}
                 </th>
-                <td>{{ file.name }}</td>
-                <td>{% if file.size %}{{ file.size }}{% endif %}</td>
+                <td>
+                    {% if file.is_dir %}<a
+                        href="/files/?folder={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
+                        >{{ file.name }}</a
+                    >{% else %}{{ file.name }}{% endif %}
+                </td>
+                <td>
+                    {% if file.size %}{{ file.size|filesizeformat }}{% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

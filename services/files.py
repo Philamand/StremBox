@@ -7,15 +7,16 @@ from schemas.files import FileData
 
 
 class FileManager:
-    async def list_files(self) -> list[FileData]:
+    async def list_files(self, folder: str | None = None) -> list[FileData]:
         """
         Return the list of entries in the configured Torrents directory.
         """
-        names = await os.listdir(BASE_DIR)
+        path = _pyos.path.join(BASE_DIR, folder) if folder else BASE_DIR
+        names = await os.listdir(path)
         results: list[FileData] = []
 
         for name in names:
-            full_path = _pyos.path.join(BASE_DIR, name)
+            full_path = _pyos.path.join(path, name)
             try:
                 is_dir = await os.path.isdir(full_path)
                 size = await os.path.getsize(full_path) if not is_dir else None
