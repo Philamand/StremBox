@@ -20,8 +20,8 @@ async def list_files(
     request: Request,
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
     file_manager: Annotated[FileManager, Depends()],
+    user: Annotated[str, Depends(get_user)],
     folder: str | None = None,
-    user: str = Depends(get_user),
 ) -> HTMLResponse:
     """Return the list of files from the configured directory."""
     files = await file_manager.list_files(folder)

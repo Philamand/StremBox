@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, UploadFile
 
 from schemas.torrents import Torrent
@@ -9,7 +11,7 @@ router = APIRouter(dependencies=[Depends(validate_bearer_token)])
 
 @router.get("/")
 async def get_torrent_list(
-    torrent_manager: TorrentManager = Depends(),
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ) -> list[Torrent]:
     """Return the list of all torrents."""
     return await torrent_manager.get_torrent_list()
@@ -18,7 +20,7 @@ async def get_torrent_list(
 @router.post("/")
 async def add_torrent_file(
     torrent_file: UploadFile,
-    torrent_manager: TorrentManager = Depends(),
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ):
     """Add a torrent file."""
     await torrent_manager.add_torrent_file(torrent_file.file.read())
@@ -28,7 +30,7 @@ async def add_torrent_file(
 @router.delete("/{hash}")
 async def delete_torrent(
     hash: str,
-    torrent_manager: TorrentManager = Depends(),
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ):
     """Delete a torrent by hash."""
     await torrent_manager.delete_torrent(hash)
@@ -37,7 +39,7 @@ async def delete_torrent(
 
 @router.get("/hashes/")
 async def get_torrent_hashes(
-    torrent_manager: TorrentManager = Depends(),
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ) -> list[str]:
     """Return a list of all torrent hashes."""
     torrents = await torrent_manager.get_torrent_list()

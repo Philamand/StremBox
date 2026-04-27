@@ -1,4 +1,5 @@
 import os
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -19,10 +20,10 @@ router = APIRouter()
 async def get_stream(
     hash: str,
     request: Request,
+    torrent_manager: Annotated[TorrentManager, Depends()],
     tracker: str | None = None,
     api_key: str | None = None,
     torrent_id: str | None = None,
-    torrent_manager: TorrentManager = Depends(),
 ):
     """
     Stream a video file from a torrent hash.
