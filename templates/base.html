@@ -54,7 +54,11 @@
         <script type="module">
             import { register } from "https://esm.run/@teamhanko/hanko-elements";
 
-            await register("{{ hanko_url }}");
+            const { hanko } = await register("{{ hanko_url }}");
+
+            hanko.onSessionCreated(() => {
+              document.location.href = "/";
+            });
           </script>
         </body>
     </body>
