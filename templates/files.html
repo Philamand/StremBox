@@ -8,6 +8,7 @@
                 <th></th>
                 <th>Nom</th>
                 <th>Taille</th>
+                <th>Dernière modification</th>
             </tr>
         </thead>
         <tbody>
@@ -55,6 +56,10 @@
                 </td>
                 <td>
                     {% if file.size %}{{ file.size|filesizeformat }}{% endif %}
+                </td>
+                <td>
+                    {% if file.last_modified %}{{
+                    file.last_modified|relative_time|capitalize }}{% endif %}
                 </td>
             </tr>
             {% endfor %}

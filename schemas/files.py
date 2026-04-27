@@ -5,3 +5,4 @@ class FileData(BaseModel):
     name: str
     is_dir: bool
     size: int | None = None
+    last_modified: int

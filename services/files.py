@@ -20,9 +20,17 @@ class FileManager:
             try:
                 is_dir = await os.path.isdir(full_path)
                 size = await os.path.getsize(full_path) if not is_dir else None
+                last_modified = await os.path.getatime(full_path)
             except (FileNotFoundError, PermissionError):
                 continue
 
-            results.append(FileData(name=name, is_dir=is_dir, size=size))
+            results.append(
+                FileData(
+                    name=name,
+                    is_dir=is_dir,
+                    size=size,
+                    last_modified=int(last_modified),
+                )
+            )
 
         return results
