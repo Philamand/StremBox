@@ -1,0 +1,32 @@
+<dialog
+    id="delete_torrent_modal"
+    class="modal"
+    aria-labelledby="delete-torrent-modal-title"
+>
+    <div class="modal-box">
+        <h3 id="delete-torrent-modal-title" class="text-lg font-bold">
+            Que souhaitez-vous supprimer ?
+        </h3>
+
+        <button
+            id="delete-torrent-btn"
+            class="btn btn-active btn-warning mt-2"
+            hx-swap="delete"
+            onclick="delete_torrent_modal.close()"
+        >
+            Retirer ce téléchargement de la liste
+        </button>
+        <button
+            id="delete-torrent-files-btn"
+            class="btn btn-active btn-error mt-2"
+            hx-swap="delete"
+            onclick="delete_torrent_modal.close()"
+        >
+            Supprimer ce téléchargement et ses fichiers
+        </button>
+    </div>
+
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>

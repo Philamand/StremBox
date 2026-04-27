@@ -109,9 +109,7 @@
             </button>
             <button
                 class="btn btn-error"
-                hx-delete="/{{ torrent.hash }}"
-                hx-target="#card-{{ torrent.hash }}"
-                hx-swap="delete"
+                onclick="document.getElementById('delete-torrent-btn').setAttribute('hx-delete', '/{{ torrent.hash }}');document.getElementById('delete-torrent-btn').setAttribute('hx-target', '#card-{{ torrent.hash }}');document.getElementById('delete-torrent-files-btn').setAttribute('hx-delete', '/{{ torrent.hash }}?delete_files=true');document.getElementById('delete-torrent-files-btn').setAttribute('hx-target', '#card-{{ torrent.hash }}');htmx.process(document.getElementById('delete_torrent_modal'));delete_torrent_modal.showModal()"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

@@ -3,4 +3,4 @@
 <div id="torrent-list" hx-get="/" hx-trigger="every 5s">
     {% include "components/torrent_list.html" %}
 </div>
-{% endblock %}
+{% include "components/delete_torrent_modal.html" %} {% endblock %}

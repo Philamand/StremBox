@@ -52,7 +52,8 @@ async def add_torrent(
 async def delete_torrent(
     hash: str,
     torrent_manager: Annotated[TorrentManager, Depends()],
+    delete_files: bool = False,
 ):
     """Delete a torrent by hash."""
-    await torrent_manager.delete_torrent(hash)
+    await torrent_manager.delete_torrent(hash, delete_files=delete_files)
     return {"message": "Torrent supprimé avec succès"}
