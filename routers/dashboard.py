@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -5,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from config import HANKO_URL
 from services.torrent_manager import TorrentManager
 from utils.auth import get_user
+from utils.htmx import is_htmx_request
 from utils.jinja_filters import register_filters
 
 dashboard_router = APIRouter()
@@ -15,23 +18,29 @@ register_filters(templates.env)
 @dashboard_router.get("/")
 async def dashboard(
     request: Request,
-    user: str = Depends(get_user),
-    torrent_manager: TorrentManager = Depends(),
+    is_htmx: Annotated[bool, Depends(is_htmx_request)],
+    user: Annotated[str, Depends(get_user)],
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ) -> HTMLResponse:
+    if is_htmx:
+        template = "components/torrent_list.html"
+    else:
+        template = "dashboard.html"
+
     torrent_list = await torrent_manager.get_torrent_list()
 
     return templates.TemplateResponse(
-        request=request,
-        name="dashboard.html",
-        context={"hanko_url": HANKO_URL, "user": user, "torrent_list": torrent_list},
+        request,
+        template,
+        {"hanko_url": HANKO_URL, "user": user, "torrent_list": torrent_list},
     )
 
 
 @dashboard_router.post("/")
 async def add_torrent(
     torrent_file: UploadFile,
-    user: str = Depends(get_user),
-    torrent_manager: TorrentManager = Depends(),
+    user: Annotated[str, Depends(get_user)],
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ):
     """Add a torrent file and redirect to dashboard."""
     torrent_content = await torrent_file.read()
@@ -42,7 +51,7 @@ async def add_torrent(
 @dashboard_router.delete("/{hash}")
 async def delete_torrent(
     hash: str,
-    torrent_manager: TorrentManager = Depends(),
+    torrent_manager: Annotated[TorrentManager, Depends()],
 ):
     """Delete a torrent by hash."""
     await torrent_manager.delete_torrent(hash)
