@@ -28,6 +28,9 @@ async def dashboard(
         template = "dashboard.html"
 
     torrent_list = await torrent_manager.get_torrent_list()
+    torrent_list = sorted(
+        torrent_list, key=lambda torrent: torrent.added_on, reverse=True
+    )
 
     return templates.TemplateResponse(
         request,
