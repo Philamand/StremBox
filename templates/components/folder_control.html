@@ -1,0 +1,52 @@
+<div
+    id="folder-control"
+    class="sticky top-0 p-4 bg-primary-content flex"
+    {%
+    if
+    is_htmx
+    %}hx-swap-oob="true"
+    {%
+    endif
+    %}
+>
+    {% if folder %}
+    <svg
+        onclick="history.back()"
+        class="min-w-[24px] min-h-[24px]"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide lucide-arrow-big-left-icon lucide-arrow-big-left"
+    >
+        <path
+            d="M10.793 19.793a.707.707 0 0 0 1.207-.5V16a1 1 0 0 1 1-1h6a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-6a1 1 0 0 1-1-1V4.707a.707.707 0 0 0-1.207-.5l-6.94 6.94a1.207 1.207 0 0 0 0 1.707z"
+        />
+    </svg>
+    <p class="ml-4">{{ folder }}</p>
+    {% else %}
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide lucide-house-icon lucide-house"
+    >
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+        <path
+            d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+        />
+    </svg>
+    <p class="ml-4">Mes Fichiers</p>
+    {% endif %}
+</div>

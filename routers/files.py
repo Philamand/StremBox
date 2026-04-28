@@ -33,7 +33,13 @@ async def list_files(
     return templates.TemplateResponse(
         request,
         template,
-        {"hanko_url": HANKO_URL, "user": user, "files": files, "folder": folder},
+        {
+            "hanko_url": HANKO_URL,
+            "user": user,
+            "files": files,
+            "folder": folder,
+            "is_htmx": is_htmx,
+        },
     )
 
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block content %} {% include
 "components/upload_modal.html" %}
-<div id="torrent-list" hx-get="/" hx-trigger="every 5s">
+<div id="torrent-list" hx-get="/" hx-trigger="every 5s" class="mt-1 md:mt-4">
     {% include "components/torrent_list.html" %}
 </div>
 <button
