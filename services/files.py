@@ -5,7 +5,6 @@ from aiofiles import os
 from config import BASE_DIR
 from schemas.files import FileData
 
-# Common archive extensions (case-insensitive matching)
 ARCHIVE_EXTENSIONS = (
     ".zip",
     ".rar",
@@ -37,6 +36,9 @@ class FileManager:
     async def list_files(self, folder: str | None = None) -> list[FileData]:
         """
         Return the list of entries in the configured directory.
+
+        Results are sorted with directories first, then files; within each group they are
+        sorted by name (case-insensitive).
         """
         path = self.get_path(folder)
 
@@ -71,4 +73,5 @@ class FileManager:
                 )
             )
 
-        return results
+        results_sorted = sorted(results, key=lambda f: (not f.is_dir, f.name.lower()))
+        return results_sorted
