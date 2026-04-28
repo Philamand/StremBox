@@ -7,11 +7,23 @@ from schemas.files import FileData
 
 
 class FileManager:
+    def get_path(self, folder: str | None = None) -> str:
+        """Return the path to the given folder, or the base directory if no folder is given."""
+        return _pyos.path.join(BASE_DIR, folder) if folder else BASE_DIR
+
+    async def is_dir(self, path) -> bool:
+        """Return True if the path is a directory."""
+        return await os.path.isdir(path)
+
+    async def exists(self, path) -> bool:
+        """Return True if the path exists."""
+        return await os.path.exists(path)
+
     async def list_files(self, folder: str | None = None) -> list[FileData]:
         """
         Return the list of entries in the configured Torrents directory.
         """
-        path = _pyos.path.join(BASE_DIR, folder) if folder else BASE_DIR
+        path = self.get_path(folder)
         names = await os.listdir(path)
         results: list[FileData] = []
 
