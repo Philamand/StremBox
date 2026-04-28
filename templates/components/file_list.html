@@ -1,5 +1,5 @@
 {% for file in files %}
-<li class="list-row">
+<li id="file-{{loop.index}}" class="list-row">
     <div>
         {% if file.is_dir %}
         <svg
@@ -98,7 +98,13 @@
             <path d="m7 10 5 5 5-5" />
         </svg>
     </a>
-    <button class="btn btn-square btn-ghost">
+    <button
+        class="btn btn-square btn-ghost"
+        hx-delete="/files/?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
+        hx-target="#file-{{loop.index}}"
+        hx-confirm="Êtes-vous sûr de vouloir supprimer ce fichier ?"
+        hx-swap="delete"
+    >
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"

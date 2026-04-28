@@ -75,3 +75,15 @@ class FileManager:
 
         results_sorted = sorted(results, key=lambda f: (not f.is_dir, f.name.lower()))
         return results_sorted
+
+    async def remove_file(self, file_path: str) -> None:
+        full_path = self.get_path(file_path)
+        is_file = await os.path.isfile(full_path)
+        if is_file:
+            await os.remove(full_path)
+            return
+        is_dir = await os.path.isdir(full_path)
+        if is_dir:
+            await os.rmdir(full_path)
+        else:
+            raise FileNotFoundError(f"File not found: {full_path}")

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -45,7 +45,6 @@ async def list_files(
 
 @router.get("/download")
 async def download_file(
-    request: Request,
     file_path: str,
     file_manager: Annotated[FileManager, Depends()],
     background_tasks: BackgroundTasks,
@@ -58,3 +57,15 @@ async def download_file(
             background_tasks.add_task(zip_directory, path)
         return RedirectResponse("http://localhost:3000/files/" + file_path + ".zip")
     return FileResponse(path)
+
+
+@router.delete("/")
+async def delete_file(
+    file_path: str,
+    file_manager: Annotated[FileManager, Depends()],
+):
+    try:
+        await file_manager.remove_file(file_path)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+    return {"message": "Fichier supprimé avec succès"}
