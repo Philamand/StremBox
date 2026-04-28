@@ -43,7 +43,7 @@ async def list_files(
     )
 
 
-@router.get("/{file_path}")
+@router.get("/download")
 async def download_file(
     request: Request,
     file_path: str,
