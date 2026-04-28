@@ -5,6 +5,21 @@ from aiofiles import os
 from config import BASE_DIR
 from schemas.files import FileData
 
+# Common archive extensions (case-insensitive matching)
+ARCHIVE_EXTENSIONS = (
+    ".zip",
+    ".rar",
+    ".tar",
+    ".tar.gz",
+    ".tgz",
+    ".tar.bz2",
+    ".tbz",
+    ".7z",
+    ".gz",
+    ".bz2",
+    ".xz",
+)
+
 
 class FileManager:
     def get_path(self, folder: str | None = None) -> str:
@@ -21,10 +36,15 @@ class FileManager:
 
     async def list_files(self, folder: str | None = None) -> list[FileData]:
         """
-        Return the list of entries in the configured Torrents directory.
+        Return the list of entries in the configured directory.
         """
         path = self.get_path(folder)
-        names = await os.listdir(path)
+
+        try:
+            names = await os.listdir(path)
+        except (FileNotFoundError, PermissionError):
+            return []
+
         results: list[FileData] = []
 
         for name in names:
@@ -36,10 +56,16 @@ class FileManager:
             except (FileNotFoundError, PermissionError):
                 continue
 
+            is_archive = False
+            if not is_dir:
+                lower_name = name.lower()
+                is_archive = any(lower_name.endswith(ext) for ext in ARCHIVE_EXTENSIONS)
+
             results.append(
                 FileData(
                     name=name,
                     is_dir=is_dir,
+                    is_archive=is_archive,
                     size=size,
                     last_modified=int(last_modified),
                 )
