@@ -10,7 +10,7 @@
                 <div class="w-full flex items-center">
                     Progression:
                     <progress
-                        class="progress {% if torrent.progress == 1 %}progress-success{% else %}progress-secondary{% endif %} ml-2"
+                        class="progress progress-{% if torrent.state == 'missingFiles' %}error{% elif torrent.state == 'stalledDL' %}warning{% elif torrent.progress == 1 %}success{% else %}info{% endif %} ml-2"
                         value="{{ torrent.progress }}"
                         max="1"
                     ></progress>
@@ -76,6 +76,7 @@
                             >{{ torrent.total_size|format_size }}</span
                         >
                     </div>
+                    <p>{{ torrent.state }}</p>
                 </div>
             </div>
         </div>
