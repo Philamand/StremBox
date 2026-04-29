@@ -10,3 +10,4 @@ BASE_DIR = os.getenv("BASE_DIR", "./data/")
 BEARER_TOKEN = os.getenv("BEARER_TOKEN", "test_token")
 
 HANKO_URL = os.getenv("HANKO_URL", "http://localhost:8000")
+HANKO_ADMIN = os.getenv("HANKO_ADMIN", "")

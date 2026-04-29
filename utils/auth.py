@@ -1,8 +1,8 @@
 import aiohttp
-from fastapi import Request
 from fastapi.exceptions import HTTPException
 
-from config import HANKO_URL
+from config import HANKO_ADMIN, HANKO_URL
+from fastapi import Request
 
 
 async def get_user(request: Request):
@@ -21,4 +21,8 @@ async def get_user(request: Request):
 
             if not validation_data.get("is_valid", False):
                 return
+
+            if validation_data.get("user_id") != HANKO_ADMIN:
+                raise HTTPException(status_code=403)
+
             return validation_data
