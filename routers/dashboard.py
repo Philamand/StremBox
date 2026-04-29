@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from config import HANKO_URL
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from services.torrent_manager import TorrentManager
 from utils.auth import get_user
 from utils.htmx import is_htmx_request
@@ -41,13 +41,20 @@ async def dashboard(
 
 @dashboard_router.post("/")
 async def add_torrent(
-    torrent_file: UploadFile,
     user: Annotated[str, Depends(get_user)],
     torrent_manager: Annotated[TorrentManager, Depends()],
+    torrent_file: UploadFile | None = File(None),
+    torrent_magnet: str | None = Form(None),
 ):
     """Add a torrent file and redirect to dashboard."""
-    torrent_content = await torrent_file.read()
-    await torrent_manager.add_torrent_file(torrent_content)
+    if torrent_magnet:
+        await torrent_manager.add_torrent_magnet(torrent_magnet)
+    elif torrent_file and torrent_file.filename != "":
+        data = await torrent_file.read()
+        await torrent_file.close()
+        await torrent_manager.add_torrent_file(data)
+    else:
+        raise HTTPException(status_code=400)
     return RedirectResponse(url="/", status_code=303)
 
 

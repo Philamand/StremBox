@@ -1,18 +1,30 @@
 <dialog id="upload_modal" class="modal" aria-labelledby="upload-modal-title">
     <div class="modal-box">
-        <h3 id="upload-modal-title" class="text-lg font-bold">
+        <h3 id="upload-modal-title" class="text-lg font-bold mb-4">
             Ajouter un torrent
         </h3>
 
         <form action="/" method="post" enctype="multipart/form-data">
-            <input
-                class="file-input my-4"
-                type="file"
-                name="torrent_file"
-                accept=".torrent"
-                required
-            />
-            <button class="btn btn-primary" type="submit">
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Fichier torrent</legend>
+                <input
+                    class="file-input w-full"
+                    type="file"
+                    name="torrent_file"
+                    accept=".torrent"
+                />
+            </fieldset>
+            <div class="divider">OU</div>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Lien magnet</legend>
+                <input
+                    type="text"
+                    name="torrent_magnet"
+                    class="input w-full"
+                    placeholder="Type here"
+                />
+            </fieldset>
+            <button class="btn btn-primary mt-4 w-full" type="submit">
                 Ajouter Torrent
             </button>
         </form>

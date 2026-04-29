@@ -2,10 +2,10 @@ import asyncio
 import time
 
 import qbittorrentapi
-from fastapi import HTTPException
 from qbittorrentapi import TorrentFilesList
 
 from config import QBT_HOST, QBT_PASSWORD, QBT_PORT, QBT_USERNAME
+from fastapi import HTTPException
 from schemas.torrents import Torrent
 
 
@@ -25,6 +25,14 @@ class TorrentManager:
             self._client.torrents_add(
                 torrent_files=torrent_file, sequential_download=True
             )
+
+        await asyncio.to_thread(_add_torrent_sync)
+
+    async def add_torrent_magnet(self, magnet_link: str):
+        """Add a torrent magnet link and enable sequential download."""
+
+        def _add_torrent_sync():
+            self._client.torrents_add(urls=magnet_link, sequential_download=True)
 
         await asyncio.to_thread(_add_torrent_sync)
 
