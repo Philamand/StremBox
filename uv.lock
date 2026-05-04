@@ -894,6 +894,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "pytest" },
     { name = "qbittorrent-api" },
+    { name = "transmission-rpc" },
 ]
 
 [package.metadata]
@@ -903,6 +904,21 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.136.0" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "qbittorrent-api", specifier = ">=2025.11.1" },
+    { name = "transmission-rpc", specifier = "==8.0.0a4" },
+]
+
+[[package]]
+name = "transmission-rpc"
+version = "8.0.0a4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "typing-extensions" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9d/4c/da7543ba8c20144d346f9b2ee21b63521dc0e058b6ef1242f01f729ace3f/transmission_rpc-8.0.0a4.tar.gz", hash = "sha256:c6d5ae4a66d44557e9d9b55ef156d296e69ee67e6e38b728a62d539c8cc9799f", size = 28380, upload-time = "2025-07-31T13:07:31.491Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/73/a5/b3faf3330607a656eff46be26b7fd5e31b7d38bfd0aaff5e123fd2238ee7/transmission_rpc-8.0.0a4-py3-none-any.whl", hash = "sha256:b9041b2eca6a45a8275e0cc6e7ebb3f6387476308e0b499ade206a28e742d505", size = 30500, upload-time = "2025-07-31T13:07:30.205Z" },
 ]
 
 [[package]]

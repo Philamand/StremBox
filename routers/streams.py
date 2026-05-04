@@ -1,10 +1,10 @@
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from services.torrent_manager import TorrentManager
+from fastapi import APIRouter, Depends, HTTPException, Request
+from services.torrents import TorrentService
 from utils.streams import (
     build_stream_headers,
     parse_range,
@@ -20,7 +20,7 @@ router = APIRouter()
 async def get_stream(
     hash: str,
     request: Request,
-    torrent_manager: Annotated[TorrentManager, Depends()],
+    torrent_service: Annotated[TorrentService, Depends()],
     tracker: str | None = None,
     api_key: str | None = None,
     torrent_id: str | None = None,
@@ -32,9 +32,7 @@ async def get_stream(
 
     hash, season, episode = parse_stream_hash(hash)
 
-    await torrent_manager.ensure_torrent_available(hash, tracker, api_key, torrent_id)
-
-    torrent_files = await torrent_manager.get_torrent_files(hash)
+    torrent_files = await torrent_service.get_torrent_files(hash)
 
     file_path = resolve_file_path(torrent_files[0].name, season, episode)
     file_size = os.path.getsize(file_path)
