@@ -25,10 +25,8 @@ certifi==2026.4.22
     # via
     #   httpcore
     #   httpx
-    #   requests
     #   sentry-sdk
-charset-normalizer==3.4.7
-    # via requests
+    #   transmission-rpc
 click==8.3.3
     # via
     #   rich-toolkit
@@ -71,7 +69,6 @@ idna==3.13
     #   anyio
     #   email-validator
     #   httpx
-    #   requests
     #   yarl
 iniconfig==2.3.0
     # via pytest
@@ -88,9 +85,7 @@ multidict==6.7.1
     #   aiohttp
     #   yarl
 packaging==26.2
-    # via
-    #   pytest
-    #   qbittorrent-api
+    # via pytest
 pluggy==1.6.0
     # via pytest
 propcache==0.4.1
@@ -123,10 +118,6 @@ python-multipart==0.0.27
     # via fastapi
 pyyaml==6.0.3
     # via uvicorn
-qbittorrent-api==2025.11.1
-    # via streamer (pyproject.toml)
-requests==2.33.1
-    # via qbittorrent-api
 rich==15.0.0
     # via
     #   rich-toolkit
@@ -143,6 +134,8 @@ shellingham==1.5.4
     # via typer
 starlette==1.0.0
     # via fastapi
+transmission-rpc==8.0.0a4
+    # via streamer (pyproject.toml)
 typer==0.25.0
     # via
     #   fastapi-cli
@@ -154,6 +147,7 @@ typing-extensions==4.15.0
     #   pydantic-core
     #   pydantic-extra-types
     #   rich-toolkit
+    #   transmission-rpc
     #   typing-inspection
 typing-inspection==0.4.2
     # via
@@ -162,9 +156,8 @@ typing-inspection==0.4.2
     #   pydantic-settings
 urllib3==2.6.3
     # via
-    #   qbittorrent-api
-    #   requests
     #   sentry-sdk
+    #   transmission-rpc
 uvicorn==0.46.0
     # via
     #   fastapi

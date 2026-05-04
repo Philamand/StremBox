@@ -9,6 +9,5 @@ dependencies = [
     "aiohttp>=3.13.5",
     "fastapi[standard]>=0.136.0",
     "pytest>=9.0.3",
-    "qbittorrent-api>=2025.11.1",
     "transmission-rpc==8.0.0a4",
 ]
