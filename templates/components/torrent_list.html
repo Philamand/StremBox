@@ -1,6 +1,6 @@
 {% for torrent in torrent_list %}
 <div
-    id="card-{{ torrent.hash }}"
+    id="card-{{ torrent.hash_string }}"
     class="card bg-base-100 w-full shadow-sm mb-4"
 >
     <div class="card-body">
@@ -10,21 +10,22 @@
                 <div class="w-full flex items-center">
                     Progression:
                     <progress
-                        class="progress progress-{% if torrent.state == 'missingFiles' %}error{% elif torrent.state == 'stalledDL' %}warning{% elif torrent.progress == 1 %}success{% else %}info{% endif %} ml-2"
+                        class="progress progress-{% if torrent.status == 'stopped' %}error{% elif torrent.status == 'download pending' %}warning{% elif torrent.progress == 100 %}success{% else %}info{% endif %} ml-2"
                         value="{{ torrent.progress }}"
-                        max="1"
+                        max="100"
                     ></progress>
                 </div>
                 <p>
-                    {{ torrent.num_seeds }} Seeds - {{ torrent.num_leechs }}
-                    Leechs - {{ torrent.ratio|round(2) }} Ratio
+                    {{ torrent.peers_sending_to_us }} Seeds - {{
+                    torrent.peers_getting_from_us }} Leechs - {{
+                    torrent.ratio|round(2) }} Ratio
                 </p>
-                <p>Créé {{ torrent.added_on|relative_time }}</p>
+                <p>Créé {{ torrent.added_date|relative_time }}</p>
             </div>
             <div class="col-span-12 md:col-span-2 flex flex-col items-end">
                 <div class="w-full flex flex-row md:flex-col justify-between">
                     <div class="flex">
-                        <svg {% if torrent.dlspeed>
+                        <svg {% if torrent.rate_download>
                             0 %} class="text-success" {% endif %}
                             xmlns="http://www.w3.org/2000/svg" width="24"
                             height="24" viewBox="0 0 24 24" fill="none"
@@ -35,11 +36,11 @@
                             <path d="M12 5v14" />
                             <path d="m19 12-7 7-7-7" /></svg
                         ><span class="ml-2"
-                            >{{ torrent.dlspeed|format_size }}/s</span
+                            >{{ torrent.rate_download|format_size }}/s</span
                         >
                     </div>
                     <div class="flex">
-                        <svg {% if torrent.upspeed>
+                        <svg {% if torrent.rate_upload>
                             0 %} class="text-success" {% endif %}
                             xmlns="http://www.w3.org/2000/svg" width="24"
                             height="24" viewBox="0 0 24 24" fill="none"
@@ -50,7 +51,7 @@
                             <path d="m5 12 7-7 7 7" />
                             <path d="M12 19V5" /></svg
                         ><span class="ml-2"
-                            >{{ torrent.upspeed|format_size }}/s</span
+                            >{{ torrent.rate_upload|format_size }}/s</span
                         >
                     </div>
                     <div class="flex">
@@ -76,7 +77,7 @@
                             >{{ torrent.total_size|format_size }}</span
                         >
                     </div>
-                    <p>{{ torrent.state }}</p>
+                    <p>{{ torrent.status }}</p>
                 </div>
             </div>
         </div>
@@ -106,7 +107,7 @@
             </a>
             <button
                 class="btn btn-error"
-                onclick="document.getElementById('delete-torrent-btn').setAttribute('hx-delete', '/{{ torrent.hash }}');document.getElementById('delete-torrent-btn').setAttribute('hx-target', '#card-{{ torrent.hash }}');document.getElementById('delete-torrent-files-btn').setAttribute('hx-delete', '/{{ torrent.hash }}?delete_files=true');document.getElementById('delete-torrent-files-btn').setAttribute('hx-target', '#card-{{ torrent.hash }}');htmx.process(document.getElementById('delete_torrent_modal'));delete_torrent_modal.showModal()"
+                onclick="document.getElementById('delete-torrent-btn').setAttribute('hx-delete', '/{{ torrent.hash_string }}');document.getElementById('delete-torrent-btn').setAttribute('hx-target', '#card-{{ torrent.hash_string }}');document.getElementById('delete-torrent-files-btn').setAttribute('hx-delete', '/{{ torrent.hash_string }}?delete_files=true');document.getElementById('delete-torrent-files-btn').setAttribute('hx-target', '#card-{{ torrent.hash_string }}');htmx.process(document.getElementById('delete_torrent_modal'));delete_torrent_modal.showModal()"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

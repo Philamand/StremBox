@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from jinja2 import Environment
 
@@ -7,11 +7,14 @@ def relative_time(timestamp):
     """Jinja filter: returns French relative time string."""
     if not timestamp:
         return ""
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     if isinstance(timestamp, datetime):
+        # Ensure timestamp is timezone-aware
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
         delta = now - timestamp
     else:
-        delta = now - datetime.fromtimestamp(timestamp)
+        delta = now - datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
     total_seconds = int(delta.total_seconds())
     if total_seconds < 0:
