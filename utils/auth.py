@@ -2,7 +2,11 @@ import aiohttp
 from fastapi.exceptions import HTTPException
 
 from config import HANKO_ADMIN, HANKO_URL
-from fastapi import Request
+from fastapi import Depends, Request
+
+
+class NotAuthenticatedException(Exception):
+    pass
 
 
 async def get_user(request: Request):
@@ -26,3 +30,9 @@ async def get_user(request: Request):
                 raise HTTPException(status_code=403)
 
             return validation_data
+
+
+async def require_auth(request: Request, user=Depends(get_user)):
+    """Dependency that requires authentication and raises NotAuthenticatedException if not authenticated."""
+    if not user:
+        raise NotAuthenticatedException()

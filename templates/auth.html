@@ -1,0 +1,15 @@
+{% extends "base.html" %} {% block content %}
+<div class="flex items-center justify-center h-screen">
+    <hanko-auth class="shadow" />
+
+    <script type="module">
+        import { register } from "https://esm.run/@teamhanko/hanko-elements";
+
+        const { hanko } = await register("{{ hanko_url }}");
+
+        hanko.onSessionCreated(() => {
+            document.location.href = "/";
+        });
+    </script>
+</div>
+{% endblock %}

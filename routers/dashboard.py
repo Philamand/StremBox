@@ -3,21 +3,19 @@ from typing import Annotated
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from config import HANKO_URL
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from services.torrents import TorrentService
-from utils.auth import get_user
+from utils.auth import require_auth
 from utils.htmx import is_htmx_request
 from utils.jinja_filters import register_filters
 
-dashboard_router = APIRouter()
+dashboard_router = APIRouter(dependencies=[Depends(require_auth)])
 templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
 
 
 @dashboard_router.get("/")
 async def dashboard(
-    user: Annotated[str, Depends(get_user)],
     request: Request,
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
     torrent_service: Annotated[TorrentService, Depends()],
@@ -35,13 +33,12 @@ async def dashboard(
     return templates.TemplateResponse(
         request,
         template,
-        {"hanko_url": HANKO_URL, "user": user, "torrent_list": torrent_list},
+        {"torrent_list": torrent_list},
     )
 
 
 @dashboard_router.post("/")
 async def add_torrent(
-    user: Annotated[str, Depends(get_user)],
     torrent_service: Annotated[TorrentService, Depends()],
     torrent_file: UploadFile | None = File(None),
     torrent_magnet: str | None = Form(None),
@@ -61,7 +58,6 @@ async def add_torrent(
 
 @dashboard_router.delete("/{hash}")
 async def delete_torrent(
-    user: Annotated[str, Depends(get_user)],
     hash: str,
     torrent_service: Annotated[TorrentService, Depends()],
     delete_files: bool = False,

@@ -5,7 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         <title>Streamer</title>
-        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+            integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+            crossorigin="anonymous"
+        ></script>
         <link
             href="https://cdn.jsdelivr.net/npm/daisyui@5"
             rel="stylesheet"
@@ -14,34 +18,74 @@
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     </head>
     <body>
-        {% if user %}
-			<main class="pb-16 md:px-16">
-                {% block content %}
-                {% endblock %}
-                <div class="dock">
-                  <a href="/" {% if request.path == '/' %}class="dock-active"{% endif %}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download-icon lucide-download"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
+        <main class="pb-16 md:px-16">
+            {% block content %} {% endblock %}
+            <div class="dock">
+                <a
+                    href="/"
+                    {%
+                    if
+                    request.path=="/"
+                    %}class="dock-active"
+                    {%
+                    endif
+                    %}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-download-icon lucide-download"
+                    >
+                        <path d="M12 15V3" />
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <path d="m7 10 5 5 5-5" />
+                    </svg>
                     <span class="dock-label">Téléchargements</span>
-                  </a>
+                </a>
 
-                  <a href="/files/" {% if request.path != '/' %}class="dock-active"{% endif %}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-files-icon lucide-files"><path d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/><path d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z"/><path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1"/></svg>
+                <a
+                    href="/files/"
+                    {%
+                    if
+                    request.path
+                    !="/"
+                    %}class="dock-active"
+                    {%
+                    endif
+                    %}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-files-icon lucide-files"
+                    >
+                        <path
+                            d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"
+                        />
+                        <path
+                            d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z"
+                        />
+                        <path
+                            d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1"
+                        />
+                    </svg>
                     <span class="dock-label">Fichiers</span>
-                  </a>
-                </div>
-			</main>
-        {% else %}
-        <hanko-auth />
-        {% endif %}
-        <script type="module">
-            import { register } from "https://esm.run/@teamhanko/hanko-elements";
-
-            const { hanko } = await register("{{ hanko_url }}");
-
-            hanko.onSessionCreated(() => {
-              document.location.href = "/";
-            });
-          </script>
-        </body>
+                </a>
+            </div>
+        </main>
     </body>
 </html>
