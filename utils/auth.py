@@ -3,6 +3,7 @@ from fastapi.exceptions import HTTPException
 
 from config import HANKO_ADMIN, HANKO_URL
 from fastapi import Depends, Request
+from utils.htmx import is_htmx_request
 
 
 class NotAuthenticatedException(Exception):
@@ -35,4 +36,6 @@ async def get_user(request: Request):
 async def require_auth(request: Request, user=Depends(get_user)):
     """Dependency that requires authentication and raises NotAuthenticatedException if not authenticated."""
     if not user:
+        if is_htmx_request(request):
+            raise HTTPException(status_code=401)
         raise NotAuthenticatedException()
