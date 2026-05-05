@@ -13,7 +13,7 @@ from utils.streams import (
     resolve_file_path,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/streams")
 
 
 @router.get("/{hash}")

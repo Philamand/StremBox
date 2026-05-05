@@ -26,8 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/streams")
-app.include_router(files_router, prefix="/files")
+app.include_router(router)
+app.include_router(files_router)
 app.include_router(dashboard_router)
 
 use_route_names_as_operation_ids(app)

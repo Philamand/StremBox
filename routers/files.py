@@ -1,17 +1,17 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from config import HANKO_URL
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from services.files import FileManager
 from utils.auth import get_user
 from utils.files import zip_directory
 from utils.htmx import is_htmx_request
 from utils.jinja_filters import register_filters
 
-router = APIRouter()
+router = APIRouter(prefix="/files")
 templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
 
