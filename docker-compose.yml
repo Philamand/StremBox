@@ -13,20 +13,19 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
-    network_mode: "service:gluetun" # Use Gluetun's network
+    network_mode: "service:gluetun"
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Paris
     volumes:
-      - /media/philamand/2ecf089f-dbd8-42e0-b443-b529a71300ee4/Torrents:/downloads
+      - /Téléchargements:/downloads
       - ./qbittorrent-config:/config
     restart: unless-stopped
     depends_on:
       - gluetun
 
   fastapi:
-    # Build from local FastAPI app directory. Create ./fastapi/Dockerfile and your app code (e.g. main.py) there.
     build:
       context: ./
       dockerfile: Dockerfile
@@ -37,6 +36,6 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /media/philamand/2ecf089f-dbd8-42e0-b443-b529a71300ee4/Torrents:/app/data
+      - /Téléchargements:/app/data
     depends_on:
       - qbittorrent
