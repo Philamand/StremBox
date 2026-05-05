@@ -2,9 +2,22 @@ import asyncio
 
 from transmission_rpc import Client, File, Torrent
 
+from config import (
+    TRANSMISSION_HOST,
+    TRANSMISSION_PASSWORD,
+    TRANSMISSION_PORT,
+    TRANSMISSION_USERNAME,
+)
+
 
 class TorrentService:
-    def __init__(self, host="localhost", port=9091, username=None, password=None):
+    def __init__(
+        self,
+        host=TRANSMISSION_HOST,
+        port=TRANSMISSION_PORT,
+        username=TRANSMISSION_USERNAME,
+        password=TRANSMISSION_PASSWORD,
+    ):
         self.client = Client(host=host, port=port, username=username, password=password)
 
     async def get_torrents(self) -> list[Torrent]:

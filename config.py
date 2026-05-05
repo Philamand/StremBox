@@ -1,9 +1,9 @@
 import os
 
-QBT_HOST = os.getenv("QBT_HOST", "localhost")
-QBT_PORT = int(os.getenv("QBT_PORT", "8080"))
-QBT_USERNAME = os.getenv("QBT_USERNAME", "admin")
-QBT_PASSWORD = os.getenv("QBT_PASSWORD", "adminadmin")
+TRANSMISSION_HOST = os.getenv("TRANSMISSION_HOST", "localhost")
+TRANSMISSION_PORT = int(os.getenv("TRANSMISSION_PORT", "9091"))
+TRANSMISSION_USERNAME = os.getenv("TRANSMISSION_USERNAME")
+TRANSMISSION_PASSWORD = os.getenv("TRANSMISSION_PASSWORD")
 
 BASE_DIR = os.getenv("BASE_DIR", "./data/")
 
