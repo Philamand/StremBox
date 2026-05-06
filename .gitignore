@@ -132,6 +132,7 @@ env.bak/
 venv.bak/
 .gluetun.env
 .uv.env
+.transmission.env
 
 # Spyder project settings
 .spyderproject
