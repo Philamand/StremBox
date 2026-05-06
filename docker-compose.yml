@@ -6,6 +6,7 @@ services:
       - NET_ADMIN
     env_file:
       - .gluetun.env
+    privileged: true
     volumes:
       - ./gluetun:/gluetun
     restart: unless-stopped
