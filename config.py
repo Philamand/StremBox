@@ -5,7 +5,7 @@ TRANSMISSION_PORT = int(os.getenv("TRANSMISSION_PORT", "9091"))
 TRANSMISSION_USERNAME = os.getenv("TRANSMISSION_USERNAME")
 TRANSMISSION_PASSWORD = os.getenv("TRANSMISSION_PASSWORD")
 
-BASE_DIR = os.getenv("BASE_DIR", "./data/")
+BASE_DIR = os.getenv("BASE_DIR", "./downloads/")
 
 BEARER_TOKEN = os.getenv("BEARER_TOKEN", "test_token")
 

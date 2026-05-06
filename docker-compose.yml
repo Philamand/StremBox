@@ -7,6 +7,8 @@ services:
     env_file:
       - .gluetun.env
     privileged: true
+    ports:
+      - "9091:9091"
     volumes:
       - ./gluetun:/gluetun
     restart: unless-stopped
@@ -19,8 +21,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Paris
+      - USER=admin
+      - PASSWORD=adminadmin
+    privileged: true
     volumes:
-      - /Téléchargements:/downloads
+      - downloads:/downloads
       - ./transmission-config:/config
     restart: unless-stopped
     depends_on:
@@ -37,6 +42,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /Téléchargements:/app/data
+      - downloads:/app/downloads
     depends_on:
       - transmission
+volumes:
+  downloads:

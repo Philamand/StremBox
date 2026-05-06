@@ -167,3 +167,5 @@ cython_debug/
 # Docker volumes
 qbittorrent-config/*
 gluetun/*
+transmission-config/*
+!transmission-config/settings.json
