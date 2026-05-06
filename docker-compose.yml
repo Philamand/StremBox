@@ -1,4 +1,27 @@
+networks:
+  app-network:
+    driver: bridge
+
 services:
+  caddy:
+    image: caddy:latest
+    container_name: streamer_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - ACME_AGREE=true
+    privileged: true
+    networks:
+      - app-network
+    depends_on:
+      - fastapi
+
   gluetun:
     image: qmcgaw/gluetun
     container_name: gluetun
@@ -9,6 +32,8 @@ services:
     privileged: true
     volumes:
       - ./gluetun:/gluetun
+    networks:
+      - app-network
     restart: unless-stopped
 
   transmission:
@@ -39,5 +64,9 @@ services:
       - downloads:/app/downloads
     depends_on:
       - transmission
+    networks:
+      - app-network
 volumes:
   downloads:
+  caddy-data:
+  caddy-config:
