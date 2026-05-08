@@ -1,0 +1,89 @@
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  caddy:
+    image: caddy:latest
+    container_name: streamer_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - ACME_AGREE=true
+    privileged: true
+    networks:
+      - app-network
+    depends_on:
+      - fastapi
+
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    env_file:
+      - .gluetun.env
+    privileged: true
+    volumes:
+      - ./gluetun:/gluetun
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  transmission-1:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission-1
+    network_mode: "service:gluetun"
+    env_file:
+      - .transmission.env
+    privileged: true
+    volumes:
+      - downloads-1:/downloads
+      - ./transmission-multi-config/transmission-config-1:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  transmission-2:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission-2
+    network_mode: "service:gluetun"
+    env_file:
+      - .transmission.env
+    privileged: true
+    volumes:
+      - downloads-2:/downloads
+      - ./transmission-multi-config/transmission-config-2:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  fastapi:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: streamer_fastapi
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - downloads-1:/app/downloads-1
+      - downloads-2:/app/downloads-2
+    depends_on:
+      - transmission-1
+      - transmission-2
+    networks:
+      - app-network
+volumes:
+  downloads-1:
+  downloads-2:
+  caddy-data:
+  caddy-config:

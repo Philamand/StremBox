@@ -2,7 +2,7 @@ import os as _pyos
 
 from aiofiles import os
 
-from config import BASE_DIR
+from fastapi import Request
 from schemas.files import FileData
 
 ARCHIVE_EXTENSIONS = (
@@ -21,9 +21,12 @@ ARCHIVE_EXTENSIONS = (
 
 
 class FileManager:
+    def __init__(self, request: Request):
+        self.base_dir = request.state.user.transmission_data.download_folder
+
     def get_path(self, folder: str | None = None) -> str:
         """Return the path to the given folder, or the base directory if no folder is given."""
-        return _pyos.path.join(BASE_DIR, folder) if folder else BASE_DIR
+        return _pyos.path.join(self.base_dir, folder) if folder else self.base_dir
 
     async def is_dir(self, path) -> bool:
         """Return True if the path is a directory."""
@@ -44,7 +47,7 @@ class FileManager:
 
         try:
             names = await os.listdir(path)
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             return []
 
         results: list[FileData] = []
@@ -55,7 +58,7 @@ class FileManager:
                 is_dir = await os.path.isdir(full_path)
                 size = await os.path.getsize(full_path) if not is_dir else None
                 last_modified = await os.path.getatime(full_path)
-            except (FileNotFoundError, PermissionError):
+            except FileNotFoundError, PermissionError:
                 continue
 
             is_archive = False

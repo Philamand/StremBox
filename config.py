@@ -8,3 +8,5 @@ HANKO_URL = os.getenv("HANKO_URL", "http://localhost:8000")
 HANKO_ADMIN = os.getenv("HANKO_ADMIN", "")
 
 SQLITE_FILE = os.getenv("SQLITE_FILE", "database.db")
+
+TRANSMISSION_URL = os.getenv("TRANSMISSION_URL", "gluetun")
