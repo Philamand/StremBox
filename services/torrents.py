@@ -7,21 +7,16 @@ from fastapi import Request
 from schemas.users import UserData
 
 
-def get_torrent_service(request: Request) -> TorrentService:
-    """Get the torrent service for the current user"""
-    user: UserData = request.state.user
-
-    if not user.transmission_data or not user.transmission_data.port:
-        raise ValueError("Transmission port is not set")
-
-    return TorrentService(port=user.transmission_data.port)
-
-
 class TorrentService:
     """Service for interacting with Transmission"""
 
-    def __init__(self, port: int, host: str = TRANSMISSION_URL):
-        self.client = Client(host=host, port=port)
+    def __init__(self, request: Request):
+        user: UserData = request.state.user
+
+        if not user.transmission_data or not user.transmission_data.port:
+            raise ValueError("Transmission port is not set")
+
+        self.client = Client(host=TRANSMISSION_URL, port=user.transmission_data.port)
 
     async def get_torrents(self) -> list[Torrent]:
         """Get all torrents from Transmission"""
