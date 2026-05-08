@@ -8,6 +8,8 @@ aiohttp==3.13.5
     # via streamer (pyproject.toml)
 aiosignal==1.4.0
     # via aiohttp
+aiosqlite==0.22.1
+    # via streamer (pyproject.toml)
 annotated-doc==0.0.4
     # via
     #   fastapi
