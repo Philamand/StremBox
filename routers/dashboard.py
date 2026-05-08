@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from services.torrents import TorrentService
+from services.torrents import TorrentService, get_torrent_service
 from utils.auth import require_auth
 from utils.htmx import is_htmx_request
 from utils.jinja_filters import register_filters
@@ -18,7 +18,7 @@ register_filters(templates.env)
 async def dashboard(
     request: Request,
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
-    torrent_service: Annotated[TorrentService, Depends()],
+    torrent_service: Annotated[TorrentService, Depends(get_torrent_service)],
 ) -> HTMLResponse:
     if is_htmx:
         template = "components/torrent_list.html"
@@ -39,7 +39,7 @@ async def dashboard(
 
 @dashboard_router.post("/")
 async def add_torrent(
-    torrent_service: Annotated[TorrentService, Depends()],
+    torrent_service: Annotated[TorrentService, Depends(get_torrent_service)],
     torrent_file: UploadFile | None = File(None),
     torrent_magnet: str | None = Form(None),
 ):
@@ -59,7 +59,7 @@ async def add_torrent(
 @dashboard_router.delete("/{hash}")
 async def delete_torrent(
     hash: str,
-    torrent_service: Annotated[TorrentService, Depends()],
+    torrent_service: Annotated[TorrentService, Depends(get_torrent_service)],
     delete_files: bool = False,
 ):
     """Delete a torrent by hash."""

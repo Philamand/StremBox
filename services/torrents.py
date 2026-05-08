@@ -2,23 +2,25 @@ import asyncio
 
 from transmission_rpc import Client, File, Torrent
 
-from config import (
-    TRANSMISSION_HOST,
-    TRANSMISSION_PASSWORD,
-    TRANSMISSION_PORT,
-    TRANSMISSION_USERNAME,
-)
+from fastapi import Request
+from schemas.users import User
+
+
+def get_torrent_service(request: Request) -> TorrentService:
+    """Get the torrent service for the current user"""
+    user: User = request.state.user
+
+    if not user.transmission_host or not user.transmission_port:
+        raise ValueError("Transmission host and port are not set")
+
+    return TorrentService(host=user.transmission_host, port=user.transmission_port)
 
 
 class TorrentService:
-    def __init__(
-        self,
-        host=TRANSMISSION_HOST,
-        port=TRANSMISSION_PORT,
-        username=TRANSMISSION_USERNAME,
-        password=TRANSMISSION_PASSWORD,
-    ):
-        self.client = Client(host=host, port=port, username=username, password=password)
+    """Service for interacting with Transmission"""
+
+    def __init__(self, host: str, port: int):
+        self.client = Client(host=host, port=port)
 
     async def get_torrents(self) -> list[Torrent]:
         """Get all torrents from Transmission"""
