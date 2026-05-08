@@ -3,8 +3,12 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class User(BaseModel):
+class TransmissionData(BaseModel):
+    port: int
+    download_folder: str
+
+
+class UserData(BaseModel):
     id: str
     created_at: datetime
-    transmission_host: str | None
-    transmission_port: int | None
+    transmission_data: TransmissionData | None
