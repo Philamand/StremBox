@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from config import HANKO_URL
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from services.files import FileManager
-from utils.auth import get_user
+from utils.auth import require_auth
 from utils.files import zip_directory
 from utils.htmx import is_htmx_request
 from utils.jinja_filters import register_filters
@@ -16,12 +16,11 @@ templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
 
 
-@router.get("/")
+@router.get("/", dependencies=[Depends(require_auth)])
 async def list_files(
     request: Request,
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
     file_manager: Annotated[FileManager, Depends()],
-    user: Annotated[str, Depends(get_user)],
     folder: str | None = None,
 ) -> HTMLResponse:
     """Return the list of files from the configured directory."""
@@ -35,7 +34,6 @@ async def list_files(
         template,
         {
             "hanko_url": HANKO_URL,
-            "user": user,
             "files": files,
             "folder": folder,
             "is_htmx": is_htmx,
@@ -59,7 +57,7 @@ async def download_file(
     return FileResponse(path)
 
 
-@router.delete("/")
+@router.delete("/", dependencies=[Depends(require_auth)])
 async def delete_file(
     file_path: str,
     file_manager: Annotated[FileManager, Depends()],
