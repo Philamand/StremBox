@@ -5,8 +5,7 @@ from fastapi.exceptions import HTTPException
 
 from config import HANKO_URL
 from fastapi import Depends, Request
-from schemas.users import User
-from utils.database import AsyncDatabase
+from services.users import UserService
 from utils.htmx import is_htmx_request
 
 
@@ -14,7 +13,7 @@ class NotAuthenticatedException(Exception):
     pass
 
 
-async def get_user(request: Request, db: Annotated[AsyncDatabase, Depends()]):
+async def get_user(request: Request, user_service: Annotated[UserService, Depends()]):
     credentials = request.cookies.get("hanko")
     if not credentials:
         return
@@ -31,17 +30,10 @@ async def get_user(request: Request, db: Annotated[AsyncDatabase, Depends()]):
             if not validation_data.get("is_valid", False):
                 return
 
-            user_data = await db.fetch_one(
-                "SELECT * FROM users WHERE id = ?", (validation_data.get("user_id"),)
-            )
+            user = await user_service.get_user(validation_data.get("user_id"))
 
-            if not user_data:
+            if not user:
                 raise HTTPException(status_code=403)
-
-            try:
-                user = User(**user_data)
-            except Exception:
-                raise HTTPException(status_code=500)
 
             request.state.user = user
 
