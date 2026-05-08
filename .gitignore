@@ -170,3 +170,5 @@ qbittorrent-config/*
 gluetun/*
 transmission-config/*
 !transmission-config/settings.json
+
+database.db
