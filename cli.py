@@ -10,7 +10,7 @@ app = typer.Typer()
 
 
 @app.command()
-def add_user(
+def user_add(
     id: str,
     transmission_id: int,
 ):
@@ -22,7 +22,7 @@ def add_user(
 
 
 @app.command()
-def add_transmission(
+def transmission_add(
     port: int = 9091,
     download_folder: str = "downloads/",
 ):
