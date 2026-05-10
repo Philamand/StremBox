@@ -11,4 +11,5 @@ dependencies = [
     "fastapi[standard]>=0.136.0",
     "pytest>=9.0.3",
     "transmission-rpc==8.0.0a4",
+    "typer>=0.24.1",
 ]
