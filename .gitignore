@@ -172,6 +172,6 @@ transmission-config/*
 !transmission-config/settings.json
 transmission-multi-config/
 
-db/database.db
+database/database.db
 
 Caddyfile

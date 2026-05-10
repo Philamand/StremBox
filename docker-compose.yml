@@ -50,6 +50,16 @@ services:
     depends_on:
       - gluetun
 
+  migrate:
+    image: amacneil/dbmate:latest
+    command: ["up"]
+    env_file:
+      - .env
+    volumes:
+      - ./db/migrations:/db/migrations:ro
+      - database:/database
+    privileged: true
+
   fastapi:
     build:
       context: ./
@@ -61,10 +71,14 @@ services:
     volumes:
       - downloads:/app/downloads
     depends_on:
-      - transmission
+      transmission:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
     networks:
       - app-network
 volumes:
   downloads:
   caddy-data:
   caddy-config:
+  database:
