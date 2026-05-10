@@ -2,13 +2,13 @@ from contextlib import asynccontextmanager
 
 import aiosqlite
 
-from config import SQLITE_FILE
+from config import DATABASE_URL
 
 
 class AsyncDatabase:
     """Async SQLite database utility."""
 
-    def __init__(self, db_path: str = SQLITE_FILE):
+    def __init__(self, db_path: str = DATABASE_URL):
         self.db_path = db_path
 
     @asynccontextmanager

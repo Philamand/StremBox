@@ -8,6 +8,6 @@ BEARER_TOKEN = os.getenv("BEARER_TOKEN", "test_token")
 HANKO_URL = os.getenv("HANKO_URL", "http://localhost:8000")
 HANKO_ADMIN = os.getenv("HANKO_ADMIN", "")
 
-SQLITE_FILE = os.getenv("SQLITE_FILE", "database.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "database.db")
 
 TRANSMISSION_URL = os.getenv("TRANSMISSION_URL", "gluetun")
