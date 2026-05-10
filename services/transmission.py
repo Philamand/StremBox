@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends
+from schemas.transmission import TransmissionData
 from utils.database import AsyncDatabase
 
 
@@ -17,3 +18,8 @@ class TransmissionService:
             (port, download_folder),
         )
         return id["id"]
+
+    async def get_transmission_list(self) -> list[TransmissionData]:
+        """Get a list of all transmissions."""
+        rows = await self.db.fetch_all("SELECT * FROM transmission")
+        return [TransmissionData(**row) for row in rows]
