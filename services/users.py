@@ -36,7 +36,7 @@ class UserService:
 
     async def create_user(self, id: str, transmission_id: int) -> None:
         """Create a new user."""
-        await self.db.execute(
+        await self.db.commit_execute(
             "INSERT INTO users (id, transmission_id) VALUES (?, ?)",
             (id, transmission_id),
         )
