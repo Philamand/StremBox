@@ -1,6 +1,7 @@
 import os
 
 BASE_DIR = os.getenv("BASE_DIR", "./downloads/")
+BASE_URL = os.getenv("BASE_URL", "http://localhost").rstrip("/")
 
 BEARER_TOKEN = os.getenv("BEARER_TOKEN", "test_token")
 

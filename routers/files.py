@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from config import HANKO_URL
+from config import BASE_URL, HANKO_URL
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from services.files import FileManager
 from utils.auth import require_auth
@@ -53,7 +53,7 @@ async def download_file(
         exists = await file_manager.exists(path + ".zip")
         if not exists:
             background_tasks.add_task(zip_directory, path)
-        return RedirectResponse("http://localhost:3000/files/" + file_path + ".zip")
+        return RedirectResponse(f"{BASE_URL}/files/{file_path}.zip")
     return FileResponse(path)
 
 
