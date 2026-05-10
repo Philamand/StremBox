@@ -1,25 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from constants import MANIFEST
-from dependencies import get_user_key
+from dependencies import check_user_key
 from schemas.stremio import StremioStreamsResponse
 from schemas.users import UserData
 from services.stremio import C411Service, StremioOrchestrationService, Torr9Service
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(check_user_key)])
 
 
 @router.get("/{user_key}/manifest.json")
-async def get_manifest(user: UserData = Depends(get_user_key)):
+async def get_manifest():
     """Return the manifest.json file."""
     return MANIFEST
 
 
 @router.get("/{user_key}/stream/{type}/{id}.json")
 async def get_torrent_streams(
+    request: Request,
     type: str,
     id: str,
-    user: UserData = Depends(get_user_key),
 ) -> StremioStreamsResponse:
     """
     Return Stremio-compatible stream entries for a movie or series.
@@ -34,6 +34,8 @@ async def get_torrent_streams(
     """
     if type not in MANIFEST["types"]:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    user: UserData = request.state.user
 
     if user.c411_key:
         c411_service = C411Service(user.c411_key)
