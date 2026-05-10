@@ -12,7 +12,7 @@ from schemas.stremio import (
     StremioStreamsResponse,
 )
 from schemas.users import UserData
-from services.streamer import StreamerService
+from services.librebox import LibreBoxService
 from utils.stremio import (
     check_season_episode,
     check_title_match,
@@ -475,7 +475,7 @@ class StremioOrchestrationService:
         Returns:
             A ``StremioStreamsResponse`` with fast (⚡️) streams first.
         """
-        streamer_service = StreamerService(self.streamer_url, self.streamer_token)
+        streamer_service = LibreBoxService(self.streamer_url, self.streamer_token)
         hashes = await streamer_service.get_torrent_hashes()
 
         se = ""

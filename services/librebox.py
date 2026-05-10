@@ -1,8 +1,8 @@
 import aiohttp
 
 
-class StreamerService:
-    """Service for interacting with streamer-related endpoints."""
+class LibreBoxService:
+    """Service for interacting with LibreBox-related endpoints."""
 
     def __init__(self, base_url: str, bearer_token: str):
         self.base_url = base_url
