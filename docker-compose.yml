@@ -70,6 +70,7 @@ services:
       - .env
     volumes:
       - downloads:/app/downloads
+      - database:/app/database
     depends_on:
       transmission:
         condition: service_started
