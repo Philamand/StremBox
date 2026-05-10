@@ -3,9 +3,22 @@ import asyncio
 import typer
 
 from services.transmission import TransmissionService
+from services.users import UserService
 from utils.database import AsyncDatabase
 
 app = typer.Typer()
+
+
+@app.command()
+def add_user(
+    id: str,
+    transmission_id: int,
+):
+    """Add a new user with the specified ID and transmission ID."""
+    db = AsyncDatabase()
+    user_service = UserService(db)
+    asyncio.run(user_service.create_user(id, transmission_id))
+    typer.echo("Utilisateur créé avec succès.")
 
 
 @app.command()
