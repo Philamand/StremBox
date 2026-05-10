@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from config import BASE_URL, HANKO_URL
+from config import BASE_URL
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from services.files import FileManager
 from utils.auth import require_auth
@@ -33,7 +33,6 @@ async def list_files(
         request,
         template,
         {
-            "hanko_url": HANKO_URL,
             "files": files,
             "folder": folder,
             "is_htmx": is_htmx,
