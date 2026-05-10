@@ -5,7 +5,7 @@ networks:
 services:
   caddy:
     image: caddy:latest
-    container_name: streamer_caddy
+    container_name: librebox_caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -54,7 +54,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: streamer_fastapi
+    container_name: librebox_fastapi
     restart: unless-stopped
     env_file:
       - .env

@@ -1,5 +1,5 @@
 http://localhost {
-    reverse_proxy streamer_fastapi:8000 {
+    reverse_proxy librebox_fastapi:8000 {
         header_up Host {host}
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
