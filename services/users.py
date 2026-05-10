@@ -33,3 +33,10 @@ class UserService:
         )
 
         return user_data
+
+    async def create_user(self, id: str, transmission_id: int) -> None:
+        """Create a new user."""
+        await self.db.execute(
+            "INSERT INTO users (id, transmission_id) VALUES (?, ?)",
+            (id, transmission_id),
+        )
