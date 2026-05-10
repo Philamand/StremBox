@@ -1,11 +1,14 @@
 import asyncio
 
 import typer
+from rich.console import Console
+from rich.table import Table
 
 from services.transmission import TransmissionService
 from services.users import UserService
 from utils.database import AsyncDatabase
 
+console = Console()
 app = typer.Typer()
 
 
@@ -29,10 +32,23 @@ def transmission_add(
     """Add a new transmission with the specified port and download folder."""
     db = AsyncDatabase()
     transmission_service = TransmissionService(db)
-    transmission_id = asyncio.run(
-        transmission_service.create_transmission(port, download_folder)
-    )
-    typer.echo(f"Transmission créée avec l'ID: {transmission_id}")
+    asyncio.run(transmission_service.create_transmission(port, download_folder))
+    typer.echo("Transmission créée avec succès.")
+
+
+@app.command()
+def transmission_list():
+    """List all transmissions."""
+    db = AsyncDatabase()
+    transmission_service = TransmissionService(db)
+    transmission_list = asyncio.run(transmission_service.get_transmission_list())
+
+    table = Table("id", "port", "download_folder")
+    for transmission in transmission_list:
+        table.add_row(
+            str(transmission.id), str(transmission.port), transmission.download_folder
+        )
+    console.print(table)
 
 
 if __name__ == "__main__":
