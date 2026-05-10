@@ -8,3 +8,4 @@ CREATE TABLE `transmission` (
 )
 
 -- migrate:down
+DROP TABLE `transmission`;
