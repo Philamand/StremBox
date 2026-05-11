@@ -5,7 +5,7 @@ CREATE TABLE `users` (
   "transmission_id" INT NULL,
   primary key (`id`),
   foreign key (`transmission_id`) references transmission (id) on update cascade on delete cascade
-)
+);
 
 -- migrate:down
 DROP TABLE `users`;

@@ -5,7 +5,7 @@ CREATE TABLE `transmission` (
   `port` INT not null,
   `download_folder` varchar(255) not null,
   unique (`id`)
-)
+);
 
 -- migrate:down
 DROP TABLE `transmission`;
