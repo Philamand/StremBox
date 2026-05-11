@@ -1,8 +1,8 @@
 import os as _pyos
 
 from aiofiles import os
-
 from fastapi import Request
+
 from schemas.files import FileData
 
 ARCHIVE_EXTENSIONS = (
@@ -80,6 +80,7 @@ class FileManager:
         return results_sorted
 
     async def remove_file(self, file_path: str) -> None:
+        """Remove the file at the given path."""
         full_path = self.get_path(file_path)
         is_file = await os.path.isfile(full_path)
         if is_file:
@@ -90,3 +91,28 @@ class FileManager:
             await os.rmdir(full_path)
         else:
             raise FileNotFoundError(f"File not found: {full_path}")
+
+    async def get_folder_size(self, folder: str | None = None) -> int:
+        """Return the total size of the folder in bytes, recursively including all files."""
+        path = self.get_path(folder)
+
+        try:
+            if not await os.path.isdir(path):
+                return 0
+        except FileNotFoundError, PermissionError:
+            return 0
+
+        total_size = 0
+
+        try:
+            for root, dirs, files in _pyos.walk(path):
+                for file in files:
+                    file_path = _pyos.path.join(root, file)
+                    try:
+                        total_size += await os.path.getsize(file_path)
+                    except FileNotFoundError, PermissionError:
+                        continue
+        except FileNotFoundError, PermissionError:
+            pass
+
+        return total_size
