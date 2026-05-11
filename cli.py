@@ -60,6 +60,15 @@ def user_list():
 
 
 @app.command()
+def user_delete(id: str):
+    """Delete a user by ID."""
+    db = AsyncDatabase()
+    user_service = UserService(db)
+    asyncio.run(user_service.delete_user(id))
+    typer.echo(f"Utilisateur {id} supprimé avec succès.")
+
+
+@app.command()
 def transmission_list():
     """List all transmissions."""
     db = AsyncDatabase()

@@ -58,6 +58,13 @@ class UserService:
 
         return user_list
 
+    async def delete_user(self, id: str) -> None:
+        """Delete a user by ID."""
+        await self.db.commit_execute(
+            "DELETE FROM users WHERE id = ?",
+            (id,),
+        )
+
     async def create_user(self, id: str, transmission_id: int) -> None:
         """Create a new user."""
         await self.db.commit_execute(
