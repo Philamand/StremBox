@@ -22,3 +22,7 @@ class TransmissionService:
         """Get a list of all transmissions."""
         rows = await self.db.fetch_all("SELECT * FROM transmission")
         return [TransmissionData(**row) for row in rows]
+
+    async def delete_transmission(self, id: int):
+        """Delete a transmission by ID."""
+        await self.db.commit_execute("DELETE FROM transmission WHERE id = ?", (id,))

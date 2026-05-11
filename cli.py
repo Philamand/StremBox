@@ -51,5 +51,14 @@ def transmission_list():
     console.print(table)
 
 
+@app.command()
+def transmission_delete(id: int):
+    """Delete a transmission by ID."""
+    db = AsyncDatabase()
+    transmission_service = TransmissionService(db)
+    asyncio.run(transmission_service.delete_transmission(id))
+    typer.echo(f"Transmission #{id} supprimée avec succès.")
+
+
 if __name__ == "__main__":
     app()
