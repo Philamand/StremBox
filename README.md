@@ -37,6 +37,7 @@ The LibreBox interface is currently in French, with English documentation. Multi
 3. Create a copy of the example env files and update the values as needed:
    ```bash
    cp .env.example .env
+   cp .gluetun.env.example .gluetun.env
    cp .transmission.env.example .transmission.env
    ```
 
