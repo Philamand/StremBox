@@ -37,6 +37,29 @@ def transmission_add(
 
 
 @app.command()
+def user_list():
+    """List all users."""
+    db = AsyncDatabase()
+    user_service = UserService(db)
+    users = asyncio.run(user_service.get_user_list())
+
+    table = Table("id", "transmission_port", "download_folder")
+    for user in users:
+        transmission_port = (
+            str(user.transmission_data.port) if user.transmission_data else "None"
+        )
+        download_folder = (
+            user.transmission_data.download_folder if user.transmission_data else "None"
+        )
+        table.add_row(
+            user.id,
+            transmission_port,
+            download_folder,
+        )
+    console.print(table)
+
+
+@app.command()
 def transmission_list():
     """List all transmissions."""
     db = AsyncDatabase()
