@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends
+
 from schemas.transmission import TransmissionData
 from utils.database import AsyncDatabase
 
@@ -11,11 +12,11 @@ class TransmissionService:
     def __init__(self, db: Annotated[AsyncDatabase, Depends()]):
         self.db = db
 
-    async def create_transmission(self, port: int, download_folder: str):
+    async def create_transmission(self, port: int, download_folder: str, size: int):
         """Create a new transmission."""
         await self.db.commit_execute(
-            "INSERT INTO transmission (port, download_folder) VALUES (?, ?)",
-            (port, download_folder),
+            "INSERT INTO transmission (port, download_folder, size) VALUES (?, ?, ?)",
+            (port, download_folder, size),
         )
 
     async def get_transmission_list(self) -> list[TransmissionData]:

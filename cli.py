@@ -28,11 +28,12 @@ def user_add(
 def transmission_add(
     port: int = 9091,
     download_folder: str = "downloads/",
+    size: int = 10000,
 ):
     """Add a new transmission with the specified port and download folder."""
     db = AsyncDatabase()
     transmission_service = TransmissionService(db)
-    asyncio.run(transmission_service.create_transmission(port, download_folder))
+    asyncio.run(transmission_service.create_transmission(port, download_folder, size))
     typer.echo("Transmission créée avec succès.")
 
 
@@ -75,10 +76,13 @@ def transmission_list():
     transmission_service = TransmissionService(db)
     transmission_list = asyncio.run(transmission_service.get_transmission_list())
 
-    table = Table("id", "port", "download_folder")
+    table = Table("id", "port", "download_folder", "size")
     for transmission in transmission_list:
         table.add_row(
-            str(transmission.id), str(transmission.port), transmission.download_folder
+            str(transmission.id),
+            str(transmission.port),
+            transmission.download_folder,
+            str(transmission.size),
         )
     console.print(table)
 

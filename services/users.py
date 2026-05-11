@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends
+
 from schemas.users import TransmissionData, UserData
 from utils.database import AsyncDatabase
 
@@ -14,7 +15,7 @@ class UserService:
     async def get_user(self, id: str) -> UserData | None:
         """Get an user by their ID."""
         user = await self.db.fetch_one(
-            "SELECT users.id, users.created_at, transmission.port, transmission.download_folder FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id WHERE users.id = ?",
+            "SELECT users.id, users.created_at, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id WHERE users.id = ?",
             (id,),
         )
 
@@ -22,7 +23,11 @@ class UserService:
             return None
 
         transmission_data = (
-            TransmissionData(port=user["port"], download_folder=user["download_folder"])
+            TransmissionData(
+                port=user["port"],
+                download_folder=user["download_folder"],
+                size=user["size"],
+            )
             if user["port"] is not None
             else None
         )
@@ -37,14 +42,16 @@ class UserService:
     async def get_user_list(self) -> list[UserData]:
         """Get a list of all users."""
         users = await self.db.fetch_all(
-            "SELECT users.id, users.created_at, transmission.port, transmission.download_folder FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id"
+            "SELECT users.id, users.created_at, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id"
         )
 
         user_list = []
         for user in users:
             transmission_data = (
                 TransmissionData(
-                    port=user["port"], download_folder=user["download_folder"]
+                    port=user["port"],
+                    download_folder=user["download_folder"],
+                    size=user["size"],
                 )
                 if user["port"] is not None
                 else None

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class TransmissionData(BaseModel):
     port: int
     download_folder: str
+    size: int
 
 
 class UserData(BaseModel):
