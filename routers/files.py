@@ -1,10 +1,10 @@
 from typing import Annotated
 
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from config import BASE_URL
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from services.files import FileManager
 from utils.auth import require_auth
 from utils.files import zip_directory
@@ -25,6 +25,7 @@ async def list_files(
 ) -> HTMLResponse:
     """Return the list of files from the configured directory."""
     files = await file_manager.list_files(folder)
+    size = await file_manager.get_folder_size()
     if is_htmx:
         template = "components/file_list.html"
     else:
@@ -36,6 +37,8 @@ async def list_files(
             "files": files,
             "folder": folder,
             "is_htmx": is_htmx,
+            "size": size,
+            "total_size": request.state.user.transmission_data.size,
         },
     )
 
