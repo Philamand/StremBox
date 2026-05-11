@@ -4,8 +4,6 @@
 
 The LibreBox interface is currently in French, with English documentation. Multi language support is planned for future releases.
 
----
-
 ## Table of Contents
 - [Features](#features)
 - [Self-Hosting](#self-hosting)
@@ -15,14 +13,10 @@ The LibreBox interface is currently in French, with English documentation. Multi
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
----
-
 ## Features
 - **Simple UI**: An user-friendly interface for managing your seedbox.
 - **Extensible API**: Easily integrate with other tools like Stremio.
 - **Easy to self host**: Deploy your own instance with minimal effort.
-
----
 
 ## Self-Hosting
 ### Prerequisites
