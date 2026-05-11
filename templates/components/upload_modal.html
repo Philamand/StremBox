@@ -4,7 +4,7 @@
             Ajouter un torrent
         </h3>
 
-        <form action="/" method="post" enctype="multipart/form-data">
+        <form hx-post="/" hx-swap="none">
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Fichier torrent</legend>
                 <input
@@ -34,3 +34,12 @@
         <button>close</button>
     </form>
 </dialog>
+<script>
+    document
+        .querySelector("#upload_modal")
+        .addEventListener("htmx:afterRequest", function (evt) {
+            if (evt.detail.xhr.status === 200) {
+                upload_modal.close();
+            }
+        });
+</script>

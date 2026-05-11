@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from services.torrents import TorrentService
 from utils.auth import require_auth
 from utils.htmx import is_htmx_request
@@ -53,7 +53,7 @@ async def add_torrent(
 
     await torrent_service.add_torrent(data)
 
-    return RedirectResponse(url="/", status_code=303)
+    return Response(status_code=200)
 
 
 @dashboard_router.delete("/{hash}")
