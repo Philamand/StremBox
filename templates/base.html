@@ -23,8 +23,14 @@
             <div class="dock">
                 <a
                     href="/"
-                    {% if request.path == "/" %}class="dock-active"{% endif %}
-                ></a>
+                    {%
+                    if
+                    request.path=="/"
+                    %}class="dock-active"
+                    {%
+                    endif
+                    %}
+                >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
