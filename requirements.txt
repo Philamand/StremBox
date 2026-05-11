@@ -140,6 +140,7 @@ transmission-rpc==8.0.0a4
     # via librebox (pyproject.toml)
 typer==0.25.0
     # via
+    #   librebox (pyproject.toml)
     #   fastapi-cli
     #   fastapi-cloud-cli
 typing-extensions==4.15.0
