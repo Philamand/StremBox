@@ -11,7 +11,10 @@ api_router = APIRouter(prefix="/api", dependencies=[Depends(validate_bearer_toke
 @api_router.get("/hashes/")
 async def get_hashes(
     torrent_service: Annotated[TorrentService, Depends()],
-) -> list[str]:
+):
     """Get all torrent hashes from Transmission."""
     torrents = await torrent_service.get_torrents()
-    return [torrent.hashString for torrent in torrents]
+    hashes_dict = {}
+    for torrent in torrents:
+        hashes_dict[torrent.hashString] = [file.name for file in torrent.get_files()]
+    return hashes_dict
