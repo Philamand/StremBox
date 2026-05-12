@@ -1,3 +1,4 @@
+-- migrate:up
 CREATE TABLE
   public.users (
     id uuid NOT NULL DEFAULT uuidv7 (),
@@ -12,4 +13,7 @@ CREATE TABLE
 ALTER TABLE
   public.users
 ADD
-  CONSTRAINT users_pkey PRIMARY KEY (id)
+  CONSTRAINT users_pkey PRIMARY KEY (id);
+
+-- migrate:down
+DROP TABLE public.users;
