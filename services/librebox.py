@@ -13,6 +13,6 @@ class LibreBoxService:
         async with aiohttp.ClientSession() as session:
             headers = {"Authorization": f"Bearer {self.bearer_token}"}
             async with session.get(
-                f"{self.base_url}/torrents/hashes/", headers=headers
+                f"{self.base_url}/api/hashes/", headers=headers
             ) as response:
                 return await response.json()
