@@ -6,8 +6,8 @@ CREATE TABLE
     c411_key character varying(255) NULL,
     torr9_key character varying(255) NULL,
     lacale_key character varying(255) NULL,
-    streamer_url character varying(255) NOT NULL,
-    streamer_token character varying(255) NOT NULL
+    librebox_url character varying(255) NOT NULL,
+    librebox_token character varying(255) NOT NULL
   );
 
 ALTER TABLE

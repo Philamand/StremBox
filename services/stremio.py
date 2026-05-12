@@ -386,15 +386,15 @@ class StremioOrchestrationService:
 
     def __init__(
         self,
-        streamer_url: str,
-        streamer_token: str,
+        librebox_url: str,
+        librebox_token: str,
         c411_service: C411Service | None = None,
         torr9_service: Torr9Service | None = None,
     ) -> None:
         self.c411 = c411_service
         self.torr9 = torr9_service
-        self.streamer_url = streamer_url
-        self.streamer_token = streamer_token
+        self.librebox_url = librebox_url
+        self.librebox_token = librebox_token
 
     async def _search_movie(self, imdb_id: str) -> list[dict]:
         """Run parallel C411 + Torr9 searches for a movie and return deduplicated results."""
@@ -475,8 +475,8 @@ class StremioOrchestrationService:
         Returns:
             A ``StremioStreamsResponse`` with fast (⚡️) streams first.
         """
-        streamer_service = LibreBoxService(self.streamer_url, self.streamer_token)
-        hashes = await streamer_service.get_torrent_hashes()
+        librebox_service = LibreBoxService(self.librebox_url, self.librebox_token)
+        hashes = await librebox_service.get_torrent_hashes()
 
         se = ""
         if type == "series":
@@ -521,7 +521,7 @@ class StremioOrchestrationService:
                     f"📤 {result['seeders']}  📥 {result['leechers']} | {result['tracker_name']}\n"
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
-                url=f"{self.streamer_url}/streams/{result['torrents'][0]['hash']}{se}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}",
+                url=f"{self.librebox_url}/streams/{result['torrents'][0]['hash']}{se}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}",
                 filename=result["name"],
                 videoSize=int(result["size"]),
             )

@@ -48,8 +48,8 @@ async def get_torrent_streams(
         torr9_service = None
 
     stremio_service = StremioOrchestrationService(
-        user.streamer_url,
-        user.streamer_token,
+        user.librebox_url,
+        user.librebox_token,
         c411_service=c411_service,
         torr9_service=torr9_service,
     )
