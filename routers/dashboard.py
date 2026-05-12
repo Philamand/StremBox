@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from services.files import FileManager
 from services.torrents import TorrentService
 from utils.auth import require_auth
 from utils.htmx import is_htmx_request
@@ -20,6 +21,7 @@ async def dashboard(
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
     torrent_service: Annotated[TorrentService, Depends()],
 ) -> HTMLResponse:
+    """Render the dashboard page, showing the user's torrent list."""
     if is_htmx:
         template = "components/torrent_list.html"
     else:
@@ -41,9 +43,11 @@ async def dashboard(
 async def add_torrent(
     request: Request,
     torrent_service: Annotated[TorrentService, Depends()],
+    file_service: Annotated[FileManager, Depends()],
     torrent_file: UploadFile | None = File(None),
     torrent_magnet: str | None = Form(None),
 ) -> HTMLResponse:
+    """Add a torrent to the user's list, either from a file or a magnet link."""
     if torrent_magnet:
         data = torrent_magnet
     elif torrent_file:
@@ -56,7 +60,20 @@ async def add_torrent(
             status_code=400,
         )
 
-    await torrent_service.add_torrent(data)
+    available_size = (
+        request.state.user.transmission_data.size * 1024 * 1024 * 1024
+        - await file_service.get_folder_size()
+    )
+
+    try:
+        await torrent_service.add_torrent(data, available_size)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": str(e)},
+            status_code=400,
+        )
 
     return templates.TemplateResponse(
         request,
