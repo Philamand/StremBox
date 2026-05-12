@@ -1,58 +1,24 @@
-import os
 from typing import Annotated
 
-from fastapi.responses import StreamingResponse
-
 from fastapi import APIRouter, Depends, HTTPException, Request
-from services.torrents import TorrentService
-from utils.streams import (
-    build_stream_headers,
-    parse_range,
-    parse_stream_hash,
-    range_file_reader,
-    resolve_file_path,
-)
+from fastapi.responses import FileResponse
 
-router = APIRouter(prefix="/streams")
+from services.files import FileManager
+from utils.security import check_user_key
+
+router = APIRouter(prefix="/streams", dependencies=[Depends(check_user_key)])
 
 
-@router.get("/{hash}")
+@router.get("/{user_key}")
 async def get_stream(
-    hash: str,
     request: Request,
-    torrent_service: Annotated[TorrentService, Depends()],
-    tracker: str | None = None,
-    api_key: str | None = None,
-    torrent_id: str | None = None,
-):
-    """
-    Stream a video file from a torrent hash.
-    """
-    file_range = request.headers.get("range")
+    file_manager: Annotated[FileManager, Depends()],
+    file_path: str,
+) -> FileResponse:
+    """Return a stream of the file at the given path."""
+    path = file_manager.get_path(file_path)
 
-    hash, season, episode = parse_stream_hash(hash)
+    if not await file_manager.exists(path):
+        raise HTTPException(status_code=404, detail="File not found")
 
-    torrent_files = await torrent_service.get_torrent_files(hash)
-
-    file_path = resolve_file_path(torrent_files[0].name, season, episode)
-    file_size = os.path.getsize(file_path)
-
-    start, end = parse_range(file_range)
-    if start is None:
-        start = 0
-    if end is None or end >= file_size:
-        end = file_size - 1
-
-    try:
-        headers, status_code = build_stream_headers(
-            file_path, file_range, start, end, file_size
-        )
-    except ValueError:
-        raise HTTPException(status_code=415, detail="Fichier non pris en charge")
-
-    return StreamingResponse(
-        range_file_reader(request, file_path, start, end),
-        status_code=status_code,
-        headers=headers,
-        media_type=headers["content-type"],
-    )
+    return FileResponse(path)
