@@ -44,7 +44,7 @@ def user_list():
     user_service = UserService(db)
     users = asyncio.run(user_service.get_user_list())
 
-    table = Table("id", "transmission_port", "download_folder")
+    table = Table("id", "api_key", "transmission_port", "download_folder")
     for user in users:
         transmission_port = (
             str(user.transmission_data.port) if user.transmission_data else "None"
@@ -54,6 +54,7 @@ def user_list():
         )
         table.add_row(
             user.id,
+            user.api_key,
             transmission_port,
             download_folder,
         )

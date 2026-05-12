@@ -12,4 +12,5 @@ class TransmissionData(BaseModel):
 class UserData(BaseModel):
     id: str
     created_at: datetime
+    api_key: str | None
     transmission_data: TransmissionData | None

@@ -1,10 +1,10 @@
 from typing import Annotated
 
 import aiohttp
+from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 
 from config import HANKO_URL
-from fastapi import Depends, Request
 from services.users import UserService
 from utils.htmx import is_htmx_request
 
@@ -30,7 +30,7 @@ async def get_user(request: Request, user_service: Annotated[UserService, Depend
             if not validation_data.get("is_valid", False):
                 return
 
-            user = await user_service.get_user(validation_data.get("user_id"))
+            user = await user_service.get_user(id=validation_data.get("user_id"))
 
             if not user:
                 raise HTTPException(status_code=403)

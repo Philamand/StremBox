@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from fastapi import Depends
@@ -12,12 +13,23 @@ class UserService:
     def __init__(self, db: Annotated[AsyncDatabase, Depends()]):
         self.db = db
 
-    async def get_user(self, id: str) -> UserData | None:
-        """Get an user by their ID."""
-        user = await self.db.fetch_one(
-            "SELECT users.id, users.created_at, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id WHERE users.id = ?",
-            (id,),
-        )
+    async def get_user(
+        self, id: str | None = None, api_key: str | None = None
+    ) -> UserData | None:
+        """Get an user by their ID or API key."""
+        if id is None and api_key is None:
+            return None
+
+        if api_key is not None:
+            user = await self.db.fetch_one(
+                "SELECT users.id, users.created_at, users.api_key, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id WHERE users.api_key = ?",
+                (api_key,),
+            )
+        else:
+            user = await self.db.fetch_one(
+                "SELECT users.id, users.created_at, users.api_key, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id WHERE users.id = ?",
+                (id,),
+            )
 
         if not user:
             return None
@@ -34,6 +46,7 @@ class UserService:
         user_data = UserData(
             id=user["id"],
             created_at=user["created_at"],
+            api_key=user["api_key"],
             transmission_data=transmission_data,
         )
 
@@ -42,7 +55,7 @@ class UserService:
     async def get_user_list(self) -> list[UserData]:
         """Get a list of all users."""
         users = await self.db.fetch_all(
-            "SELECT users.id, users.created_at, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id"
+            "SELECT users.id, users.created_at, users.api_key, transmission.port, transmission.download_folder, transmission.size FROM users LEFT JOIN transmission ON transmission.id = users.transmission_id"
         )
 
         user_list = []
@@ -59,6 +72,7 @@ class UserService:
             user_data = UserData(
                 id=user["id"],
                 created_at=user["created_at"],
+                api_key=user["api_key"],
                 transmission_data=transmission_data,
             )
             user_list.append(user_data)
@@ -74,7 +88,8 @@ class UserService:
 
     async def create_user(self, id: str, transmission_id: int) -> None:
         """Create a new user."""
+        api_key = str(uuid.uuid4())
         await self.db.commit_execute(
-            "INSERT INTO users (id, transmission_id) VALUES (?, ?)",
-            (id, transmission_id),
+            "INSERT INTO users (id, api_key, transmission_id) VALUES (?, ?, ?)",
+            (id, api_key, transmission_id),
         )
