@@ -3,7 +3,6 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Path, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from config import BEARER_TOKEN
 from services.users import UserService
 
 security = HTTPBearer()
@@ -25,7 +24,9 @@ async def check_user_key(
 
 
 async def validate_bearer_token(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    user_service: Annotated[UserService, Depends()],
 ) -> None:
     """
     Validate the bearer token from the request.
@@ -51,8 +52,9 @@ async def validate_bearer_token(
             detail="Schéma d'authentification invalide. Attendu 'Bearer'",
         )
 
-    if credentials.credentials != BEARER_TOKEN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Jeton d'authentification invalide",
-        )
+    user = await user_service.get_user(api_key=credentials.credentials)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid user key")
+
+    request.state.user = user
