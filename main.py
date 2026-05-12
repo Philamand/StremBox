@@ -1,8 +1,9 @@
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.routing import APIRoute
 
-from fastapi import FastAPI
+from routers.api import api_router
 from routers.auth import auth_router
 from routers.dashboard import dashboard_router
 from routers.files import router as files_router
@@ -37,6 +38,7 @@ app.add_middleware(
 
 app.include_router(router)
 app.include_router(files_router)
+app.include_router(api_router)
 app.include_router(dashboard_router)
 app.include_router(auth_router)
 
