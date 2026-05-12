@@ -501,10 +501,12 @@ class StremioOrchestrationService:
             tracker, torrent_id = get_torrent_tracker_and_id(
                 result["torrents"][0]["link"]
             )
+
             if tracker == "c411":
                 api_key = user.c411_key
             elif tracker == "torr9":
                 api_key = user.torr9_key
+                torrent_url = ""
             else:
                 api_key = None
 
@@ -517,8 +519,7 @@ class StremioOrchestrationService:
                 stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
             else:
                 speed_emoji = "🐢"
-                # TODO: handle torrent download
-                stream_url = f"{self.librebox_url}/streams/{result['torrents'][0]['hash']}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}"
+                stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['torrents'][0]['hash']}?tracker={tracker}&api_key={api_key}"
 
             stream = StremioStreamData(
                 title=(
