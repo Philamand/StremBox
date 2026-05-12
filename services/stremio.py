@@ -498,11 +498,6 @@ class StremioOrchestrationService:
         slow_streams: list[StremioStreamData] = []
 
         for result in results:
-            if result["torrents"][0]["hash"] in hashes:
-                speed_emoji = "⚡️"
-            else:
-                speed_emoji = "🐢"
-
             tracker, torrent_id = get_torrent_tracker_and_id(
                 result["torrents"][0]["link"]
             )
@@ -514,6 +509,17 @@ class StremioOrchestrationService:
                 api_key = None
 
             details = parse_torrent_name(result["name"])
+
+            if result["torrents"][0]["hash"] in hashes.keys():
+                speed_emoji = "⚡️"
+                # TODO: handle multiple files
+                file_path = hashes[result["torrents"][0]["hash"]][0]
+                stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
+            else:
+                speed_emoji = "🐢"
+                # TODO: handle torrent download
+                stream_url = f"{self.librebox_url}/streams/{result['torrents'][0]['hash']}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}"
+
             stream = StremioStreamData(
                 title=(
                     f"{speed_emoji} {result['name']}\n"
@@ -521,7 +527,7 @@ class StremioOrchestrationService:
                     f"📤 {result['seeders']}  📥 {result['leechers']} | {result['tracker_name']}\n"
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
-                url=f"{self.librebox_url}/streams/{result['torrents'][0]['hash']}{se}?api_key={api_key}&tracker={tracker}&torrent_id={torrent_id}",
+                url=stream_url,
                 filename=result["name"],
                 videoSize=int(result["size"]),
             )

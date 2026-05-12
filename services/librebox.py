@@ -1,3 +1,5 @@
+from typing import Any
+
 import aiohttp
 
 
@@ -8,7 +10,7 @@ class LibreBoxService:
         self.base_url = base_url
         self.bearer_token = bearer_token
 
-    async def get_torrent_hashes(self) -> list[str]:
+    async def get_torrent_hashes(self) -> dict[str, Any]:
         """Get a list of torrent hashes from the API."""
         async with aiohttp.ClientSession() as session:
             headers = {"Authorization": f"Bearer {self.bearer_token}"}
