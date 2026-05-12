@@ -1,0 +1,38 @@
+<div id="upload_modal_box" class="modal-box">
+    <h3 id="upload-modal-title" class="text-lg font-bold mb-4">
+        Ajouter un torrent
+    </h3>
+
+    <div id="error-alert"></div>
+
+    <form
+        hx-post="/"
+        hx-target="#upload_modal_box"
+        hx-target-error="#error-alert"
+        hx-swap="outerHTML"
+        hx-encoding="multipart/form-data"
+    >
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Fichier torrent</legend>
+            <input
+                class="file-input w-full"
+                type="file"
+                name="torrent_file"
+                accept=".torrent"
+            />
+        </fieldset>
+        <div class="divider">OU</div>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Lien magnet</legend>
+            <input
+                type="text"
+                name="torrent_magnet"
+                class="input w-full"
+                placeholder="Type here"
+            />
+        </fieldset>
+        <button class="btn btn-primary mt-4 w-full" type="submit">
+            Ajouter Torrent
+        </button>
+    </form>
+</div>

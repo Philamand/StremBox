@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from services.torrents import TorrentService
@@ -39,21 +39,29 @@ async def dashboard(
 
 @dashboard_router.post("/")
 async def add_torrent(
+    request: Request,
     torrent_service: Annotated[TorrentService, Depends()],
     torrent_file: UploadFile | None = File(None),
     torrent_magnet: str | None = Form(None),
-):
-    """Add a torrent file and redirect to dashboard."""
+) -> HTMLResponse:
     if torrent_magnet:
         data = torrent_magnet
     elif torrent_file:
         data = await torrent_file.read()
     else:
-        raise HTTPException(status_code=400)
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Veuillez sélectionner un fichier ou une URL magnet."},
+            status_code=400,
+        )
 
     await torrent_service.add_torrent(data)
 
-    return Response(status_code=200)
+    return templates.TemplateResponse(
+        request,
+        "components/upload_modal_box.html",
+    )
 
 
 @dashboard_router.delete("/{hash}")
