@@ -5,8 +5,6 @@ from typing import Optional, Tuple
 import aiofiles
 from fastapi import Request
 
-from config import BASE_DIR
-
 # Video file extensions and their MIME types
 VIDEO_MIME_TYPES = {
     ".mp4": "video/mp4",
@@ -189,7 +187,7 @@ def parse_stream_hash(raw_hash: str) -> Tuple[str, Optional[int], Optional[int]]
 
 
 def resolve_file_path(
-    torrent_file: str, season: Optional[int], episode: Optional[int]
+    torrent_file: str, base_dir: str, season: Optional[int], episode: Optional[int]
 ) -> str:
     """Resolve the path (relative to ``BASE_DIR``) for the requested file.
 
@@ -199,6 +197,7 @@ def resolve_file_path(
 
     Args:
         torrent_file: File or directory name under ``BASE_DIR``.
+        base_dir: The base directory to resolve relative paths against.
         season: Target season number, or ``None`` for non-series files.
         episode: Target episode number, or ``None`` for non-series files.
 
@@ -211,7 +210,7 @@ def resolve_file_path(
     from fastapi import HTTPException
 
     if season is not None and episode is not None:
-        dir_path = BASE_DIR + os.path.dirname(torrent_file)
+        dir_path = base_dir + os.path.dirname(torrent_file)
         if not os.path.isdir(dir_path):
             raise HTTPException(status_code=404)
         for f in os.listdir(dir_path):
@@ -219,9 +218,10 @@ def resolve_file_path(
                 return dir_path + "/" + f
         raise HTTPException(status_code=404)
 
-    if not os.path.isfile(BASE_DIR + torrent_file):
+    if not os.path.isfile(base_dir + torrent_file):
         raise HTTPException(status_code=404)
-    return BASE_DIR + torrent_file
+
+    return torrent_file
 
 
 def build_stream_headers(

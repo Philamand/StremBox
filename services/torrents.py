@@ -54,6 +54,7 @@ class TorrentService:
             await asyncio.to_thread(
                 self.client.add_torrent, torrent=torrent, sequential_download=True
             )
+            return
 
         added: Torrent = await asyncio.to_thread(
             self.client.add_torrent,
