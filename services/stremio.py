@@ -506,7 +506,6 @@ class StremioOrchestrationService:
                 api_key = user.c411_key
             elif tracker == "torr9":
                 api_key = user.torr9_key
-                torrent_url = ""
             else:
                 api_key = None
 
