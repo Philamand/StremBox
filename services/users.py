@@ -27,4 +27,8 @@ class UserService:
             "SELECT * FROM users WHERE id = $1",
             user_id,
         )
+
+        if not result:
+            raise ValueError("User not found")
+
         return UserData(**result[0])
