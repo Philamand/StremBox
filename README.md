@@ -81,3 +81,7 @@ This project is licensed under the AGPL License - see the [LICENSE](LICENSE) fil
 
 ## Acknowledgements
 - [Transmission](https://transmissionbt.com/)
+- [Gluetun](https://github.com/qdm12/gluetun)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [dbmate](https://github.com/amacneil/dbmate)
+- [Hanko](https://hanko.io/)
