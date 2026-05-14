@@ -3,8 +3,8 @@ from typing import Any
 import aiohttp
 
 
-class LibreBoxService:
-    """Service for interacting with LibreBox-related endpoints."""
+class BauxiteService:
+    """Service for interacting with Bauxite-related endpoints."""
 
     def __init__(self, base_url: str, bearer_token: str):
         self.base_url = base_url
