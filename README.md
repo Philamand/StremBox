@@ -1,8 +1,8 @@
-# LibreBox
+# Bauxite
 
 **An open-source seedbox built with ease of use in mind. It provides a simple user interface for managing your seedbox and an extensible API to easily integrate with other tools.**
 
-The LibreBox interface is currently in French, with English documentation. Multi language support is planned for future releases.
+The Bauxite interface is currently in French, with English documentation. Multi language support is planned for future releases.
 
 ## Table of Contents
 - [Features](#features)
@@ -26,12 +26,12 @@ The LibreBox interface is currently in French, with English documentation. Multi
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://codeberg.org/Philamand/LibreBox.git
+   git clone https://codeberg.org/Philamand/Bauxite.git
    ```
 
 2. Navigate to the project directory:
    ```bash
-   cd LibreBox
+   cd Bauxite
    ```
 
 3. Create a copy of the example env files and update the values as needed:
@@ -61,7 +61,7 @@ The LibreBox interface is currently in French, with English documentation. Multi
    docker compose exec fastapi python cli.py user-add <UserId> 1
    ```
 
-8. Access the LibreBox UI by navigating to `https://<your-domain>` in your browser. Log in using your Hanko account.
+8. Access the Bauxite UI by navigating to `https://<your-domain>` in your browser. Log in using your Hanko account.
 
 ## Contributing
 We welcome contributions! Please follow these steps:
