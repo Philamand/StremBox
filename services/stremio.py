@@ -478,16 +478,16 @@ class StremioOrchestrationService:
         librebox_service = LibreBoxService(self.librebox_url, self.librebox_token)
         hashes = await librebox_service.get_torrent_hashes()
 
-        se = ""
         if type == "series":
             parts = id.split(":")
             imdb_id = parts[0]
             season = int(parts[1])
             episode = int(parts[2])
-            se = f":{parts[1]}:{parts[2]}"
             results = await self._search_series(imdb_id, season, episode)
         else:
             results = await self._search_movie(id)
+            season = None
+            episode = None
 
         if not results:
             return StremioStreamsResponse(streams=[])
@@ -513,12 +513,21 @@ class StremioOrchestrationService:
 
             if result["torrents"][0]["hash"] in hashes.keys():
                 speed_emoji = "⚡️"
-                # TODO: handle multiple files
-                file_path = hashes[result["torrents"][0]["hash"]][0]
+                if len(hashes[result["torrents"][0]["hash"]]) == 1:
+                    file_path = hashes[result["torrents"][0]["hash"]][0]
+                else:
+                    for filename in hashes[result["torrents"][0]["hash"]]:
+                        if check_season_episode(filename, season, episode):
+                            file_path = filename
+                            break
+                    if not file_path:
+                        file_path = hashes[result["torrents"][0]["hash"]][0]
                 stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
             else:
                 speed_emoji = "🐢"
                 stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['torrents'][0]['hash']}?tracker={tracker}&api_key={api_key}"
+                if season and episode:
+                    stream_url += f"&season={season}&episode={episode}"
 
             stream = StremioStreamData(
                 title=(
