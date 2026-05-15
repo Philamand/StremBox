@@ -90,6 +90,7 @@ User documentation will be available in French soon directly in the app.
 3. Copy the `.env.example` to `.env` and update the values as needed:
    ```bash
    cp .env.example .env
+   nano .env
    ```
 
 4. Copy the `Caddyfile.example` to `Caddyfile` and update the values as needed:
