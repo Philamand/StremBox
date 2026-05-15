@@ -1,4 +1,8 @@
-"""Tests for the FileManager class."""
+"""
+Tests for the FileManager class.
+
+This file was AI-generated.
+"""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
