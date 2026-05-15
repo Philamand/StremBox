@@ -123,6 +123,7 @@ pyyaml==6.0.3
 rich==15.0.0
     # via
     #   rich-toolkit
+    #   typer
 rich-toolkit==0.19.7
     # via
     #   fastapi-cli
