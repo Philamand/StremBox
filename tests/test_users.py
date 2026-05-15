@@ -1,9 +1,13 @@
 # This file is AI-generated
 import uuid
+from collections.abc import AsyncGenerator
 
 import asyncpg
 import pytest
+from httpx import ASGITransport, AsyncClient
 
+from dependencies import get_user_service
+from main import app
 from schemas.users import UserCreateData, UserData
 from services.users import UserService
 
@@ -124,3 +128,93 @@ async def test_get_user_nonexistent_raises_valueerror(conn: asyncpg.Connection) 
 
     with pytest.raises(ValueError, match="User not found"):
         await svc.get_user(fake_id)
+
+
+# ---------------------------------------------------------------------------
+# Route tests (HTTP layer)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def client(
+    conn: asyncpg.Connection,
+) -> AsyncGenerator[AsyncClient, None]:
+    """Async HTTP client with UserService dependency overridden for testing.
+
+    The ``get_user_service`` dependency is replaced so that the test database
+    connection (from the ``conn`` fixture) is used instead of the real pool.
+    """
+
+    def _get_test_user_service() -> UserService:
+        return UserService(conn)
+
+    app.dependency_overrides[get_user_service] = _get_test_user_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+    app.dependency_overrides.clear()
+
+
+async def test_index_returns_html(client: AsyncClient) -> None:
+    """GET / should return an HTML response with status 200."""
+    resp = await client.get("/")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+
+
+async def test_create_user_returns_user_id(client: AsyncClient) -> None:
+    """POST / with valid form data should create a user and return the ID."""
+    resp = await client.post(
+        "/",
+        data={
+            "librebox_url": "https://librebox.example.com",
+            "librebox_token": "test-token",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "user_id" in data
+    # Must be a valid UUID
+    uuid.UUID(data["user_id"])
+
+
+async def test_create_user_persists_in_db(
+    client: AsyncClient, conn: asyncpg.Connection
+) -> None:
+    """POST / should persist every field in the database."""
+    resp = await client.post(
+        "/",
+        data={
+            "librebox_url": "https://persist.example.com",
+            "librebox_token": "persist-token",
+            "c411_key": "c411-persist",
+            "torr9_key": "torr9-persist",
+            "lacale_key": "lacale-persist",
+        },
+    )
+    assert resp.status_code == 200
+    user_id = resp.json()["user_id"]
+
+    row = await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
+    assert row is not None
+    assert row["librebox_url"] == "https://persist.example.com"
+    assert row["librebox_token"] == "persist-token"
+    assert row["c411_key"] == "c411-persist"
+    assert row["torr9_key"] == "torr9-persist"
+    assert row["lacale_key"] == "lacale-persist"
+
+
+async def test_create_user_optional_keys_can_be_omitted(client: AsyncClient) -> None:
+    """POST / without optional keys should succeed (they default to None/NULL)."""
+    resp = await client.post(
+        "/",
+        data={
+            "librebox_url": "https://minimal.example.com",
+            "librebox_token": "minimal-token",
+        },
+    )
+    assert resp.status_code == 200
+    user_id = resp.json()["user_id"]
+    uuid.UUID(user_id)
