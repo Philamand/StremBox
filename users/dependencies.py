@@ -4,9 +4,9 @@ import aiohttp
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 
-from config import HANKO_URL
-from services.users import UserService
-from utils.htmx import is_htmx_request
+from core.config import HANKO_URL
+from core.htmx import is_htmx_request
+from users.services import UserService
 
 
 class NotAuthenticatedException(Exception):

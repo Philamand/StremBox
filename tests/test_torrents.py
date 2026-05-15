@@ -11,7 +11,7 @@ import pytest
 from fastapi import Request
 from transmission_rpc import File, Torrent
 
-from services.torrents import TorrentService
+from torrents.services import TorrentService
 
 # ---------------------------------------------------------------------------
 # Helper to build a mock Request with the right transmission_data.
@@ -45,7 +45,7 @@ class TestConstructor:
 
     def test_creates_client_with_transmission_port(self):
         """The client should be created using TRANSMISSION_URL and the user's port."""
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             TorrentService(_make_request(port=1234))
             mock_cls.assert_called_once_with(
                 host=mock_cls.call_args.kwargs.get("host"),
@@ -81,7 +81,7 @@ class TestGetTorrents:
             MagicMock(spec=Torrent, id=1, name="ubuntu.iso"),
             MagicMock(spec=Torrent, id=2, name="debian.iso"),
         ]
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.get_torrents.return_value = fake_torrents
             service = TorrentService(mock_request)
             result = await service.get_torrents()
@@ -92,7 +92,7 @@ class TestGetTorrents:
     @pytest.mark.asyncio
     async def test_returns_empty_list(self, mock_request):
         """Should handle an empty torrent list correctly."""
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.get_torrents.return_value = []
             service = TorrentService(mock_request)
             result = await service.get_torrents()
@@ -114,8 +114,8 @@ class TestAddTorrentBytes:
         torrent = b"some_torrent_data"
         max_size = 2_000_000
         with (
-            patch("services.torrents.get_torrent_size", return_value=500_000),
-            patch("services.torrents.Client") as mock_cls,
+            patch("torrents.services.get_torrent_size", return_value=500_000),
+            patch("torrents.services.Client") as mock_cls,
         ):
             service = TorrentService(mock_request)
             await service.add_torrent(torrent, max_size)
@@ -130,8 +130,8 @@ class TestAddTorrentBytes:
         torrent = b"large_torrent_data"
         max_size = 1024
         with (
-            patch("services.torrents.get_torrent_size", return_value=2_000_000),
-            patch("services.torrents.Client") as mock_cls,
+            patch("torrents.services.get_torrent_size", return_value=2_000_000),
+            patch("torrents.services.Client") as mock_cls,
         ):
             service = TorrentService(mock_request)
             with pytest.raises(
@@ -149,8 +149,8 @@ class TestAddTorrentBytes:
         torrent = b"exact_size_torrent"
         max_size = 500_000
         with (
-            patch("services.torrents.get_torrent_size", return_value=500_000),
-            patch("services.torrents.Client") as mock_cls,
+            patch("torrents.services.get_torrent_size", return_value=500_000),
+            patch("torrents.services.Client") as mock_cls,
         ):
             service = TorrentService(mock_request)
             await service.add_torrent(torrent, max_size)
@@ -163,10 +163,10 @@ class TestAddTorrentBytes:
         torrent = b"malformed_data"
         with (
             patch(
-                "services.torrents.get_torrent_size",
+                "torrents.services.get_torrent_size",
                 side_effect=ValueError("invalid torrent data"),
             ),
-            patch("services.torrents.Client") as mock_cls,
+            patch("torrents.services.Client") as mock_cls,
         ):
             service = TorrentService(mock_request)
             with pytest.raises(ValueError, match="invalid torrent data"):
@@ -195,7 +195,7 @@ class TestAddTorrentStr:
         fake_size_torrent = MagicMock(spec=Torrent)
         fake_size_torrent.total_size = 500_000
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.add_torrent.return_value = fake_torrent
             mock_cls.return_value.get_torrent.side_effect = [
                 MagicMock(spec=Torrent, total_size=0),  # first poll
@@ -220,7 +220,7 @@ class TestAddTorrentStr:
         fake_torrent = MagicMock(spec=Torrent)
         fake_torrent.hashString = "abc123"
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.add_torrent.return_value = fake_torrent
             mock_cls.return_value.get_torrent.return_value = MagicMock(
                 spec=Torrent,
@@ -247,7 +247,7 @@ class TestAddTorrentStr:
         fake_torrent = MagicMock(spec=Torrent)
         fake_torrent.hashString = "abc123"
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.add_torrent.return_value = fake_torrent
             # Always returns total_size = 0  –  metadata never arrives
             mock_cls.return_value.get_torrent.return_value = MagicMock(
@@ -283,7 +283,7 @@ class TestAddTorrentStr:
         fake_torrent = MagicMock(spec=Torrent)
         fake_torrent.hashString = "abc123"
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.add_torrent.return_value = fake_torrent
             mock_cls.return_value.get_torrent.return_value = MagicMock(
                 spec=Torrent, total_size=200_000
@@ -301,7 +301,7 @@ class TestAddTorrentStr:
         fake_torrent = MagicMock(spec=Torrent)
         fake_torrent.hashString = "abc123"
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.add_torrent.return_value = fake_torrent
             # Three polls: 0, 0, then finally the real size
             mock_cls.return_value.get_torrent.side_effect = [
@@ -330,7 +330,7 @@ class TestRemoveTorrent:
     @pytest.mark.asyncio
     async def test_removes_without_deleting_files(self, mock_request):
         """Default behaviour: keep data on disk."""
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             service = TorrentService(mock_request)
             await service.remove_torrent("hash123")
 
@@ -341,7 +341,7 @@ class TestRemoveTorrent:
     @pytest.mark.asyncio
     async def test_removes_and_deletes_files(self, mock_request):
         """When delete_files=True, data should be deleted."""
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             service = TorrentService(mock_request)
             await service.remove_torrent("hash456", delete_files=True)
 
@@ -368,7 +368,7 @@ class TestGetTorrentFiles:
         fake_torrent = MagicMock(spec=Torrent)
         fake_torrent.get_files.return_value = fake_files
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.get_torrent.return_value = fake_torrent
             service = TorrentService(mock_request)
             result = await service.get_torrent_files("hash789")
@@ -383,7 +383,7 @@ class TestGetTorrentFiles:
         fake_torrent = MagicMock(spec=Torrent)
         fake_torrent.get_files.return_value = []
 
-        with patch("services.torrents.Client") as mock_cls:
+        with patch("torrents.services.Client") as mock_cls:
             mock_cls.return_value.get_torrent.return_value = fake_torrent
             service = TorrentService(mock_request)
             result = await service.get_torrent_files("hash_empty")

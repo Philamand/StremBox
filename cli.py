@@ -4,9 +4,9 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from services.transmission import TransmissionService
-from services.users import UserService
-from utils.database import AsyncDatabase
+from core.database import AsyncDatabase
+from transmission.services import TransmissionService
+from users.services import UserService
 
 console = Console()
 app = typer.Typer()

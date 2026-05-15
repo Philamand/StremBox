@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from schemas.transmission import TransmissionData
-from utils.database import AsyncDatabase
+from core.database import AsyncDatabase
+from transmission.schemas import TransmissionData
 
 
 class TransmissionService:

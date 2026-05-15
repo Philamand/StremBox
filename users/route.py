@@ -1,9 +1,9 @@
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from config import HANKO_URL
-from fastapi import APIRouter, Request
-from utils.jinja_filters import register_filters
+from core.config import HANKO_URL
+from core.jinja_filters import register_filters
 
 auth_router = APIRouter(prefix="/auth")
 templates = Jinja2Templates(directory="templates")

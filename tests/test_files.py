@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import Request
 
-from schemas.files import FileData
-from services.files import ARCHIVE_EXTENSIONS, FileManager
+from files.schemas import FileData
+from files.services import ARCHIVE_EXTENSIONS, FileManager
 
 
 class TestFileManager:
@@ -54,7 +54,7 @@ class TestFileManager:
     async def test_is_dir_true(self, file_manager):
         """Test is_dir returns True for a directory."""
         with patch(
-            "services.files.os.path.isdir", new_callable=AsyncMock
+            "files.services.os.path.isdir", new_callable=AsyncMock
         ) as mock_isdir:
             mock_isdir.return_value = True
             result = await file_manager.is_dir("/home/user/downloads/folder")
@@ -65,7 +65,7 @@ class TestFileManager:
     async def test_is_dir_false(self, file_manager):
         """Test is_dir returns False for a file."""
         with patch(
-            "services.files.os.path.isdir", new_callable=AsyncMock
+            "files.services.os.path.isdir", new_callable=AsyncMock
         ) as mock_isdir:
             mock_isdir.return_value = False
             result = await file_manager.is_dir("/home/user/downloads/file.txt")
@@ -77,7 +77,7 @@ class TestFileManager:
     async def test_exists_true(self, file_manager):
         """Test exists returns True when path exists."""
         with patch(
-            "services.files.os.path.exists", new_callable=AsyncMock
+            "files.services.os.path.exists", new_callable=AsyncMock
         ) as mock_exists:
             mock_exists.return_value = True
             result = await file_manager.exists("/home/user/downloads/something")
@@ -88,7 +88,7 @@ class TestFileManager:
     async def test_exists_false(self, file_manager):
         """Test exists returns False when path does not exist."""
         with patch(
-            "services.files.os.path.exists", new_callable=AsyncMock
+            "files.services.os.path.exists", new_callable=AsyncMock
         ) as mock_exists:
             mock_exists.return_value = False
             result = await file_manager.exists("/home/user/downloads/nonexistent")
@@ -98,7 +98,7 @@ class TestFileManager:
     @pytest.mark.asyncio
     async def test_list_files_empty_directory(self, file_manager):
         """Test list_files returns empty list for empty directory."""
-        with patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir:
+        with patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir:
             mock_listdir.return_value = []
             result = await file_manager.list_files()
             assert result == []
@@ -107,7 +107,7 @@ class TestFileManager:
     @pytest.mark.asyncio
     async def test_list_files_with_folder_param(self, file_manager):
         """Test list_files with a specific folder parameter."""
-        with patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir:
+        with patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir:
             mock_listdir.return_value = []
             await file_manager.list_files("subfolder")
             mock_listdir.assert_called_once_with("/home/user/downloads/subfolder")
@@ -116,13 +116,13 @@ class TestFileManager:
     async def test_list_files_mixed_content(self, file_manager):
         """Test list_files with mixed files and directories."""
         with (
-            patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
             patch(
-                "services.files.os.path.getatime", new_callable=AsyncMock
+                "files.services.os.path.getatime", new_callable=AsyncMock
             ) as mock_getatime,
         ):
             mock_listdir.return_value = ["dir1", "file1.txt", "dir2", "file2.pdf"]
@@ -153,13 +153,13 @@ class TestFileManager:
     async def test_list_files_archive_detection(self, file_manager):
         """Test list_files correctly detects archive files."""
         with (
-            patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
             patch(
-                "services.files.os.path.getatime", new_callable=AsyncMock
+                "files.services.os.path.getatime", new_callable=AsyncMock
             ) as mock_getatime,
         ):
             mock_listdir.return_value = ["archive.zip", "document.pdf", "backup.tar.gz"]
@@ -181,13 +181,13 @@ class TestFileManager:
     async def test_list_files_case_insensitive_archive_detection(self, file_manager):
         """Test archive detection is case-insensitive."""
         with (
-            patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
             patch(
-                "services.files.os.path.getatime", new_callable=AsyncMock
+                "files.services.os.path.getatime", new_callable=AsyncMock
             ) as mock_getatime,
         ):
             mock_listdir.return_value = ["ARCHIVE.ZIP", "File.TAR.GZ"]
@@ -203,7 +203,7 @@ class TestFileManager:
     @pytest.mark.asyncio
     async def test_list_files_handles_file_not_found(self, file_manager):
         """Test list_files handles FileNotFoundError gracefully."""
-        with patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir:
+        with patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir:
             mock_listdir.side_effect = FileNotFoundError()
             result = await file_manager.list_files()
             assert result == []
@@ -211,7 +211,7 @@ class TestFileManager:
     @pytest.mark.asyncio
     async def test_list_files_handles_permission_error(self, file_manager):
         """Test list_files handles PermissionError gracefully."""
-        with patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir:
+        with patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir:
             mock_listdir.side_effect = PermissionError()
             result = await file_manager.list_files()
             assert result == []
@@ -220,13 +220,13 @@ class TestFileManager:
     async def test_list_files_skips_inaccessible_items(self, file_manager):
         """Test list_files skips items that raise errors during stat calls."""
         with (
-            patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
             patch(
-                "services.files.os.path.getatime", new_callable=AsyncMock
+                "files.services.os.path.getatime", new_callable=AsyncMock
             ) as mock_getatime,
         ):
             mock_listdir.return_value = [
@@ -252,13 +252,13 @@ class TestFileManager:
     async def test_list_files_sorting_directories_first(self, file_manager):
         """Test that list_files sorts directories before files."""
         with (
-            patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
             patch(
-                "services.files.os.path.getatime", new_callable=AsyncMock
+                "files.services.os.path.getatime", new_callable=AsyncMock
             ) as mock_getatime,
         ):
             # Mix of files and directories with names that would be out of order alphabetically
@@ -292,13 +292,13 @@ class TestFileManager:
     async def test_list_files_case_insensitive_sorting(self, file_manager):
         """Test that list_files sorts case-insensitively."""
         with (
-            patch("services.files.os.listdir", new_callable=AsyncMock) as mock_listdir,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.listdir", new_callable=AsyncMock) as mock_listdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
             patch(
-                "services.files.os.path.getatime", new_callable=AsyncMock
+                "files.services.os.path.getatime", new_callable=AsyncMock
             ) as mock_getatime,
         ):
             mock_listdir.return_value = ["Zebra.txt", "apple.txt", "Banana.txt"]
@@ -319,9 +319,9 @@ class TestFileManager:
         """Test remove_file removes a file successfully."""
         with (
             patch(
-                "services.files.os.path.isfile", new_callable=AsyncMock
+                "files.services.os.path.isfile", new_callable=AsyncMock
             ) as mock_isfile,
-            patch("services.files.os.remove", new_callable=AsyncMock) as mock_remove,
+            patch("files.services.os.remove", new_callable=AsyncMock) as mock_remove,
         ):
             mock_isfile.return_value = True
             await file_manager.remove_file("file.txt")
@@ -334,10 +334,10 @@ class TestFileManager:
         """Test remove_file removes an empty directory."""
         with (
             patch(
-                "services.files.os.path.isfile", new_callable=AsyncMock
+                "files.services.os.path.isfile", new_callable=AsyncMock
             ) as mock_isfile,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files.os.rmdir", new_callable=AsyncMock) as mock_rmdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.rmdir", new_callable=AsyncMock) as mock_rmdir,
         ):
             mock_isfile.return_value = False
             mock_isdir.return_value = True
@@ -352,9 +352,9 @@ class TestFileManager:
         """Test remove_file raises FileNotFoundError for nonexistent path."""
         with (
             patch(
-                "services.files.os.path.isfile", new_callable=AsyncMock
+                "files.services.os.path.isfile", new_callable=AsyncMock
             ) as mock_isfile,
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
         ):
             mock_isfile.return_value = False
             mock_isdir.return_value = False
@@ -371,9 +371,9 @@ class TestFileManager:
         """Test remove_file with nested file paths."""
         with (
             patch(
-                "services.files.os.path.isfile", new_callable=AsyncMock
+                "files.services.os.path.isfile", new_callable=AsyncMock
             ) as mock_isfile,
-            patch("services.files.os.remove", new_callable=AsyncMock) as mock_remove,
+            patch("files.services.os.remove", new_callable=AsyncMock) as mock_remove,
         ):
             mock_isfile.return_value = True
             await file_manager.remove_file("folder/subfolder/file.txt")
@@ -390,8 +390,8 @@ class TestFileManager:
     async def test_get_folder_size_empty_folder(self, file_manager):
         """Test get_folder_size returns 0 for empty folder."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
         ):
             mock_isdir.return_value = True
             mock_walk.return_value = [("/home/user/downloads", [], [])]
@@ -403,10 +403,10 @@ class TestFileManager:
     async def test_get_folder_size_single_file(self, file_manager):
         """Test get_folder_size with a single file."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
         ):
             mock_isdir.return_value = True
@@ -420,10 +420,10 @@ class TestFileManager:
     async def test_get_folder_size_multiple_files(self, file_manager):
         """Test get_folder_size with multiple files."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
         ):
             mock_isdir.return_value = True
@@ -439,10 +439,10 @@ class TestFileManager:
     async def test_get_folder_size_recursive(self, file_manager):
         """Test get_folder_size recursively sums files in subdirectories."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
         ):
             mock_isdir.return_value = True
@@ -459,10 +459,10 @@ class TestFileManager:
     async def test_get_folder_size_with_folder_param(self, file_manager):
         """Test get_folder_size with specific folder parameter."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
         ):
             mock_isdir.return_value = True
@@ -479,7 +479,7 @@ class TestFileManager:
     async def test_get_folder_size_nonexistent_folder(self, file_manager):
         """Test get_folder_size returns 0 for nonexistent folder."""
         with patch(
-            "services.files.os.path.isdir", new_callable=AsyncMock
+            "files.services.os.path.isdir", new_callable=AsyncMock
         ) as mock_isdir:
             mock_isdir.side_effect = FileNotFoundError()
             result = await file_manager.get_folder_size()
@@ -489,7 +489,7 @@ class TestFileManager:
     async def test_get_folder_size_permission_denied(self, file_manager):
         """Test get_folder_size returns 0 when permission denied."""
         with patch(
-            "services.files.os.path.isdir", new_callable=AsyncMock
+            "files.services.os.path.isdir", new_callable=AsyncMock
         ) as mock_isdir:
             mock_isdir.side_effect = PermissionError()
             result = await file_manager.get_folder_size()
@@ -499,7 +499,7 @@ class TestFileManager:
     async def test_get_folder_size_not_a_directory(self, file_manager):
         """Test get_folder_size returns 0 when path is not a directory."""
         with patch(
-            "services.files.os.path.isdir", new_callable=AsyncMock
+            "files.services.os.path.isdir", new_callable=AsyncMock
         ) as mock_isdir:
             mock_isdir.return_value = False
             result = await file_manager.get_folder_size()
@@ -509,10 +509,10 @@ class TestFileManager:
     async def test_get_folder_size_skips_inaccessible_files(self, file_manager):
         """Test get_folder_size skips files that raise errors."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
             patch(
-                "services.files.os.path.getsize", new_callable=AsyncMock
+                "files.services.os.path.getsize", new_callable=AsyncMock
             ) as mock_getsize,
         ):
             mock_isdir.return_value = True
@@ -533,8 +533,8 @@ class TestFileManager:
     async def test_get_folder_size_handles_walk_errors(self, file_manager):
         """Test get_folder_size handles errors during walk."""
         with (
-            patch("services.files.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("services.files._pyos.walk") as mock_walk,
+            patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
+            patch("files.services._pyos.walk") as mock_walk,
         ):
             mock_isdir.return_value = True
             mock_walk.side_effect = PermissionError()

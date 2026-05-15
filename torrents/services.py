@@ -3,9 +3,9 @@ import asyncio
 from fastapi import Request
 from transmission_rpc import Client, File, Torrent
 
-from config import TRANSMISSION_URL
-from schemas.users import UserData
-from utils.torrents import get_torrent_size
+from core.config import TRANSMISSION_URL
+from torrents.utils import get_torrent_size
+from users.schemas import UserData
 
 
 class TorrentService:

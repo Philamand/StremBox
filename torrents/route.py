@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from services.files import FileManager
-from services.torrents import TorrentService
-from utils.auth import require_auth
-from utils.htmx import is_htmx_request
-from utils.jinja_filters import register_filters
+from core.htmx import is_htmx_request
+from core.jinja_filters import register_filters
+from files.services import FileManager
+from torrents.services import TorrentService
+from users.dependencies import require_auth
+from users.security import validate_bearer_token
 
+# ── Dashboard (torrent management) router ────────────────────────────────
 dashboard_router = APIRouter(dependencies=[Depends(require_auth)])
 templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
@@ -90,3 +92,19 @@ async def delete_torrent(
     """Delete a torrent by hash."""
     await torrent_service.remove_torrent(hash, delete_files=delete_files)
     return {"message": "Torrent supprimé avec succès"}
+
+
+# ── API router ───────────────────────────────────────────────────────────
+api_router = APIRouter(prefix="/api", dependencies=[Depends(validate_bearer_token)])
+
+
+@api_router.get("/hashes/")
+async def get_hashes(
+    torrent_service: Annotated[TorrentService, Depends()],
+):
+    """Get all torrent hashes from Transmission."""
+    torrents = await torrent_service.get_torrents()
+    hashes_dict = {}
+    for torrent in torrents:
+        hashes_dict[torrent.hashString] = [file.name for file in torrent.get_files()]
+    return hashes_dict

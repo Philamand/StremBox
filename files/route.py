@@ -4,12 +4,12 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from config import BASE_URL
-from services.files import FileManager
-from utils.auth import require_auth
-from utils.files import zip_directory
-from utils.htmx import is_htmx_request
-from utils.jinja_filters import register_filters
+from core.config import BASE_URL
+from core.htmx import is_htmx_request
+from core.jinja_filters import register_filters
+from files.services import FileManager
+from files.utils import zip_directory
+from users.dependencies import require_auth
 
 router = APIRouter(prefix="/files")
 templates = Jinja2Templates(directory="templates")

@@ -3,8 +3,8 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from schemas.users import TransmissionData, UserData
-from utils.database import AsyncDatabase
+from core.database import AsyncDatabase
+from users.schemas import TransmissionData, UserData
 
 
 class UserService:

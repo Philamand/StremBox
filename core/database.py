@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 import aiosqlite
 
-from config import DATABASE_URL
+from core.config import DATABASE_URL
 
 
 class AsyncDatabase:

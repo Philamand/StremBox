@@ -3,12 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.routing import APIRoute
 
-from routers.api import api_router
-from routers.auth import auth_router
-from routers.dashboard import dashboard_router
-from routers.files import router as files_router
-from routers.streams import router
-from utils.auth import NotAuthenticatedException
+from files.route import router as files_router
+from streams.route import router
+from torrents.route import api_router, dashboard_router
+from users.dependencies import NotAuthenticatedException
+from users.route import auth_router
 
 
 def use_route_names_as_operation_ids(app: FastAPI) -> None:

@@ -3,10 +3,10 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
 
-from services.files import FileManager
-from services.torrents import TorrentService
-from utils.security import check_user_key
-from utils.streams import resolve_file_path
+from files.services import FileManager
+from streams.utils import resolve_file_path
+from torrents.services import TorrentService
+from users.security import check_user_key
 
 router = APIRouter(prefix="/streams", dependencies=[Depends(check_user_key)])
 

@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from services.transmission import TransmissionService
-from utils.database import AsyncDatabase
+from core.database import AsyncDatabase
+from transmission.services import TransmissionService
 
 # Path to the schema file
 SCHEMA_PATH = Path(__file__).parent.parent / "db" / "schema.sql"
