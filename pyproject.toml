@@ -11,3 +11,14 @@ dependencies = [
     "fastapi[standard]>=0.135.3",
     "jinja2>=3.1.6",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "pytest-asyncio>=1",
+]

@@ -56,12 +56,17 @@ User documentation will be available in French soon directly in the app.
    docker compose -f docker-compose.dev.yml up -d
    ```
 
-6. Run the migrations:
+6. Run the tests:
+   ```bash
+   uv run --env-file .uv.env pytest
+   ```
+
+7. Run the migrations:
    ```bash
    dbmate up
    ```
 
-7. Run the development server:
+8. Run the development server:
    ```bash
    uv run --env-file .uv.env fastapi dev
    ```
