@@ -42,8 +42,9 @@ services:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
     network_mode: "service:gluetun"
-    env_file:
-      - .transmission.env
+    environment:
+      - PUID=1000
+      - PGID=1000
     privileged: true
     volumes:
       - downloads:/downloads

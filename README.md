@@ -37,13 +37,15 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 3. Create a copy of the example env files and update the values as needed:
    ```bash
    cp .env.example .env
+   nano .env
    cp .gluetun.env.example .gluetun.env
-   cp .transmission.env.example .transmission.env
+   nano .gluetun.env
    ```
 
 4. Copy the `Caddyfile.example` to `Caddyfile` and update the values as needed:
    ```bash
    cp Caddyfile.example Caddyfile
+   nano Caddyfile
    ```
 
 5. Run the Docker compose command to start the services:
