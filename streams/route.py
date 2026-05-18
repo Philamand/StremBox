@@ -1,5 +1,4 @@
-import asyncio
-from typing import Annotated, AsyncGenerator, Optional
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse, StreamingResponse
@@ -15,29 +14,6 @@ from torrents.services import TorrentService
 from users.security import check_user_key
 
 router = APIRouter(prefix="/streams", dependencies=[Depends(check_user_key)])
-
-
-async def _stream_growing_file(
-    path: str,
-    torrent_hash: str,
-    torrent_service: TorrentService,
-) -> AsyncGenerator[bytes, None]:
-    """Yield chunks of a file that is still being downloaded by Transmission.
-
-    When the current end-of-file is reached, the generator polls
-    Transmission.  If the torrent is still active it waits for more data
-    to be written; otherwise it stops.
-    """
-    with open(path, "rb") as f:
-        while True:
-            chunk = f.read(64 * 1024)
-            if chunk:
-                yield chunk
-            else:
-                t = await torrent_service.get_torrent(torrent_hash)
-                if t.left_until_done == 0:
-                    return
-                await asyncio.sleep(0.5)
 
 
 @router.get("/{user_key}")
