@@ -119,4 +119,4 @@ class FileManager:
 
     async def get_size(self, file_path: str) -> int:
         """Return the size of the file in bytes."""
-        return os.path.getsize(file_path)
+        return await os.path.getsize(file_path)
