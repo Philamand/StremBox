@@ -106,5 +106,8 @@ async def get_hashes(
     torrents = await torrent_service.get_torrents()
     hashes_dict = {}
     for torrent in torrents:
-        hashes_dict[torrent.hashString] = [file.name for file in torrent.get_files()]
+        hashes_dict[torrent.hashString] = {
+            "percent_done": torrent.percent_done,
+            "files": [file.name for file in torrent.get_files()],
+        }
     return hashes_dict
