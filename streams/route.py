@@ -72,7 +72,7 @@ async def get_stream(
     if not await file_manager.exists(path):
         raise HTTPException(status_code=404, detail="File not found")
 
-    file_size = file_manager.get_size(path)
+    file_size = await file_manager.get_size(path)
 
     start, end = parse_range(file_range)
     if start is None:

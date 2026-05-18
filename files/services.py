@@ -117,6 +117,6 @@ class FileManager:
 
         return total_size
 
-    def get_size(self, file_path: str) -> int:
+    async def get_size(self, file_path: str) -> int:
         """Return the size of the file in bytes."""
         return os.path.getsize(file_path)
