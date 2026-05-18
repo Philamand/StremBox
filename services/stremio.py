@@ -520,14 +520,14 @@ class StremioOrchestrationService:
                     speed_emoji = "⚡️ "
 
                 if len(torrent) == 1:
-                    file_path = torrent[0]
+                    file_path = torrent["files"][0]
                 else:
-                    for filename in torrent:
+                    for filename in torrent["files"]:
                         if check_season_episode(filename, season, episode):
                             file_path = filename
                             break
                     if not file_path:
-                        file_path = torrent[0]
+                        file_path = torrent["files"][0]
                 stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
             else:
                 speed_emoji = ""
