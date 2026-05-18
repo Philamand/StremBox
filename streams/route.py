@@ -2,10 +2,15 @@ import asyncio
 from typing import Annotated, AsyncGenerator, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 
 from files.services import FileManager
-from streams.utils import resolve_file_path
+from streams.utils import (
+    build_stream_headers,
+    parse_range,
+    range_file_reader,
+    resolve_file_path,
+)
 from torrents.services import TorrentService
 from users.security import check_user_key
 
@@ -35,7 +40,7 @@ async def _stream_growing_file(
                 await asyncio.sleep(0.5)
 
 
-@router.get("/{user_key}")
+@router.get("/{hash}")
 async def get_stream(
     request: Request,
     file_manager: Annotated[FileManager, Depends()],
@@ -51,6 +56,8 @@ async def get_stream(
             status_code=400, detail="Either file_path or torrent_hash is required"
         )
 
+    file_range = request.headers.get("range")
+
     if torrent_hash:
         torrent_files = await torrent_service.get_torrent_files(torrent_hash)
         file_path = resolve_file_path(
@@ -65,15 +72,27 @@ async def get_stream(
     if not await file_manager.exists(path):
         raise HTTPException(status_code=404, detail="File not found")
 
-    if torrent_hash:
-        torrent = await torrent_service.get_torrent(torrent_hash)
-        if torrent.left_until_done > 0:
-            return StreamingResponse(
-                _stream_growing_file(path, torrent_hash, torrent_service),
-                media_type="application/octet-stream",
-            )
+    file_size = file_manager.get_size(path)
 
-    return FileResponse(path)
+    start, end = parse_range(file_range)
+    if start is None:
+        start = 0
+    if end is None or end >= file_size:
+        end = file_size - 1
+
+    try:
+        headers, status_code = build_stream_headers(
+            path, file_range, start, end, file_size
+        )
+    except ValueError:
+        raise HTTPException(status_code=415, detail="Fichier non pris en charge")
+
+    return StreamingResponse(
+        range_file_reader(request, path, start, end),
+        status_code=status_code,
+        headers=headers,
+        media_type=headers["content-type"],
+    )
 
 
 @router.get("/download/{user_key}/{torrent_hash}")
