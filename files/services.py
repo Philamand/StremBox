@@ -47,7 +47,7 @@ class FileManager:
 
         try:
             names = await os.listdir(path)
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             return []
 
         results: list[FileData] = []
@@ -58,7 +58,7 @@ class FileManager:
                 is_dir = await os.path.isdir(full_path)
                 size = await os.path.getsize(full_path) if not is_dir else None
                 last_modified = await os.path.getatime(full_path)
-            except (FileNotFoundError, PermissionError):
+            except FileNotFoundError, PermissionError:
                 continue
 
             is_archive = False
@@ -99,7 +99,7 @@ class FileManager:
         try:
             if not await os.path.isdir(path):
                 return 0
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             return 0
 
         total_size = 0
@@ -110,9 +110,13 @@ class FileManager:
                     file_path = _pyos.path.join(root, file)
                     try:
                         total_size += await os.path.getsize(file_path)
-                    except (FileNotFoundError, PermissionError):
+                    except FileNotFoundError, PermissionError:
                         continue
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             pass
 
         return total_size
+
+    async def get_size(self, file_path: str) -> int:
+        """Return the size of the file in bytes."""
+        return await os.path.getsize(file_path)
