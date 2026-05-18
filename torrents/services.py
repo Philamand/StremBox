@@ -23,6 +23,10 @@ class TorrentService:
         """Get all torrents from Transmission"""
         return await asyncio.to_thread(self.client.get_torrents)
 
+    async def get_torrent(self, hash_string: str) -> Torrent:
+        """Get a single torrent by its info-hash."""
+        return await asyncio.to_thread(self.client.get_torrent, hash_string)
+
     async def add_torrent(
         self,
         torrent: bytes | str,
@@ -96,27 +100,36 @@ class TorrentService:
         return added.hashString
 
     async def wait_for_download_start(
-        self, hash_string: str, timeout: float = 15.0
+        self, hash_string: str, timeout: float = 15.0, min_percent: float = 0.0
     ) -> None:
         """Wait until the torrent actually starts downloading data.
 
         Polls Transmission every 500 ms until *rate_download* goes above
-        zero.  Raises ``ValueError`` if this does not happen within
-        *timeout* seconds.
+        zero **and** at least *min_percent* (0.0 – 1.0) of the torrent has
+        been downloaded.
+
+        If the timeout is reached but data is already flowing
+        (*rate_download > 0*) the method returns anyway so the caller can
+        proceed with whatever data is available.  A ``ValueError`` is only
+        raised when absolutely no data has been transferred within *timeout*
+        seconds.
         """
 
-        async def _poll() -> None:
+        async def _poll(needs_percent: float) -> bool:
             while True:
                 t: Torrent = await asyncio.to_thread(
                     self.client.get_torrent, hash_string
                 )
-                if t.rate_download > 0:
-                    return
+                if t.rate_download > 0 and t.percent_done >= needs_percent:
+                    return True
                 await asyncio.sleep(0.5)
 
         try:
-            await asyncio.wait_for(_poll(), timeout=timeout)
+            await asyncio.wait_for(_poll(min_percent), timeout=timeout)
         except asyncio.TimeoutError:
+            t = await asyncio.to_thread(self.client.get_torrent, hash_string)
+            if t.rate_download > 0:
+                return
             raise ValueError("Le téléchargement n'a pas démarré dans le temps imparti.")
 
     async def remove_torrent(

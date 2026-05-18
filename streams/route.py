@@ -1,7 +1,8 @@
-from typing import Annotated, Optional
+import asyncio
+from typing import Annotated, AsyncGenerator, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 
 from files.services import FileManager
 from streams.utils import resolve_file_path
@@ -9,6 +10,29 @@ from torrents.services import TorrentService
 from users.security import check_user_key
 
 router = APIRouter(prefix="/streams", dependencies=[Depends(check_user_key)])
+
+
+async def _stream_growing_file(
+    path: str,
+    torrent_hash: str,
+    torrent_service: TorrentService,
+) -> AsyncGenerator[bytes, None]:
+    """Yield chunks of a file that is still being downloaded by Transmission.
+
+    When the current end-of-file is reached, the generator polls
+    Transmission.  If the torrent is still active it waits for more data
+    to be written; otherwise it stops.
+    """
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(64 * 1024)
+            if chunk:
+                yield chunk
+            else:
+                t = await torrent_service.get_torrent(torrent_hash)
+                if t.left_until_done == 0:
+                    return
+                await asyncio.sleep(0.5)
 
 
 @router.get("/{user_key}")
@@ -20,7 +44,7 @@ async def get_stream(
     torrent_hash: Optional[str] = None,
     season: Optional[int] = None,
     episode: Optional[int] = None,
-) -> FileResponse:
+):
     """Return a stream of the file at the given path."""
     if not file_path and not torrent_hash:
         raise HTTPException(
@@ -40,6 +64,14 @@ async def get_stream(
 
     if not await file_manager.exists(path):
         raise HTTPException(status_code=404, detail="File not found")
+
+    if torrent_hash:
+        torrent = await torrent_service.get_torrent(torrent_hash)
+        if torrent.left_until_done > 0:
+            return StreamingResponse(
+                _stream_growing_file(path, torrent_hash, torrent_service),
+                media_type="application/octet-stream",
+            )
 
     return FileResponse(path)
 
@@ -69,7 +101,9 @@ async def download_stream(
         added_hash = await torrent_service.add_torrent(
             torrent=torrent_url, max_size=available_size
         )
-        await torrent_service.wait_for_download_start(added_hash, timeout=15.0)
+        await torrent_service.wait_for_download_start(
+            added_hash, timeout=15.0, min_percent=0.01
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
