@@ -40,7 +40,7 @@ async def _stream_growing_file(
                 await asyncio.sleep(0.5)
 
 
-@router.get("/{hash}")
+@router.get("/{user_key}")
 async def get_stream(
     request: Request,
     file_manager: Annotated[FileManager, Depends()],
