@@ -20,28 +20,13 @@ router = APIRouter(prefix="/streams", dependencies=[Depends(check_user_key)])
 async def get_stream(
     request: Request,
     file_manager: Annotated[FileManager, Depends()],
-    torrent_service: Annotated[TorrentService, Depends()],
     file_path: Optional[str] = None,
-    torrent_hash: Optional[str] = None,
-    season: Optional[int] = None,
-    episode: Optional[int] = None,
 ):
     """Return a stream of the file at the given path."""
-    if not file_path and not torrent_hash:
-        raise HTTPException(
-            status_code=400, detail="Either file_path or torrent_hash is required"
-        )
+    if not file_path:
+        raise HTTPException(status_code=400, detail="file_path is required")
 
     file_range = request.headers.get("range")
-
-    if torrent_hash:
-        torrent_files = await torrent_service.get_torrent_files(torrent_hash)
-        file_path = resolve_file_path(
-            torrent_files[0].name,
-            request.state.user.transmission_data.download_folder,
-            season,
-            episode,
-        )
 
     path = file_manager.get_path(file_path)
 
@@ -102,11 +87,16 @@ async def download_stream(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    torrent_files = await torrent_service.get_torrent_files(torrent_hash)
+    file_path = resolve_file_path(
+        torrent_files[0].name,
+        request.state.user.transmission_data.download_folder,
+        season,
+        episode,
+    )
+
     user_key = request.state.user.api_key
 
-    redirect_url = f"/streams/{user_key}?torrent_hash={added_hash}"
-
-    if season and episode:
-        redirect_url += f"&season={season}&episode={episode}"
+    redirect_url = f"/streams/{user_key}?file_path={file_path}"
 
     return RedirectResponse(url=redirect_url)
