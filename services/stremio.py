@@ -512,26 +512,32 @@ class StremioOrchestrationService:
             details = parse_torrent_name(result["name"])
 
             if result["torrents"][0]["hash"] in hashes.keys():
-                speed_emoji = "⚡️"
-                if len(hashes[result["torrents"][0]["hash"]]) == 1:
-                    file_path = hashes[result["torrents"][0]["hash"]][0]
+                torrent = hashes[result["torrents"][0]["hash"]]
+
+                if torrent["percent_done"] < 1:
+                    speed_emoji = "🐢 "
                 else:
-                    for filename in hashes[result["torrents"][0]["hash"]]:
+                    speed_emoji = "⚡️ "
+
+                if len(torrent) == 1:
+                    file_path = torrent[0]
+                else:
+                    for filename in torrent:
                         if check_season_episode(filename, season, episode):
                             file_path = filename
                             break
                     if not file_path:
-                        file_path = hashes[result["torrents"][0]["hash"]][0]
+                        file_path = torrent[0]
                 stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
             else:
-                speed_emoji = "🐢"
+                speed_emoji = ""
                 stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['torrents'][0]['hash']}?tracker={tracker}&api_key={api_key}"
                 if season and episode:
                     stream_url += f"&season={season}&episode={episode}"
 
             stream = StremioStreamData(
                 title=(
-                    f"{speed_emoji} {result['name']}\n"
+                    f"{speed_emoji}{result['name']}\n"
                     f"{details}\n"
                     f"📤 {result['seeders']}  📥 {result['leechers']} | {result['tracker_name']}\n"
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
@@ -540,9 +546,9 @@ class StremioOrchestrationService:
                 filename=result["name"],
                 videoSize=int(result["size"]),
             )
-            if speed_emoji == "⚡️":
+            if speed_emoji == "⚡️ " or speed_emoji == "🐢 ":
                 fast_streams.append(stream)
-            elif speed_emoji == "🐢":
+            else:
                 slow_streams.append(stream)
 
         response = StremioStreamsResponse(streams=fast_streams + slow_streams)
