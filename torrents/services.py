@@ -27,7 +27,7 @@ class TorrentService:
         self,
         torrent: bytes | str,
         max_size: int,
-    ) -> None:
+    ) -> str:
         """Add a torrent to Transmission after verifying its size.
 
         The total content size is compared against *max_size* (bytes).  If the
@@ -41,6 +41,9 @@ class TorrentService:
           total size becomes known, the size check is performed.  If the torrent
           is too large it is immediately removed; otherwise it is started.
 
+        Returns:
+            The info-hash string of the added torrent.
+
         Raises:
             ValueError: if the torrent size exceeds *max_size*, or if metadata
                 could not be retrieved within the timeout window.
@@ -51,10 +54,10 @@ class TorrentService:
                 raise ValueError(
                     "Pas assez d'espace disponible pour télécharger ce torrent."
                 )
-            await asyncio.to_thread(
+            result = await asyncio.to_thread(
                 self.client.add_torrent, torrent=torrent, sequential_download=True
             )
-            return
+            return result.hashString
 
         added: Torrent = await asyncio.to_thread(
             self.client.add_torrent,
@@ -90,6 +93,31 @@ class TorrentService:
             )
 
         await asyncio.to_thread(self.client.start_torrent, added.hashString)
+        return added.hashString
+
+    async def wait_for_download_start(
+        self, hash_string: str, timeout: float = 15.0
+    ) -> None:
+        """Wait until the torrent actually starts downloading data.
+
+        Polls Transmission every 500 ms until *rate_download* goes above
+        zero.  Raises ``ValueError`` if this does not happen within
+        *timeout* seconds.
+        """
+
+        async def _poll() -> None:
+            while True:
+                t: Torrent = await asyncio.to_thread(
+                    self.client.get_torrent, hash_string
+                )
+                if t.rate_download > 0:
+                    return
+                await asyncio.sleep(0.5)
+
+        try:
+            await asyncio.wait_for(_poll(), timeout=timeout)
+        except asyncio.TimeoutError:
+            raise ValueError("Le téléchargement n'a pas démarré dans le temps imparti.")
 
     async def remove_torrent(
         self, torrent_hash: str, delete_files: bool = False

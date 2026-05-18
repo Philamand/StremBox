@@ -66,14 +66,16 @@ async def download_stream(
     )
 
     try:
-        await torrent_service.add_torrent(torrent=torrent_url, max_size=available_size)
-
+        added_hash = await torrent_service.add_torrent(
+            torrent=torrent_url, max_size=available_size
+        )
+        await torrent_service.wait_for_download_start(added_hash, timeout=15.0)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     user_key = request.state.user.api_key
 
-    redirect_url = f"/streams/{user_key}?torrent_hash={torrent_hash}"
+    redirect_url = f"/streams/{user_key}?torrent_hash={added_hash}"
 
     if season and episode:
         redirect_url += f"&season={season}&episode={episode}"
