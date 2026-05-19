@@ -6,6 +6,9 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 
 ## Table of Contents
 - [Features](#features)
+- [Local Installation](#local-installation)
+  - [Prerequisites](#prerequisites)
+  - [Steps](#steps)
 - [Self-Hosting](#self-hosting)
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
@@ -17,6 +20,65 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 - **Simple UI**: An user-friendly interface for managing your seedbox.
 - **Extensible API**: Easily integrate with other tools like Stremio.
 - **Easy to self host**: Deploy your own instance with minimal effort.
+
+## Local Installation
+### Prerequisites
+- Docker compose
+- A [Hanko](https://hanko.io/) instance up and running, with at least one user
+- [Astral UV](https://github.com/astral-sh/uv) installed on your machine
+- [dbmate](https://github.com/amacneil/dbmate) installed on your machine
+- A VPN provider supported by [Gluetun](https://github.com/qdm12/gluetun)
+
+### Steps
+1. Clone the repository:
+   ```bash
+   git https://codeberg.org/Philamand/Bauxite.git
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd Bauxite
+   ```
+
+3. Create a copy of the example env files and update the values as needed:
+   ```bash
+   cp .uv.env.example .env
+   nano .env
+   cp .gluetun.env.example .gluetun.env
+   nano .gluetun.env
+   ```
+
+4. Run the Docker compose command to start the services:
+   ```bash
+   docker compose up -f docker-compose.dev.yml -d
+   ```
+
+5. Run the tests:
+   ```bash
+   uv run --env-file .uv.env pytest
+   ```
+
+6. Run the migrations:
+   ```bash
+   dbmate up
+   ```
+
+7. Create a transmission entry in your database:
+   ```bash
+   uv run cli.py transmission-add
+   ```
+
+8. Add your Hanko user to the database (you can find/create the `UserId` in the Hanko dashboard):
+   ```bash
+   uv run cli.py user-add <UserId> 1
+   ```
+
+9. Start the development server:
+   ```bash
+   uv run --env-file .uv.env fastapi dev
+   ```
+
+10. Access the Bauxite UI by navigating to `http://localhost:8000` in your browser. Log in using your Hanko account.
 
 ## Self-Hosting
 ### Prerequisites

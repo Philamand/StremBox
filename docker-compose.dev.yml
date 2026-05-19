@@ -1,0 +1,32 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    env_file:
+      - .gluetun.env
+    privileged: true
+    volumes:
+      - ./gluetun:/gluetun
+    ports:
+      - "51413:51413"
+    restart: unless-stopped
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+    privileged: true
+    volumes:
+      - downloads:/downloads
+      - ./transmission-config:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+volumes:
+  downloads:
