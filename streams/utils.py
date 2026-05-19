@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 from typing import Optional, Tuple
@@ -67,59 +68,31 @@ def parse_range(header: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
 
 
 async def range_file_reader(
-    request: Request,
-    filepath: str,
-    start: int,
-    end: Optional[int] = None,
-    chunk_size: int = 256 * 1024,
+    request: Request, filepath, start, end=None, chunk_size=256 * 1024
 ):
-    """Read a file in byte ranges using chunked reading for memory efficiency.
-
-    This generator function reads a specified byte range from a file without
-    loading the entire file into memory. It supports partial ranges
-    (start-only, end-only, or both) and processes data in configurable chunks
-    suitable for large files.
-
-    Args:
-        filepath: Path to the file to read.
-        start: Starting byte offset (inclusive) from which to begin reading.
-        end: Ending byte offset (inclusive). If None, reads to end of file.
-        chunk_size: Number of bytes to read per iteration. Defaults to 256 KB.
-
-    Yields:
-        Bytes objects containing chunks of data from the specified range. Each
-        chunk is at most chunk_size bytes, except possibly the last chunk which
-        may be smaller.
-
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        PermissionError: If the file cannot be read due to permissions.
-        OSError: For other file-related errors.
-
-    Notes:
-        - The end parameter is inclusive (unlike typical Python slicing).
-        - If start exceeds file size, yields nothing.
-        - If end exceeds file size, reads until EOF.
-        - Uses binary mode ("rb") for precise byte-level control.
-    """
-    async with aiofiles.open(filepath, "rb") as f:
-        await f.seek(start)
-        remaining = (end - start + 1) if end is not None else None
-
-        while True:
-            if await request.is_disconnected():
-                break
-            if remaining is not None and remaining <= 0:
-                break
-            to_read = (
-                min(chunk_size, remaining) if remaining is not None else chunk_size
-            )
-            data = await f.read(to_read)
-            if not data:
-                break
-            yield data
-            if remaining is not None:
-                remaining -= len(data)
+    """Read a file in byte ranges using chunked reading for memory efficiency."""
+    if await request.is_disconnected():
+        return
+    try:
+        async with aiofiles.open(filepath, "rb") as f:
+            await f.seek(start)
+            remaining = (end - start + 1) if end is not None else None
+            while True:
+                if await request.is_disconnected():
+                    break
+                if remaining is not None and remaining <= 0:
+                    break
+                to_read = (
+                    min(chunk_size, remaining) if remaining is not None else chunk_size
+                )
+                data = await f.read(to_read)
+                if not data:
+                    break
+                yield data
+                if remaining is not None:
+                    remaining -= len(data)
+    except asyncio.CancelledError, ConnectionError:
+        pass
 
 
 def check_season_episode(name: str, target_season: int, target_episode: int) -> bool:
