@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import RedirectResponse, Response, StreamingResponse
 
 from files.services import FileManager
 from streams.utils import (
@@ -50,6 +50,45 @@ async def get_stream(
 
     return StreamingResponse(
         range_file_reader(request, path, start, end),
+        status_code=status_code,
+        headers=headers,
+        media_type=headers["content-type"],
+    )
+
+
+@router.head("/{user_key}")
+async def head_stream(
+    request: Request,
+    file_manager: Annotated[FileManager, Depends()],
+    file_path: Optional[str] = None,
+):
+    """Return headers for the stream of the file at the given path."""
+    if not file_path:
+        raise HTTPException(status_code=400, detail="file_path is required")
+
+    file_range = request.headers.get("range")
+
+    path = file_manager.get_path(file_path)
+
+    if not await file_manager.exists(path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_size = await file_manager.get_size(path)
+
+    start, end = parse_range(file_range)
+    if start is None:
+        start = 0
+    if end is None or end >= file_size:
+        end = file_size - 1
+
+    try:
+        headers, status_code = build_stream_headers(
+            path, file_range, start, end, file_size
+        )
+    except ValueError:
+        raise HTTPException(status_code=415, detail="Fichier non pris en charge")
+
+    return Response(
         status_code=status_code,
         headers=headers,
         media_type=headers["content-type"],
