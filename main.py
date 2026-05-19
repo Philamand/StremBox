@@ -22,8 +22,6 @@ def use_route_names_as_operation_ids(app: FastAPI) -> None:
 
 app = FastAPI()
 
-app = wrap_asgi_with_proxy_headers(app, trusted_hosts="caddy")
-
 
 @app.exception_handler(NotAuthenticatedException)
 async def auth_exception_handler(request, exc):
@@ -45,3 +43,5 @@ app.include_router(dashboard_router)
 app.include_router(auth_router)
 
 use_route_names_as_operation_ids(app)
+
+app = wrap_asgi_with_proxy_headers(app, trusted_hosts="caddy")
