@@ -18,14 +18,17 @@ async def index(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
 
 
-@router.post("/")
+@router.post("/", response_class=HTMLResponse)
 async def create_user(
+    request: Request,
     data: Annotated[UserCreateData, Form()],
     service: UserService = Depends(get_user_service),
 ):
     """Create a new user."""
     user_id = await service.create_user(data)
-    return {"user_id": user_id}
+    return templates.TemplateResponse(
+        request=request, name="success.html", context={"user_id": user_id}
+    )
 
 
 @router.get("/{user_id}/", response_class=HTMLResponse)
@@ -43,8 +46,9 @@ async def get_user(
     )
 
 
-@router.post("/{user_id}/")
+@router.post("/{user_id}/", response_class=HTMLResponse)
 async def update_user(
+    request: Request,
     data: Annotated[UserCreateData, Form()],
     user_id: str,
     service: UserService = Depends(get_user_service),
@@ -54,4 +58,6 @@ async def update_user(
         await service.update_user(user_id, data)
     except ValueError:
         raise HTTPException(status_code=404)
-    return {"user_id": user_id}
+    return templates.TemplateResponse(
+        request=request, name="success.html", context={"user_id": user_id}
+    )
