@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -25,4 +25,33 @@ async def create_user(
 ):
     """Create a new user."""
     user_id = await service.create_user(data)
+    return {"user_id": user_id}
+
+
+@router.get("/{user_id}/", response_class=HTMLResponse)
+async def get_user(
+    request: Request, user_id: str, service: UserService = Depends(get_user_service)
+):
+    """Get a user by ID and display the setup page."""
+    try:
+        user = await service.get_user(user_id)
+    except ValueError:
+        raise HTTPException(status_code=404)
+
+    return templates.TemplateResponse(
+        request=request, name="index.html", context={"user": user}
+    )
+
+
+@router.post("/{user_id}/")
+async def update_user(
+    data: Annotated[UserCreateData, Form()],
+    user_id: str,
+    service: UserService = Depends(get_user_service),
+):
+    """Update a user by ID."""
+    try:
+        await service.update_user(user_id, data)
+    except ValueError:
+        raise HTTPException(status_code=404)
     return {"user_id": user_id}

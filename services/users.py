@@ -21,6 +21,21 @@ class UserService:
         )
         return result[0]["id"]
 
+    async def update_user(self, user_id: str, user: UserCreateData) -> None:
+        """Update an existing user with the given data."""
+        result = await self.conn.execute(
+            "UPDATE users SET librebox_url = $1, librebox_token = $2, c411_key = $3, torr9_key = $4, lacale_key = $5 WHERE id = $6",
+            user.librebox_url,
+            user.librebox_token,
+            user.c411_key,
+            user.torr9_key,
+            user.lacale_key,
+            user_id,
+        )
+
+        if result == "UPDATE 0":
+            raise ValueError("User not found")
+
     async def get_user(self, user_id: str) -> UserData:
         """Get a user by their ID."""
         result = await self.conn.fetch(

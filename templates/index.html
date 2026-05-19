@@ -18,7 +18,10 @@
             </div>
         </nav>
         <div class="container mt-4">
-            <form action="/" method="post">
+            <form
+                action="/{% if user %}{{ user.id }}/{% endif %}"
+                method="post"
+            >
                 <div class="mb-3">
                     <label for="libreboxUrl" class="form-label"
                         >URL de l'instance LibreBox</label
@@ -28,6 +31,14 @@
                         class="form-control"
                         id="libreboxUrl"
                         name="librebox_url"
+                        {%
+                        if
+                        user
+                        %}
+                        value="{{ user.librebox_url }}"
+                        {%
+                        endif
+                        %}
                     />
                 </div>
 
@@ -40,6 +51,14 @@
                         class="form-control"
                         id="libreboxToken"
                         name="librebox_token"
+                        {%
+                        if
+                        user
+                        %}
+                        value="{{ user.librebox_token }}"
+                        {%
+                        endif
+                        %}
                     />
                 </div>
 
@@ -50,6 +69,14 @@
                         class="form-control"
                         id="c411Key"
                         name="c411_key"
+                        {%
+                        if
+                        user
+                        %}
+                        value="{{ user.c411_key }}"
+                        {%
+                        endif
+                        %}
                     />
                 </div>
 
@@ -62,6 +89,14 @@
                         class="form-control"
                         id="torr9Key"
                         name="torr9_key"
+                        {%
+                        if
+                        user
+                        %}
+                        value="{{ user.torr9_key }}"
+                        {%
+                        endif
+                        %}
                     />
                 </div>
 
@@ -74,6 +109,14 @@
                         class="form-control"
                         id="lacaleKey"
                         name="lacale_key"
+                        {%
+                        if
+                        user
+                        %}
+                        value="{{ user.lacale_key }}"
+                        {%
+                        endif
+                        %}
                     />
                 </div>
 
