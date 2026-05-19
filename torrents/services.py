@@ -66,7 +66,6 @@ class TorrentService:
         added: Torrent = await asyncio.to_thread(
             self.client.add_torrent,
             torrent=torrent,
-            paused=True,
             sequential_download=True,
         )
 
@@ -96,7 +95,6 @@ class TorrentService:
                 "Pas assez d'espace disponible pour télécharger le torrent."
             )
 
-        await asyncio.to_thread(self.client.start_torrent, added.hashString)
         return added.hashString
 
     async def wait_for_download_start(
