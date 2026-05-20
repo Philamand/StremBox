@@ -121,7 +121,7 @@ async def download_stream(
             torrent=torrent_url, max_size=available_size
         )
         await torrent_service.wait_for_download_start(
-            added_hash, timeout=15.0, min_percent=0.01
+            added_hash, timeout=30.0, min_percent=0.05
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
