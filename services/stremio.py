@@ -18,7 +18,6 @@ from utils.stremio import (
     check_title_match,
     get_torrent_name,
     get_torrent_tracker_and_id,
-    merge_result_into,
     parse_torrent_name,
     sort_dicts_by_seeders_desc,
 )
@@ -412,16 +411,10 @@ class StremioOrchestrationService:
             c411_results = []
         else:
             return []
-        results: list[dict] = []
-        for r in c411_results + torr9_results:
-            if r["tracker_name"] == "C411" or check_title_match(
-                r["name"], None, name, year, True
-            ):
-                if not merge_result_into(results, r):
-                    r["torrents"] = [
-                        {"hash": r["info_hash"], "name": r["name"], "link": r["link"]}
-                    ]
-                    results.append(r)
+        results: list[dict] = c411_results
+        for r in torr9_results:
+            if check_title_match(r["name"], None, name, year, True):
+                results.append(r)
         return results
 
     async def _search_series(
@@ -450,16 +443,12 @@ class StremioOrchestrationService:
             c411_results = []
         else:
             return []
-        results: list[dict] = []
-        for r in c411_results + torr9_results:
+        results: list[dict] = c411_results
+        for r in torr9_results:
             if check_season_episode(r["name"], season, episode) and check_title_match(
                 r["name"], None, name, year, False
             ):
-                if not merge_result_into(results, r, update_only_if_low_seeders=True):
-                    r["torrents"] = [
-                        {"hash": r["info_hash"], "name": r["name"], "link": r["link"]}
-                    ]
-                    results.append(r)
+                results.append(r)
         return results
 
     async def get_streams(
@@ -498,9 +487,7 @@ class StremioOrchestrationService:
         slow_streams: list[StremioStreamData] = []
 
         for result in results:
-            tracker, torrent_id = get_torrent_tracker_and_id(
-                result["torrents"][0]["link"]
-            )
+            tracker, torrent_id = get_torrent_tracker_and_id(result["link"])
 
             if tracker == "c411":
                 api_key = user.c411_key
@@ -511,8 +498,8 @@ class StremioOrchestrationService:
 
             details = parse_torrent_name(result["name"])
 
-            if result["torrents"][0]["hash"] in hashes.keys():
-                torrent = hashes[result["torrents"][0]["hash"]]
+            if result["info_hash"] in hashes.keys():
+                torrent = hashes[result["info_hash"]]
 
                 if torrent["percent_done"] < 1:
                     speed_emoji = "🐢 "
@@ -531,7 +518,7 @@ class StremioOrchestrationService:
                 stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
             else:
                 speed_emoji = ""
-                stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['torrents'][0]['hash']}?tracker={tracker}&api_key={api_key}"
+                stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['info_hash']}?tracker={tracker}&api_key={api_key}"
                 if season and episode:
                     stream_url += f"&season={season}&episode={episode}"
 
