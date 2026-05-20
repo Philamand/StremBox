@@ -103,11 +103,14 @@ async def download_stream(
     torrent_hash: str,
     tracker: str,
     api_key: str,
+    torrent_id: Optional[int] = None,
     season: Optional[int] = None,
     episode: Optional[int] = None,
 ):
     if tracker == "c411":
         torrent_url = f"https://c411.org/api?t=get&id={torrent_hash}&apikey={api_key}"
+    elif tracker == "torr9" and torrent_id:
+        torrent_url = f"https://api.torr9.net/api/v1/rss/torrents/{torrent_id}/download?passkey={api_key}"
     else:
         raise HTTPException(status_code=400, detail="Invalid tracker")
 
