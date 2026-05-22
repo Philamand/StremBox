@@ -110,8 +110,15 @@ async def download_stream(
             added_hash = await torrent_service.add_torrent(
                 torrent=torrent_url, max_size=available_size
             )
+            referer = request.headers.get("referer")
+            if referer and referer == "https://web.stremio.com/":
+                timeout = 500
+                min_percent = 1
+            else:
+                timeout = 30.0
+                min_percent = 0.01
             await torrent_service.wait_for_download_start(
-                added_hash, timeout=30.0, min_percent=0.01
+                added_hash, timeout=timeout, min_percent=min_percent
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -178,8 +185,15 @@ async def download_stream_head(
             added_hash = await torrent_service.add_torrent(
                 torrent=torrent_url, max_size=available_size
             )
+            referer = request.headers.get("referer")
+            if referer and referer == "https://web.stremio.com/":
+                timeout = 500
+                min_percent = 1
+            else:
+                timeout = 30.0
+                min_percent = 0.01
             await torrent_service.wait_for_download_start(
-                added_hash, timeout=30.0, min_percent=0.01
+                added_hash, timeout=timeout, min_percent=min_percent
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
