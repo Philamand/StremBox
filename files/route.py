@@ -11,12 +11,12 @@ from files.services import FileManager
 from files.utils import zip_directory
 from users.dependencies import require_auth
 
-router = APIRouter(prefix="/files")
+router = APIRouter(prefix="/files", dependencies=[Depends(require_auth)])
 templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
 
 
-@router.get("/", dependencies=[Depends(require_auth)])
+@router.get("/")
 async def list_files(
     request: Request,
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
@@ -60,7 +60,7 @@ async def download_file(
     return FileResponse(path)
 
 
-@router.delete("/", dependencies=[Depends(require_auth)])
+@router.delete("/")
 async def delete_file(
     file_path: str,
     file_manager: Annotated[FileManager, Depends()],
