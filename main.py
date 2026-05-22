@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.routing import APIRoute
-from granian.utils.proxies import wrap_asgi_with_proxy_headers
 
 from files.route import router as files_router
 from streams.route import router
@@ -43,5 +42,3 @@ app.include_router(dashboard_router)
 app.include_router(auth_router)
 
 use_route_names_as_operation_ids(app)
-
-app = wrap_asgi_with_proxy_headers(app, trusted_hosts="caddy")

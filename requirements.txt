@@ -31,7 +31,6 @@ certifi==2026.4.22
     #   transmission-rpc
 click==8.3.3
     # via
-    #   granian
     #   rich-toolkit
     #   typer
     #   uvicorn
@@ -55,8 +54,6 @@ frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-granian==2.7.4
-    # via bauxite (pyproject.toml)
 h11==0.16.0
     # via
     #   httpcore
