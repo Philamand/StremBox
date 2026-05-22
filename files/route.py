@@ -45,6 +45,7 @@ async def list_files(
 
 @router.get("/download")
 async def download_file(
+    request: Request,
     file_path: str,
     file_manager: Annotated[FileManager, Depends()],
     background_tasks: BackgroundTasks,
