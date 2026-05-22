@@ -89,9 +89,9 @@ async def download_stream(
     season: Optional[int] = None,
     episode: Optional[int] = None,
 ):
-    torrent = await torrent_service.get_torrent(torrent_hash)
-
-    if not torrent:
+    try:
+        await torrent_service.get_torrent(torrent_hash)
+    except KeyError:
         if tracker == "c411":
             torrent_url = (
                 f"https://c411.org/api?t=get&id={torrent_hash}&apikey={api_key}"
@@ -157,9 +157,9 @@ async def download_stream_head(
     season: Optional[int] = None,
     episode: Optional[int] = None,
 ):
-    torrent = await torrent_service.get_torrent(torrent_hash)
-
-    if not torrent:
+    try:
+        await torrent_service.get_torrent(torrent_hash)
+    except KeyError:
         if tracker == "c411":
             torrent_url = (
                 f"https://c411.org/api?t=get&id={torrent_hash}&apikey={api_key}"
