@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse, Response, StreamingResponse
 from files.services import FileManager
 from streams.utils import (
     build_stream_headers,
-    parse_range,
+    build_stream_response,
     range_file_reader,
     resolve_file_path,
 )
@@ -28,18 +28,9 @@ async def get_stream(
 
     file_range = request.headers.get("range")
 
-    path = file_manager.get_path(file_path)
-
-    if not await file_manager.exists(path):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    file_size = await file_manager.get_size(path)
-
-    start, end = parse_range(file_range)
-    if start is None:
-        start = 0
-    if end is None or end >= file_size:
-        end = file_size - 1
+    path, start, end, file_size = await build_stream_response(
+        file_manager, file_path, file_range
+    )
 
     try:
         headers, status_code = build_stream_headers(
@@ -68,18 +59,9 @@ async def head_stream(
 
     file_range = request.headers.get("range")
 
-    path = file_manager.get_path(file_path)
-
-    if not await file_manager.exists(path):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    file_size = await file_manager.get_size(path)
-
-    start, end = parse_range(file_range)
-    if start is None:
-        start = 0
-    if end is None or end >= file_size:
-        end = file_size - 1
+    path, start, end, file_size = await build_stream_response(
+        file_manager, file_path, file_range
+    )
 
     try:
         headers, status_code = build_stream_headers(

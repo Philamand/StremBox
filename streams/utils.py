@@ -4,7 +4,9 @@ import re
 from typing import Optional, Tuple
 
 import aiofiles
-from fastapi import Request
+from fastapi import HTTPException, Request
+
+from files.services import FileManager
 
 # Video file extensions and their MIME types
 VIDEO_MIME_TYPES = {
@@ -236,3 +238,21 @@ def build_stream_headers(
         return headers, 206
     headers["content-length"] = str(size)
     return headers, 200
+
+async def build_stream_response(
+    file_manager: FileManager, file_path: str, file_range: str | None
+) -> tuple[str, int, int, int]:
+    path = file_manager.get_path(file_path)
+
+    if not await file_manager.exists(path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_size = await file_manager.get_size(path)
+
+    start, end = parse_range(file_range)
+    if start is None:
+        start = 0
+    if end is None or end >= file_size:
+        end = file_size - 1
+
+    return path, start, end, file_size
