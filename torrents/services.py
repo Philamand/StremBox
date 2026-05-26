@@ -130,6 +130,68 @@ class TorrentService:
                 return
             raise ValueError("Le téléchargement n'a pas démarré dans le temps imparti.")
 
+    async def wait_for_download_complete(
+        self,
+        hash_string: str,
+        timeout: float | None = None,
+        file_name: str | None = None,
+    ) -> None:
+        """Wait until a torrent (or a specific file) finishes downloading.
+
+        Polls Transmission every second.  If *file_name* is ``None`` (the
+        default) the method waits for the entire torrent to reach 100 %.
+        When a file name is given only that file's completion is checked.
+
+        If *timeout* is ``None`` the method waits indefinitely; otherwise a
+        ``ValueError`` is raised when the deadline is exceeded.
+
+        Raises:
+            ValueError: if *file_name* does not match any file in the torrent,
+                or if the timeout is reached before the download completes.
+        """
+
+        async def _poll_torrent() -> bool:
+            while True:
+                t: Torrent = await asyncio.to_thread(
+                    self.client.get_torrent, hash_string
+                )
+                if t.percent_done >= 1.0:
+                    return True
+                await asyncio.sleep(1.0)
+
+        async def _poll_file(name: str) -> bool:
+            torrent: Torrent = await asyncio.to_thread(
+                self.client.get_torrent, hash_string
+            )
+            file_list: list[File] = await asyncio.to_thread(torrent.get_files)
+
+            target_id: int | None = None
+            for f in file_list:
+                if f.name == name:
+                    target_id = f.id
+                    break
+            if target_id is None:
+                raise ValueError(f"Aucun fichier nommé '{name}' dans le torrent.")
+
+            while True:
+                torrent = await asyncio.to_thread(self.client.get_torrent, hash_string)
+                file_list = await asyncio.to_thread(torrent.get_files)
+                for f in file_list:
+                    if f.id == target_id:
+                        if f.completed >= f.size:
+                            return True
+                        break
+                await asyncio.sleep(1.0)
+
+        coro = _poll_torrent() if file_name is None else _poll_file(file_name)
+
+        try:
+            await asyncio.wait_for(coro, timeout=timeout)
+        except asyncio.TimeoutError:
+            raise ValueError(
+                "Le téléchargement n'est pas terminé dans le temps imparti."
+            )
+
     async def remove_torrent(
         self, torrent_hash: str, delete_files: bool = False
     ) -> None:
