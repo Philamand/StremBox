@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import RedirectResponse, Response, StreamingResponse
 
 from files.services import FileManager
 from streams.utils import (
@@ -110,117 +110,27 @@ async def download_stream(
             added_hash = await torrent_service.add_torrent(
                 torrent=torrent_url, max_size=available_size
             )
-            referer = request.headers.get("referer")
-            if referer and referer == "https://web.stremio.com/":
-                timeout = 500
-                min_percent = 1
-            else:
-                timeout = 30.0
-                min_percent = 0.01
             await torrent_service.wait_for_download_start(
-                added_hash, timeout=timeout, min_percent=min_percent
+                added_hash, timeout=60, min_percent=0.01
             )
+            torrent_files = await torrent_service.get_torrent_files(added_hash)
+            file_path = resolve_file_path(
+                torrent_files[0].name,
+                "",
+                season,
+                episode,
+            )
+            if len(torrent_files) >= 1:
+                file = file_path
+            else:
+                file = None
+            await torrent_service.wait_for_download_complete(
+                added_hash, timeout=600, file_name=file
+            )
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    torrent_files = await torrent_service.get_torrent_files(torrent_hash)
-    file_path = resolve_file_path(
-        torrent_files[0].name,
-        request.state.user.transmission_data.download_folder,
-        season,
-        episode,
-    )
-
-    file_range = request.headers.get("range")
-
-    path, start, end, file_size = await build_stream_response(
-        file_service, file_path, file_range
-    )
-
-    try:
-        headers, status_code = build_stream_headers(
-            path, file_range, start, end, file_size
+        return RedirectResponse(
+            url=f"/streams/{request.state.user.api_key}?file_path={file_path}"
         )
-    except ValueError:
-        raise HTTPException(status_code=415, detail="Fichier non pris en charge")
-
-    return StreamingResponse(
-        range_file_reader(request, path, start, end),
-        status_code=status_code,
-        headers=headers,
-        media_type=headers["content-type"],
-    )
-
-
-@router.head("/download/{user_key}/{torrent_hash}")
-async def download_stream_head(
-    request: Request,
-    torrent_service: Annotated[TorrentService, Depends()],
-    file_service: Annotated[FileManager, Depends()],
-    torrent_hash: str,
-    tracker: str,
-    api_key: str,
-    torrent_id: Optional[int] = None,
-    season: Optional[int] = None,
-    episode: Optional[int] = None,
-):
-    try:
-        await torrent_service.get_torrent(torrent_hash)
-    except KeyError:
-        if tracker == "c411":
-            torrent_url = (
-                f"https://c411.org/api?t=get&id={torrent_hash}&apikey={api_key}"
-            )
-        elif tracker == "torr9" and torrent_id:
-            torrent_url = f"https://api.torr9.net/api/v1/rss/torrents/{torrent_id}/download?passkey={api_key}"
-        else:
-            raise HTTPException(status_code=400, detail="Invalid tracker")
-
-        available_size = (
-            request.state.user.transmission_data.size * 1024 * 1024 * 1024
-            - await file_service.get_folder_size()
-        )
-
-        try:
-            added_hash = await torrent_service.add_torrent(
-                torrent=torrent_url, max_size=available_size
-            )
-            referer = request.headers.get("referer")
-            if referer and referer == "https://web.stremio.com/":
-                timeout = 500
-                min_percent = 1
-            else:
-                timeout = 30.0
-                min_percent = 0.01
-            await torrent_service.wait_for_download_start(
-                added_hash, timeout=timeout, min_percent=min_percent
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
-    torrent_files = await torrent_service.get_torrent_files(torrent_hash)
-    file_path = resolve_file_path(
-        torrent_files[0].name,
-        request.state.user.transmission_data.download_folder,
-        season,
-        episode,
-    )
-
-    file_range = request.headers.get("range")
-
-    path, start, end, file_size = await build_stream_response(
-        file_service, file_path, file_range
-    )
-
-    try:
-        headers, status_code = build_stream_headers(
-            path, file_range, start, end, file_size
-        )
-    except ValueError:
-        raise HTTPException(status_code=415, detail="Fichier non pris en charge")
-
-    return Response(
-        status_code=status_code,
-        headers=headers,
-        media_type=headers["content-type"],
-    )
