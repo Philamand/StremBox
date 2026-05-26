@@ -190,7 +190,7 @@ def resolve_file_path(
             raise HTTPException(status_code=404)
         for f in os.listdir(dir_path):
             if check_season_episode(f, season, episode):
-                return dir_path + "/" + f
+                return f
         raise HTTPException(status_code=404)
 
     if not os.path.isfile(base_dir + torrent_file):
@@ -238,6 +238,7 @@ def build_stream_headers(
         return headers, 206
     headers["content-length"] = str(size)
     return headers, 200
+
 
 async def build_stream_response(
     file_manager: FileManager, file_path: str, file_range: str | None
