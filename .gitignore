@@ -175,3 +175,5 @@ transmission-multi-config/
 database/database.db
 
 Caddyfile
+
+nginx.conf

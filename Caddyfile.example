@@ -1,5 +1,0 @@
-http://localhost {
-    reverse_proxy bauxite_fastapi:8000 {
-        flush_interval -1
-    }
-}
