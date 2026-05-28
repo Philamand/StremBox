@@ -111,7 +111,7 @@ async def download_stream(
                 torrent=torrent_url, max_size=available_size
             )
             await torrent_service.wait_for_download_start(
-                added_hash, timeout=60, min_percent=0.01
+                added_hash, timeout=60, min_percent=0.02
             )
             torrent_files = await torrent_service.get_torrent_files(added_hash)
             file_path = resolve_file_path(
@@ -120,17 +120,8 @@ async def download_stream(
                 season,
                 episode,
             )
-            if len(torrent_files) >= 1:
-                file = file_path
-            else:
-                file = None
-            await torrent_service.wait_for_download_complete(
-                added_hash, timeout=600, file_name=file
-            )
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-        return RedirectResponse(
-            url=f"/streams/{request.state.user.api_key}?file_path={file_path}"
-        )
+        return RedirectResponse(url=f"/static/{file_path}")
