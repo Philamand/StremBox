@@ -515,7 +515,7 @@ class StremioOrchestrationService:
                             break
                     if not file_path:
                         file_path = torrent["files"][0]
-                stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
+                stream_url = f"{self.librebox_url}/static/{file_path}"
             else:
                 speed_emoji = ""
                 stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['info_hash']}?tracker={tracker}&api_key={api_key}"
