@@ -111,7 +111,7 @@ async def download_stream(
                 torrent=torrent_url, max_size=available_size
             )
             await torrent_service.wait_for_download_start(
-                added_hash, timeout=60, min_percent=0.02
+                added_hash, timeout=60.0, min_percent=0.05
             )
             torrent_files = await torrent_service.get_torrent_files(added_hash)
             file_path = resolve_file_path(
