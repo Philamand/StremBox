@@ -116,7 +116,7 @@ async def download_stream(
             torrent_files = await torrent_service.get_torrent_files(added_hash)
             file_path = resolve_file_path(
                 torrent_files[0].name,
-                "",
+                request.state.user.transmission_data.base_dir,
                 season,
                 episode,
             )
