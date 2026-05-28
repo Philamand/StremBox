@@ -11,6 +11,8 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - certbot-certs:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
       - downloads:/static
     environment:
       - ACME_AGREE=true
@@ -19,6 +21,13 @@ services:
       - app-network
     depends_on:
       - fastapi
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-certs:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   gluetun:
     image: qmcgaw/gluetun
@@ -82,3 +91,5 @@ services:
 volumes:
   downloads:
   database:
+  certbot-certs:
+  certbot-www:
