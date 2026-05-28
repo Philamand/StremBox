@@ -104,28 +104,58 @@ The Bauxite interface is currently in French, with English documentation. Multi 
    nano .gluetun.env
    ```
 
-4. Copy the `Caddyfile.example` to `Caddyfile` and update the values as needed:
-   ```bash
-   cp Caddyfile.example Caddyfile
-   nano Caddyfile
+4. On your first run, you need to generate the SSL certificate for your domain:
+  ```bash
+   cp nginx.conf.setup.example nginx.conf
+   nano nginx.conf
    ```
 
-5. Run the Docker compose command to start the services:
+   Replace your-domain.com on line 3 with your actual domain name.
+
+   Then, edit the docker-compose.yml file to update the domain name and commment out line 31 by adding a `#` at the beginning of the line:
+   ```bash
+   nano docker-compose.yml
+   ```
+
+   Run docker compose to start the services:
    ```bash
    docker compose up -d
    ```
 
-6. Create a transmission entry in your database:
+   Wait for the services to start, then run the following command to generate the SSL certificate:
+   ```bash
+   docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d <your-domain> --email <your-email> --agree-tos --no-eff-email
+   ```
+
+   Once the certificate is generated, you can uncomment line 31 in the docker-compose.yml file, delete nginx.conf and stop the services:
+   ```bash
+   nano docker-compose.yml
+   rm nginx.conf
+   docker compose down
+   ```
+
+5. Copy the `nginx.conf.example` to `nginx.conf` and update the values as needed:
+   ```bash
+   cp nginx.conf.example nginx.conf
+   nano nginx.conf
+   ```
+
+6. Run the Docker compose command to start the services:
+   ```bash
+   docker compose up -d
+   ```
+
+7. Create a transmission entry in your database:
    ```bash
    docker compose exec fastapi python cli.py transmission-add
    ```
 
-7. Add your Hanko user to the database (you can find/create the `UserId` in the Hanko dashboard):
+8. Add your Hanko user to the database (you can find/create the `UserId` in the Hanko dashboard):
    ```bash
    docker compose exec fastapi python cli.py user-add <UserId> 1
    ```
 
-8. Access the Bauxite UI by navigating to `https://<your-domain>` in your browser. Log in using your Hanko account.
+9. Access the Bauxite UI by navigating to `https://<your-domain>` in your browser. Log in using your Hanko account.
 
 ## Contributing
 We welcome contributions! Please follow these steps:
