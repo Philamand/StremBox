@@ -3,17 +3,15 @@ networks:
     driver: bridge
 
 services:
-  caddy:
-    image: caddy:latest
-    container_name: bauxite_caddy
+  nginx:
+    image: nginx:alpine
+    container_name: bauxite_nginx
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy-data:/data
-      - caddy-config:/config
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - downloads:/static
     environment:
       - ACME_AGREE=true
     privileged: true
@@ -83,6 +81,4 @@ services:
       - app-network
 volumes:
   downloads:
-  caddy-data:
-  caddy-config:
   database:
