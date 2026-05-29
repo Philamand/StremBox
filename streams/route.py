@@ -1,7 +1,12 @@
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import RedirectResponse, Response, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 
 from files.services import FileManager
 from streams.utils import (
@@ -123,6 +128,13 @@ async def download_stream(
         request.state.user.transmission_data.download_folder,
         season,
         episode,
+        False,
     )
 
-    return RedirectResponse(url=f"/static/{file_path}")
+    referer = request.headers.get("referer", None)
+
+    if referer is not None and referer == "https://web.stremio.com/":
+        return RedirectResponse(url=f"/static/{file_path}")
+
+    file_path = f"{request.state.user.transmission_data.download_folder}/{file_path}"
+    return FileResponse(file_path)
