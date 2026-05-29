@@ -74,7 +74,8 @@ def check_season_episode(name, target_season, target_episode):
     if target_season is None:
         return True
 
-    name_upper = name.upper()
+    basename = re.split(r"[/\\]", name)[-1]
+    name_upper = basename.upper()
 
     se_pattern = re.compile(
         r"(?:S|SAISON|SEASON)[ ._-]?(\d{1,2})(?:[ ._-]?E(\d{1,2}))(?:(?:[ ._-]*(?:E|-|~)[ ._-]*)(\d{1,2}))?",
