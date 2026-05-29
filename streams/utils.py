@@ -162,7 +162,11 @@ def parse_stream_hash(raw_hash: str) -> Tuple[str, Optional[int], Optional[int]]
 
 
 def resolve_file_path(
-    torrent_file: str, base_dir: str, season: Optional[int], episode: Optional[int]
+    torrent_file: str,
+    base_dir: str,
+    season: Optional[int],
+    episode: Optional[int],
+    full_path: Optional[bool] = True,
 ) -> str:
     """Resolve the path (relative to ``BASE_DIR``) for the requested file.
 
@@ -190,12 +194,16 @@ def resolve_file_path(
             raise HTTPException(status_code=404)
         for f in os.listdir(dir_path):
             if check_season_episode(f, season, episode):
+                if full_path:
+                    return os.path.join(dir_path, f)
                 return f
         raise HTTPException(status_code=404)
 
     if not os.path.isfile(base_dir + torrent_file):
         raise HTTPException(status_code=404)
 
+    if full_path:
+        return os.path.join(base_dir, torrent_file)
     return torrent_file
 
 
