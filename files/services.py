@@ -133,7 +133,7 @@ class ZipDirectoryService:
     async def create_zip(self, path: str) -> int:
         """Create a zip file entry and return the ID."""
         row = await self.db.fetch_one(
-            "INSERT INTO zip_directory (path) VALUES ($1) RETURNING id",
+            "INSERT INTO zip_directory (path) VALUES (?) RETURNING id",
             (path,),
         )
         return row["id"]
@@ -141,7 +141,7 @@ class ZipDirectoryService:
     async def get_zip(self, zip_id: int) -> ZipDirectory:
         """Return the zip file entry by ID."""
         row = await self.db.fetch_one(
-            "SELECT * FROM zip_directory WHERE id = $1",
+            "SELECT * FROM zip_directory WHERE id = ?",
             (zip_id,),
         )
         return ZipDirectory(**row)
@@ -149,11 +149,11 @@ class ZipDirectoryService:
     async def update_zip(self, zip_id: int):
         """Update a zip file entry."""
         await self.db.commit_execute(
-            "UPDATE zip_directory SET done = true WHERE id = $1", (zip_id,)
+            "UPDATE zip_directory SET done = true WHERE id = ?", (zip_id,)
         )
 
     async def delete_zip(self, zip_id: int):
         """Delete a zip file entry."""
         await self.db.commit_execute(
-            "DELETE FROM zip_directory WHERE id = $1", (zip_id,)
+            "DELETE FROM zip_directory WHERE id = ?", (zip_id,)
         )
