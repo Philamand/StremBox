@@ -13,10 +13,10 @@
 >
     {% if zip_id %}
     <h3 id="zip-modal-title" class="text-lg font-bold">
-        Votre téléchargement est en cours de préparation
+        Votre téléchargement est en cours de préparation<span
+            class="loading loading-dots loading-md"
+        ></span>
     </h3>
-
-    <span class="loading loading-spinner loading-xl"></span>
     {% elif path %}
     <h3 id="zip-modal-title" class="text-lg font-bold">
         Votre téléchargement est prêt à être téléchargé
