@@ -7,3 +7,10 @@ class FileData(BaseModel):
     is_archive: bool
     size: int | None = None
     last_modified: int
+
+
+class ZipDirectory(BaseModel):
+    id: int
+    datetime: int
+    done: bool
+    path: str

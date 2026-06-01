@@ -5,7 +5,7 @@ from aiofiles import os
 from fastapi import Depends, Request
 
 from core.database import AsyncDatabase
-from files.schemas import FileData
+from files.schemas import FileData, ZipDirectory
 
 ARCHIVE_EXTENSIONS = (
     ".zip",
@@ -137,6 +137,14 @@ class ZipDirectoryService:
             (path,),
         )
         return row["id"]
+
+    async def get_zip(self, zip_id: int) -> ZipDirectory:
+        """Return the zip file entry by ID."""
+        row = await self.db.fetch_one(
+            "SELECT * FROM zip_directory WHERE id = $1",
+            (zip_id,),
+        )
+        return ZipDirectory(**row)
 
     async def update_zip(self, zip_id: int):
         """Update a zip file entry."""
