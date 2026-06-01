@@ -11,6 +11,6 @@ class FileData(BaseModel):
 
 class ZipDirectory(BaseModel):
     id: int
-    datetime: int
+    created_at: int
     done: bool
     path: str
