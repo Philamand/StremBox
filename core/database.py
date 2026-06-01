@@ -45,3 +45,8 @@ class AsyncDatabase:
         async with self.connection() as db:
             await db.execute(query, params)
             await db.commit()
+
+    async def commit(self):
+        """Commit the transaction."""
+        async with self.connection() as db:
+            await db.commit()

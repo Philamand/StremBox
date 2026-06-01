@@ -136,6 +136,7 @@ class ZipDirectoryService:
             "INSERT INTO zip_directory (path) VALUES (?) RETURNING id",
             (path,),
         )
+        await self.db.commit()
         return row["id"]
 
     async def get_zip(self, zip_id: int) -> ZipDirectory:
