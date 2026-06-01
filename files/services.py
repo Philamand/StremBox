@@ -130,10 +130,11 @@ class ZipDirectoryService:
     def __init__(self, db: Annotated[AsyncDatabase, Depends()]):
         self.db = db
 
-    async def create_zip(self) -> int:
+    async def create_zip(self, path: str) -> int:
         """Create a zip file entry and return the ID."""
         row = await self.db.fetch_one(
-            "INSERT INTO zip_directory DEFAULT VALUES RETURNING id",
+            "INSERT INTO zip_directory (path) VALUES ($1) RETURNING id",
+            (path,),
         )
         return row["id"]
 
