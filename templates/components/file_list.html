@@ -77,8 +77,22 @@
         {% endif %}
     </div>
     <a
+        {%
+        if
+        file.is_archive
+        %}
+        hx-get="/files/download?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
+        hx-swap="outerHTML"
+        hx-target="#zip_modal"
+        hx-on::after-request="zip_modal.show()"
+        {%
+        else
+        %}
         href="/files/download?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
         target="_blank"
+        {%
+        endif
+        %}
         class="btn btn-square btn-ghost"
     >
         <svg

@@ -1,10 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+)
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from core.config import BASE_URL
 from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
 from files.services import FileManager, ZipDirectoryService
@@ -43,6 +49,24 @@ async def list_files(
     )
 
 
+@router.get("/status/{zip_id}")
+async def get_zip_status(
+    request: Request,
+    zip_id: int,
+    zip_service: Annotated[ZipDirectoryService, Depends()],
+):
+    """Return the status of a zip file by ID."""
+    zip = await zip_service.get_zip(zip_id)
+    if zip.done is True:
+        return templates.TemplateResponse(
+            request,
+            "components/zip_modal.html",
+            {"path": zip.path},
+            headers={"HX-Reswap": "outerHTML"},
+        )
+    return Response(status_code=200)
+
+
 @router.get("/download")
 async def download_file(
     request: Request,
@@ -56,9 +80,18 @@ async def download_file(
     if is_dir:
         exists = await file_manager.exists(path + ".zip")
         if not exists:
-            zip_id = await zip_service.create_zip()
+            zip_id = await zip_service.create_zip(path + ".zip")
             background_tasks.add_task(zip_directory, path, zip_id, zip_service)
-        return RedirectResponse(f"{BASE_URL}/files/{file_path}.zip")
+            return templates.TemplateResponse(
+                request,
+                "components/zip_modal.html",
+                {"zip_id": zip_id},
+            )
+        return templates.TemplateResponse(
+            request,
+            "components/zip_modal.html",
+            {"path": path + ".zip"},
+        )
     return FileResponse(path)
 
 
