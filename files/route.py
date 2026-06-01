@@ -60,7 +60,7 @@ async def get_zip_status(
     if zip.done is True:
         return templates.TemplateResponse(
             request,
-            "components/zip_modal.html",
+            "components/zip_modal_box.html",
             {"path": zip.path},
             headers={"HX-Reswap": "outerHTML"},
         )

@@ -1,35 +1,5 @@
-<dialog
-    id="zip_modal"
-    class="modal"
-    aria-labelledby="zip-modal-title"
-    {%
-    if
-    zip_id
-    %}hx-get="/files/status/{{ zip_id }}"
-    hx-swap="none"
-    hx-trigger="every 5s"
-    {%
-    endif
-    %}
->
-    <div class="modal-box">
-        {% if zip_id %}
-        <h3 id="zip-modal-title" class="text-lg font-bold">
-            Votre téléchargement est en cours de préparation
-        </h3>
-
-        <span class="loading loading-spinner loading-xl"></span>
-        {% elif path %}
-        <h3 id="zip-modal-title" class="text-lg font-bold">
-            Votre téléchargement est prêt à être téléchargé
-        </h3>
-        <a href="/static/{{ path }}" class="btn btn-primary">Télécharger</a>
-        {% else %}
-        <h3 id="zip-modal-title" class="text-lg font-bold">
-            Une erreur est survenue
-        </h3>
-        {% endif %}
-    </div>
+<dialog id="zip_modal" class="modal" aria-labelledby="zip-modal-title">
+    {% include "components/zip_modal_box.html" %}
 
     <form method="dialog" class="modal-backdrop">
         <button>close</button>
