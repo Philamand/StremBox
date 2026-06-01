@@ -79,7 +79,7 @@
     <a
         {%
         if
-        file.is_archive
+        file.is_dir
         %}
         hx-get="/files/download?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
         hx-swap="outerHTML"
