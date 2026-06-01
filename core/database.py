@@ -46,7 +46,11 @@ class AsyncDatabase:
             await db.execute(query, params)
             await db.commit()
 
-    async def commit(self):
-        """Commit the transaction."""
+    async def commit_fetch_one(self, query: str, params: tuple = ()):
+        """Execute a query, commit the transaction, and return the first row."""
         async with self.connection() as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(query, params)
+            row = await cursor.fetchone()
             await db.commit()
+            return row

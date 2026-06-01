@@ -132,11 +132,10 @@ class ZipDirectoryService:
 
     async def create_zip(self, path: str) -> int:
         """Create a zip file entry and return the ID."""
-        row = await self.db.fetch_one(
+        row = await self.db.commit_fetch_one(
             "INSERT INTO zip_directory (path) VALUES (?) RETURNING id",
             (path,),
         )
-        await self.db.commit()
         return row["id"]
 
     async def get_zip(self, zip_id: int) -> ZipDirectory:
