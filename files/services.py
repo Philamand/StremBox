@@ -1,8 +1,10 @@
 import os as _pyos
+from typing import Annotated
 
 from aiofiles import os
-from fastapi import Request
+from fastapi import Depends, Request
 
+from core.database import AsyncDatabase
 from files.schemas import FileData
 
 ARCHIVE_EXTENSIONS = (
@@ -120,3 +122,29 @@ class FileManager:
     async def get_size(self, file_path: str) -> int:
         """Return the size of the file in bytes."""
         return await os.path.getsize(file_path)
+
+
+class ZipDirectoryService:
+    """Service for managing zip directory entries."""
+
+    def __init__(self, db: Annotated[AsyncDatabase, Depends()]):
+        self.db = db
+
+    async def create_zip(self) -> int:
+        """Create a zip file entry and return the ID."""
+        row = await self.db.fetch_one(
+            "INSERT INTO zip_directory DEFAULT VALUES RETURNING id",
+        )
+        return row["id"]
+
+    async def update_zip(self, zip_id: int):
+        """Update a zip file entry."""
+        await self.db.commit_execute(
+            "UPDATE zip_directory SET done = true WHERE id = $1", (zip_id,)
+        )
+
+    async def delete_zip(self, zip_id: int):
+        """Delete a zip file entry."""
+        await self.db.commit_execute(
+            "DELETE FROM zip_directory WHERE id = $1", (zip_id,)
+        )
