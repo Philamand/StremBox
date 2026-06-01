@@ -88,7 +88,7 @@
         {%
         else
         %}
-        href="/files/download?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
+        href="/static{% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
         target="_blank"
         {%
         endif
