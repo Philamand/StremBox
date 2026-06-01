@@ -80,6 +80,19 @@ async def download_file(
     if is_dir:
         exists = await file_manager.exists(path + ".zip")
         if not exists:
+            available_size = (
+                request.state.user.transmission_data.size * 1024 * 1024 * 1024
+                - await file_manager.get_folder_size()
+                - await file_manager.get_folder_size(path)
+            )
+
+            if available_size < 0:
+                return templates.TemplateResponse(
+                    request,
+                    "components/zip_modal.html",
+                    {"path": file_path + ".zip"},
+                )
+
             zip_id = await zip_service.create_zip(file_path + ".zip")
             background_tasks.add_task(zip_directory, path, zip_id, zip_service)
             return templates.TemplateResponse(
