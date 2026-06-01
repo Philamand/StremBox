@@ -90,7 +90,7 @@ async def download_file(
         return templates.TemplateResponse(
             request,
             "components/zip_modal.html",
-            {"path": path + ".zip"},
+            {"path": file_path + ".zip"},
         )
     return FileResponse(path)
 
