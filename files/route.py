@@ -80,7 +80,7 @@ async def download_file(
     if is_dir:
         exists = await file_manager.exists(path + ".zip")
         if not exists:
-            zip_id = await zip_service.create_zip(path + ".zip")
+            zip_id = await zip_service.create_zip(file_path + ".zip")
             background_tasks.add_task(zip_directory, path, zip_id, zip_service)
             return templates.TemplateResponse(
                 request,
