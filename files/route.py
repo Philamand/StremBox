@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from core.config import BASE_URL
 from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
-from files.services import FileManager
+from files.services import FileManager, ZipDirectoryService
 from files.utils import zip_directory
 from users.dependencies import require_auth
 
@@ -48,6 +48,7 @@ async def download_file(
     request: Request,
     file_path: str,
     file_manager: Annotated[FileManager, Depends()],
+    zip_service: Annotated[ZipDirectoryService, Depends()],
     background_tasks: BackgroundTasks,
 ):
     path = file_manager.get_path(file_path)
@@ -55,7 +56,8 @@ async def download_file(
     if is_dir:
         exists = await file_manager.exists(path + ".zip")
         if not exists:
-            background_tasks.add_task(zip_directory, path)
+            zip_id = await zip_service.create_zip()
+            background_tasks.add_task(zip_directory, path, zip_id, zip_service)
         return RedirectResponse(f"{BASE_URL}/files/{file_path}.zip")
     return FileResponse(path)
 
