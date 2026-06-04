@@ -543,14 +543,15 @@ class StremioOrchestrationService:
                 slow_streams.append(stream)
 
         if auto_dl is True and len(fast_streams) == 0 and len(slow_streams) > 0:
-            fast_stream = slow_streams[0]
-            download_request = extract_download_params(fast_stream.url)
+            stream = StremioStreamData(
+                title="⬇️ Téléchargement en cours...\nVous pouvez suivre la progession sur l'application ou vous pouvez rafraîchir la page dans quelque instant.",
+                externalUrl=self.librebox_url,
+                filename=file_path,
+                videoSize=int(result["size"]),
+            )
+            download_request = extract_download_params(slow_streams[0].url)
             await bauxite_service.download_torrent(download_request)
-            fast_stream.title = "⬇️ Téléchargement en cours...\nVous pouvez suivre la progession sur l'application ou vous pouvez rafraîchir la page dans quelque instant."
-            fast_stream.url = None
-            fast_stream.externalUrl = self.librebox_url
-            fast_streams.append(fast_stream)
-            slow_streams = slow_streams[1:]
+            fast_streams.append(stream)
 
         streams = fast_streams
 
