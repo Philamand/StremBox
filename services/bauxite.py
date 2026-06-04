@@ -2,6 +2,8 @@ from typing import Any
 
 import aiohttp
 
+from schemas.bauxite import DownloadRequest
+
 
 class BauxiteService:
     """Service for interacting with Bauxite-related endpoints."""
@@ -18,3 +20,14 @@ class BauxiteService:
                 f"{self.base_url}/api/hashes/", headers=headers
             ) as response:
                 return await response.json()
+
+    async def download_torrent(self, request: DownloadRequest) -> None:
+        """Start the download of a torrent using the provided request data."""
+        async with aiohttp.ClientSession() as session:
+            headers = {"Authorization": f"Bearer {self.bearer_token}"}
+            async with session.post(
+                f"{self.base_url}/api/download/",
+                headers=headers,
+                json=request.model_dump_json(),
+            ) as response:
+                await response.json()
