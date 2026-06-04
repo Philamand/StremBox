@@ -28,6 +28,6 @@ class BauxiteService:
             async with session.post(
                 f"{self.base_url}/api/download/",
                 headers=headers,
-                data=request.model_dump(),
+                json=request.model_dump(),
             ) as response:
                 await response.json()
