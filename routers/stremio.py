@@ -54,6 +54,8 @@ async def get_torrent_streams(
         torr9_service=torr9_service,
     )
 
-    response = await stremio_service.get_streams(type=type, id=id, user=user)
+    response = await stremio_service.get_streams(
+        type=type, id=id, user=user, auto_dl=True
+    )
 
     return response

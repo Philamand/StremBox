@@ -453,7 +453,7 @@ class StremioOrchestrationService:
         return results
 
     async def get_streams(
-        self, type: str, id: str, user: UserData
+        self, type: str, id: str, user: UserData, auto_dl: bool = False
     ) -> StremioStreamsResponse:
         """Build a ``StremioStreamsResponse`` for *type*/*id* on behalf of *user*.
 
@@ -542,15 +542,20 @@ class StremioOrchestrationService:
             else:
                 slow_streams.append(stream)
 
-        if len(fast_streams) == 0 and len(slow_streams) > 0:
+        if auto_dl is True and len(fast_streams) == 0 and len(slow_streams) > 0:
             fast_stream = slow_streams[0]
             download_request = extract_download_params(fast_stream.url)
             await bauxite_service.download_torrent(download_request)
-            fast_stream.title = "Téléchargement en cours...\nVous pouvez suivre la progession sur l'application ou vous pouvez rafraîchir la page dans quelque instant."
+            fast_stream.title = "⬇️ Téléchargement en cours...\nVous pouvez suivre la progession sur l'application ou vous pouvez rafraîchir la page dans quelque instant."
             fast_stream.url = f"{self.librebox_url}"
             fast_streams.append(fast_stream)
             slow_streams = slow_streams[1:]
 
-        response = StremioStreamsResponse(streams=fast_streams + slow_streams)
+        streams = fast_streams
+
+        if auto_dl is True:
+            streams += slow_streams
+
+        response = StremioStreamsResponse(streams=streams)
 
         return response
