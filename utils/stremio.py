@@ -5,6 +5,43 @@ from urllib.parse import urlparse
 
 import aiohttp
 
+from schemas.bauxite import DownloadRequest
+
+
+def extract_download_params(url) -> DownloadRequest:
+    """Extract download parameters from a URL."""
+    if "?" in url:
+        path, query = url.split("?", 1)
+    else:
+        path, query = url, ""
+
+    torrent_hash: str | None = (
+        path.strip("/").split("/")[-1] if path.strip("/") else None
+    )
+
+    params: dict[str, str] = {}
+    if query:
+        for param in query.split("&"):
+            if "=" in param:
+                key, value = param.split("=", 1)
+                params[key] = value
+
+    tracker = params.get("tracker")
+    api_key = params.get("api_key")
+    torrent_id_str = params.get("torrent_id")
+
+    if torrent_hash is None or tracker is None or api_key is None:
+        raise ValueError("Missing required parameters")
+
+    torrent_id: int | None = int(torrent_id_str) if torrent_id_str else None
+
+    return DownloadRequest(
+        torrent_hash=torrent_hash,
+        tracker=tracker,
+        api_key=api_key,
+        torrent_id=torrent_id,
+    )
+
 
 def merge_result_into(
     results: list[dict],

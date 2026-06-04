@@ -16,6 +16,7 @@ from services.bauxite import BauxiteService
 from utils.stremio import (
     check_season_episode,
     check_title_match,
+    extract_download_params,
     get_torrent_name,
     get_torrent_tracker_and_id,
     parse_torrent_name,
@@ -532,13 +533,22 @@ class StremioOrchestrationService:
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
                 url=stream_url,
-                filename=result["name"],
+                filename=file_path,
                 videoSize=int(result["size"]),
             )
             if speed_emoji == "⚡️ " or speed_emoji == "🐢 ":
                 fast_streams.append(stream)
             else:
                 slow_streams.append(stream)
+
+        if len(fast_streams) == 0 and len(slow_streams) > 0:
+            fast_stream = slow_streams[0]
+            download_request = extract_download_params(fast_stream.url)
+            await bauxite_service.download_torrent(download_request)
+            fast_stream.title = f"🐢 {fast_stream.title}"
+            fast_stream.url = f"{self.librebox_url}/static/{fast_stream.filename}"
+            fast_streams.append(fast_stream)
+            slow_streams = slow_streams[1:]
 
         response = StremioStreamsResponse(streams=fast_streams + slow_streams)
 
