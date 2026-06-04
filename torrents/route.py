@@ -1,12 +1,22 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
 from files.services import FileManager
+from torrents.schemas import DownloadRequest
 from torrents.services import TorrentService
 from users.dependencies import require_auth
 from users.security import validate_bearer_token
@@ -111,3 +121,36 @@ async def get_hashes(
             "files": [file.name for file in torrent.get_files()],
         }
     return hashes_dict
+
+
+@api_router.post("/download/")
+async def download_torrent(
+    request: Request,
+    torrent_service: Annotated[TorrentService, Depends()],
+    file_service: Annotated[FileManager, Depends()],
+    download_request: DownloadRequest,
+):
+    try:
+        await torrent_service.get_torrent(download_request.torrent_hash)
+    except KeyError:
+        if download_request.tracker == "c411":
+            torrent_url = f"https://c411.org/api?t=get&id={download_request.torrent_hash}&apikey={download_request.api_key}"
+        elif download_request.tracker == "torr9" and download_request.torrent_id:
+            torrent_url = f"https://api.torr9.net/api/v1/rss/torrents/{download_request.torrent_id}/download?passkey={download_request.api_key}"
+        else:
+            raise HTTPException(status_code=400, detail="Invalid tracker")
+
+        available_size = (
+            request.state.user.transmission_data.size * 1024 * 1024 * 1024
+            - await file_service.get_folder_size()
+        )
+
+        try:
+            await torrent_service.add_torrent(
+                torrent=torrent_url, max_size=available_size
+            )
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    return Response(status_code=200)
