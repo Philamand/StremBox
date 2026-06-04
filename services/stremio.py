@@ -16,6 +16,7 @@ from services.bauxite import BauxiteService
 from utils.stremio import (
     check_season_episode,
     check_title_match,
+    extract_download_params,
     get_torrent_name,
     get_torrent_tracker_and_id,
     parse_torrent_name,
@@ -452,7 +453,7 @@ class StremioOrchestrationService:
         return results
 
     async def get_streams(
-        self, type: str, id: str, user: UserData
+        self, type: str, id: str, user: UserData, auto_dl: bool = False
     ) -> StremioStreamsResponse:
         """Build a ``StremioStreamsResponse`` for *type*/*id* on behalf of *user*.
 
@@ -523,6 +524,7 @@ class StremioOrchestrationService:
                     stream_url += f"&torrent_id={torrent_id}"
                 if season and episode:
                     stream_url += f"&season={season}&episode={episode}"
+                file_path = result["name"]
 
             stream = StremioStreamData(
                 title=(
@@ -532,7 +534,7 @@ class StremioOrchestrationService:
                     f"💾 {result['size'] / 1024 / 1024 / 1024:.2f} GB"
                 ),
                 url=stream_url,
-                filename=result["name"],
+                filename=file_path,
                 videoSize=int(result["size"]),
             )
             if speed_emoji == "⚡️ " or speed_emoji == "🐢 ":
@@ -540,6 +542,22 @@ class StremioOrchestrationService:
             else:
                 slow_streams.append(stream)
 
-        response = StremioStreamsResponse(streams=fast_streams + slow_streams)
+        if auto_dl is True and len(fast_streams) == 0 and len(slow_streams) > 0:
+            stream = StremioStreamData(
+                title="⬇️ Téléchargement en cours...\nVous pouvez suivre la progession sur l'application ou vous pouvez rafraîchir la page dans quelque instant.",
+                externalUrl=self.librebox_url,
+                filename=file_path,
+                videoSize=int(result["size"]),
+            )
+            download_request = extract_download_params(slow_streams[0].url)
+            await bauxite_service.download_torrent(download_request)
+            fast_streams.append(stream)
+
+        streams = fast_streams
+
+        if auto_dl is False:
+            streams += slow_streams
+
+        response = StremioStreamsResponse(streams=streams)
 
         return response
