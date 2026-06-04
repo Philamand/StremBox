@@ -524,6 +524,7 @@ class StremioOrchestrationService:
                     stream_url += f"&torrent_id={torrent_id}"
                 if season and episode:
                     stream_url += f"&season={season}&episode={episode}"
+                file_path = result["name"]
 
             stream = StremioStreamData(
                 title=(
@@ -545,8 +546,8 @@ class StremioOrchestrationService:
             fast_stream = slow_streams[0]
             download_request = extract_download_params(fast_stream.url)
             await bauxite_service.download_torrent(download_request)
-            fast_stream.title = f"🐢 {fast_stream.title}"
-            fast_stream.url = f"{self.librebox_url}/static/{fast_stream.filename}"
+            fast_stream.title = "Téléchargement en cours...\nVous pouvez suivre la progession sur l'application ou vous pouvez rafraîchir la page dans quelque instant."
+            fast_stream.url = f"{self.librebox_url}"
             fast_streams.append(fast_stream)
             slow_streams = slow_streams[1:]
 
