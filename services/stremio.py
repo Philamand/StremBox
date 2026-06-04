@@ -554,7 +554,7 @@ class StremioOrchestrationService:
 
         streams = fast_streams
 
-        if auto_dl is True:
+        if auto_dl is False:
             streams += slow_streams
 
         response = StremioStreamsResponse(streams=streams)
