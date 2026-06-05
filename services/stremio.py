@@ -444,7 +444,10 @@ class StremioOrchestrationService:
             c411_results = []
         else:
             return []
-        results: list[dict] = c411_results
+        results: list[dict] = []
+        for r in c411_results:
+            if check_season_episode(r["name"], season, episode):
+                results.append(r)
         for r in torr9_results:
             if check_season_episode(r["name"], season, episode) and check_title_match(
                 r["name"], None, name, year, False
