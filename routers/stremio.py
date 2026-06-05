@@ -1,4 +1,3 @@
-from device_detector import DeviceDetector
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from constants import MANIFEST
@@ -55,15 +54,6 @@ async def get_torrent_streams(
         torr9_service=torr9_service,
     )
 
-    device = DeviceDetector(request.headers.get("User-Agent", ""))
-
-    if device.device_type() == "tv":
-        auto_dl = True
-    else:
-        auto_dl = False
-
-    response = await stremio_service.get_streams(
-        type=type, id=id, user=user, auto_dl=auto_dl
-    )
+    response = await stremio_service.get_streams(type=type, id=id, user=user)
 
     return response
