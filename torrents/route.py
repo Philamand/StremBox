@@ -79,7 +79,7 @@ async def add_torrent(
     )
 
     try:
-        await torrent_service.add_torrent(data, available_size)
+        await torrent_service.add_torrent(data, available_size, torrent_start)
     except ValueError as e:
         return templates.TemplateResponse(
             request,
