@@ -31,6 +31,7 @@ class TorrentService:
         self,
         torrent: bytes | str,
         max_size: int,
+        start: bool = True,
     ) -> str:
         """Add a torrent to Transmission after verifying its size.
 
@@ -59,7 +60,10 @@ class TorrentService:
                     "Pas assez d'espace disponible pour télécharger ce torrent."
                 )
             result = await asyncio.to_thread(
-                self.client.add_torrent, torrent=torrent, sequential_download=True
+                self.client.add_torrent,
+                torrent=torrent,
+                sequential_download=True,
+                paused=not start,
             )
             return result.hashString
 
