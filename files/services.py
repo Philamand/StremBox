@@ -1,4 +1,6 @@
+import asyncio
 import os as _pyos
+import shutil
 from typing import Annotated
 
 from aiofiles import os
@@ -90,7 +92,7 @@ class FileManager:
             return
         is_dir = await os.path.isdir(full_path)
         if is_dir:
-            await os.rmdir(full_path)
+            await asyncio.to_thread(shutil.rmtree, full_path)
         else:
             raise FileNotFoundError(f"File not found: {full_path}")
 
