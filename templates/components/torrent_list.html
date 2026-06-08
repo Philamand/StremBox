@@ -126,7 +126,7 @@
                 ><span class="ml-2">Supprimer</span>
             </button>
             {% if torrent.status == "stopped" %}
-            <button class="btn btn-secondary col-span-2" hx-post="/{{ torrent.id }}/start" hx-target="#torrent-list">
+            <button class="btn btn-secondary col-span-2" hx-post="/{{ torrent.hash_string }}/start" hx-target="#torrent-list">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
