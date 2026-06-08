@@ -58,7 +58,7 @@ async def add_torrent(
     file_service: Annotated[FileManager, Depends()],
     torrent_file: UploadFile | None = File(None),
     torrent_magnet: str | None = Form(None),
-    torrent_start: bool = Form(True),
+    torrent_start: bool = Form(False),
 ) -> HTMLResponse:
     """Add a torrent to the user's list, either from a file or a magnet link."""
     if torrent_magnet:
