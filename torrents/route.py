@@ -94,6 +94,48 @@ async def add_torrent(
     )
 
 
+@dashboard_router.post("/{hash}/start")
+async def start_torrent(
+    request: Request,
+    hash: str,
+    torrent_service: Annotated[TorrentService, Depends()],
+):
+    """Start a torrent by hash."""
+    await torrent_service.start_torrent(hash)
+
+    torrent_list = await torrent_service.get_torrents()
+    torrent_list = sorted(
+        torrent_list, key=lambda torrent: torrent.added_date, reverse=True
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "components/torrent_list.html",
+        {"torrent_list": torrent_list},
+    )
+
+
+@dashboard_router.post("/{hash}/stop")
+async def stop_torrent(
+    request: Request,
+    hash: str,
+    torrent_service: Annotated[TorrentService, Depends()],
+):
+    """Stop a torrent by hash."""
+    await torrent_service.stop_torrent(hash)
+
+    torrent_list = await torrent_service.get_torrents()
+    torrent_list = sorted(
+        torrent_list, key=lambda torrent: torrent.added_date, reverse=True
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "components/torrent_list.html",
+        {"torrent_list": torrent_list},
+    )
+
+
 @dashboard_router.delete("/{hash}")
 async def delete_torrent(
     hash: str,

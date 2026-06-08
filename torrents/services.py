@@ -101,6 +101,14 @@ class TorrentService:
 
         return added.hashString
 
+    async def start_torrent(self, hash_string: str) -> None:
+        """Start the torrent with the given hash string."""
+        await asyncio.to_thread(self.client.start_torrent, hash_string)
+
+    async def stop_torrent(self, hash_string: str) -> None:
+        """Stop the torrent with the given hash string."""
+        await asyncio.to_thread(self.client.stop_torrent, hash_string)
+
     async def wait_for_download_start(
         self, hash_string: str, timeout: float = 15.0, min_percent: float = 0.0
     ) -> None:
