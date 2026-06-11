@@ -1,12 +1,15 @@
 from typing import Annotated
 
+from aiofiles import open as aopen
 from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
+    File,
     HTTPException,
     Request,
     Response,
+    UploadFile,
 )
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -106,6 +109,32 @@ async def download_file(
             {"path": file_path + ".zip"},
         )
     return FileResponse(path)
+
+
+@router.post("/")
+async def upload_file(
+    request: Request,
+    file_manager: Annotated[FileManager, Depends()],
+    uploaded_file: Annotated[UploadFile, File()],
+):
+    """Upload a file to the user's folder if there is enough space."""
+    available_size = (
+        request.state.user.transmission_data.size * 1024 * 1024 * 1024
+        - await file_manager.get_folder_size()
+    )
+
+    content = await uploaded_file.read()
+    if len(content) > available_size:
+        raise HTTPException(
+            status_code=413,
+            detail="Espace insuffisant pour uploader ce fichier.",
+        )
+
+    dest_path = file_manager.get_path(uploaded_file.filename)
+    async with aopen(dest_path, "wb") as f:
+        await f.write(content)
+
+    return {"message": "Fichier uploadé avec succès"}
 
 
 @router.delete("/")
