@@ -1,0 +1,26 @@
+<dialog
+    id="file_upload_modal"
+    class="modal"
+    aria-labelledby="upload-modal-title"
+>
+    {% include "components/file_upload_modal_box.html" %}
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+    document
+        .querySelector("#file_upload_modal")
+        .addEventListener("htmx:afterRequest", function (evt) {
+            if (evt.detail.xhr.status === 200) {
+                file_upload_modal.close();
+            }
+        });
+    htmx.on("#file_upload_form", "htmx:xhr:progress", function (evt) {
+        htmx.find("#progress").setAttribute(
+            "value",
+            evt.detail.loaded / evt.detail.total,
+        );
+    });
+</script>

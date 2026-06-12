@@ -134,7 +134,10 @@ async def upload_file(
     async with aopen(dest_path, "wb") as f:
         await f.write(content)
 
-    return {"message": "Fichier uploadé avec succès"}
+    return templates.TemplateResponse(
+        request,
+        "components/file_upload_modal.html",
+    )
 
 
 @router.delete("/")

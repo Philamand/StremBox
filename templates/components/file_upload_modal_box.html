@@ -1,0 +1,30 @@
+<div id="file_upload_modal_box" class="modal-box">
+    <div id="error-alert"></div>
+
+    <h3 id="file-upload-modal-title" class="text-lg font-bold mb-4">
+        Ajouter un fichier
+    </h3>
+
+    <form
+        id="file_upload_form"
+        hx-post="/"
+        hx-target="#file_upload_modal_box"
+        hx-target-error="#error-alert"
+        hx-swap="outerHTML"
+        hx-encoding="multipart/form-data"
+    >
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Fichier</legend>
+            <input class="file-input w-full" type="file" name="file" />
+        </fieldset>
+        <progress
+            id="progress"
+            class="progress progress-primary w-56"
+            value="0"
+            max="1"
+        ></progress>
+        <button class="btn btn-primary mt-4 w-full" type="submit">
+            Ajouter Fichier
+        </button>
+    </form>
+</div>
