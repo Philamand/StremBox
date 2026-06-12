@@ -17,10 +17,4 @@
                 file_upload_modal.close();
             }
         });
-    htmx.on("#file_upload_form", "htmx:xhr:progress", function (evt) {
-        htmx.find("#progress").setAttribute(
-            "value",
-            evt.detail.loaded / evt.detail.total,
-        );
-    });
 </script>
