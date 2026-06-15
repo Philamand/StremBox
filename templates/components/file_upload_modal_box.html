@@ -28,3 +28,12 @@
         </button>
     </form>
 </div>
+
+<script>
+    document
+        .getElementById("file_upload_form")
+        .addEventListener("htmx:xhr:progress", function (evt) {
+            document.getElementById("progress").value =
+                evt.detail.loaded / evt.detail.total;
+        });
+</script>
