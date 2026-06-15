@@ -5,7 +5,6 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
-    File,
     HTTPException,
     Request,
     Response,
@@ -115,10 +114,18 @@ async def download_file(
 async def upload_file(
     request: Request,
     file_manager: Annotated[FileManager, Depends()],
-    uploaded_file: Annotated[UploadFile, File()],
+    uploaded_file: UploadFile | None = None,
     folder: str | None = None,
 ):
     """Upload a file to the user's folder if there is enough space."""
+    if uploaded_file is None:
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Veuillez sélectionner un fichier."},
+            status_code=400,
+        )
+
     available_size = (
         request.state.user.transmission_data.size * 1024 * 1024 * 1024
         - await file_manager.get_folder_size()
