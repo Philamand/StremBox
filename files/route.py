@@ -116,6 +116,7 @@ async def upload_file(
     request: Request,
     file_manager: Annotated[FileManager, Depends()],
     uploaded_file: Annotated[UploadFile, File()],
+    folder: str | None = None,
 ):
     """Upload a file to the user's folder if there is enough space."""
     available_size = (
@@ -134,9 +135,22 @@ async def upload_file(
     async with aopen(dest_path, "wb") as f:
         await f.write(content)
 
+    files = await file_manager.list_files(folder)
+    size = await file_manager.get_folder_size()
+
+    headers = {"HX-Reswap": "innerHTML"}
+
     return templates.TemplateResponse(
         request,
-        "components/file_upload_modal_box.html",
+        "components/file_list.html",
+        {
+            "files": files,
+            "folder": folder,
+            "is_htmx": True,
+            "size": size,
+            "total_size": request.state.user.transmission_data.size,
+        },
+        headers=headers,
     )
 
 
