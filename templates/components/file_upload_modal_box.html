@@ -14,16 +14,14 @@
         hx-encoding="multipart/form-data"
         hx-indicator="#progress"
         hx-disabled-elt="#uploaded_file"
+        hx-on::after-request="if(event.detail.successful) this.reset()"
     >
-        <fieldset class="fieldset">
-            <legend class="fieldset-legend">Fichier</legend>
-            <input
-                id="uploaded_file"
-                class="file-input w-full"
-                type="file"
-                name="uploaded_file"
-            />
-        </fieldset>
+        <input
+            id="uploaded_file"
+            class="file-input w-full"
+            type="file"
+            name="uploaded_file"
+        />
         <progress
             id="progress"
             class="progress progress-primary w-full mt-4 htmx-indicator"
