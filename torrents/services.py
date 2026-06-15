@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 from fastapi import Request
 from transmission_rpc import Client, File, Torrent
@@ -46,6 +47,10 @@ class TorrentService:
           total size becomes known, the size check is performed.  If the torrent
           is too large it is immediately removed; otherwise it is started.
 
+        Before starting, the method checks whether the download content already
+        exists on disk.  If it does, ``verify_torrent`` is called to check the
+        integrity of the existing data before the torrent is started.
+
         Returns:
             The info-hash string of the added torrent.
 
@@ -59,45 +64,60 @@ class TorrentService:
                 raise ValueError(
                     "Pas assez d'espace disponible pour télécharger ce torrent."
                 )
-            result = await asyncio.to_thread(
+            added = await asyncio.to_thread(
                 self.client.add_torrent,
                 torrent=torrent,
                 sequential_download=True,
-                paused=not start,
+                paused=True,
             )
-            return result.hashString
+        else:
+            added = await asyncio.to_thread(
+                self.client.add_torrent,
+                torrent=torrent,
+                sequential_download=True,
+            )
 
-        added: Torrent = await asyncio.to_thread(
-            self.client.add_torrent,
-            torrent=torrent,
-            sequential_download=True,
-        )
+            async def _poll_size(hash_str: str, interval: float = 1.0) -> int:
+                while True:
+                    t: Torrent = await asyncio.to_thread(
+                        self.client.get_torrent, hash_str
+                    )
+                    if t.total_size > 0:
+                        return t.total_size
+                    await asyncio.sleep(interval)
 
-        async def _poll_size(hash_str: str, interval: float = 1.0) -> int:
-            """Poll Transmission until the torrent metadata (total size) is available."""
+            try:
+                size = await asyncio.wait_for(
+                    _poll_size(added.hashString), timeout=60.0
+                )
+            except asyncio.TimeoutError:
+                await asyncio.to_thread(
+                    self.client.remove_torrent, added.hashString, delete_data=True
+                )
+                raise ValueError(
+                    "Temps expiré : les métadonnées du torrent n'ont pas été récupérées dans le temps imparti."
+                )
+
+            if size > max_size:
+                await asyncio.to_thread(
+                    self.client.remove_torrent, added.hashString, delete_data=True
+                )
+                raise ValueError(
+                    "Pas assez d'espace disponible pour télécharger le torrent."
+                )
+
+        t = await asyncio.to_thread(self.client.get_torrent, added.hashString)
+        download_path = Path(t.download_dir) / t.name
+        if download_path.exists():
+            await asyncio.to_thread(self.client.verify_torrent, added.hashString)
             while True:
-                t: Torrent = await asyncio.to_thread(self.client.get_torrent, hash_str)
-                if t.total_size > 0:
-                    return t.total_size
-                await asyncio.sleep(interval)
+                t = await asyncio.to_thread(self.client.get_torrent, added.hashString)
+                if t.status not in ("check pending", "checking"):
+                    break
+                await asyncio.sleep(0.5)
 
-        try:
-            size = await asyncio.wait_for(_poll_size(added.hashString), timeout=60.0)
-        except asyncio.TimeoutError:
-            await asyncio.to_thread(
-                self.client.remove_torrent, added.hashString, delete_data=True
-            )
-            raise ValueError(
-                "Temps expiré : les métadonnées du torrent n'ont pas été récupérées dans le temps imparti."
-            )
-
-        if size > max_size:
-            await asyncio.to_thread(
-                self.client.remove_torrent, added.hashString, delete_data=True
-            )
-            raise ValueError(
-                "Pas assez d'espace disponible pour télécharger le torrent."
-            )
+        if start:
+            await asyncio.to_thread(self.client.start_torrent, added.hashString)
 
         return added.hashString
 
