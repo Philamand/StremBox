@@ -136,7 +136,7 @@ async def upload_file(
 
     return templates.TemplateResponse(
         request,
-        "components/file_upload_modal.html",
+        "components/file_upload_modal_box.html",
     )
 
 
