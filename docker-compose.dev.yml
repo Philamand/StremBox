@@ -11,6 +11,7 @@ services:
       - ./gluetun:/gluetun
     ports:
       - "51413:51413"
+      - "9091:9091"
     restart: unless-stopped
 
   transmission:
@@ -22,7 +23,7 @@ services:
       - PGID=1000
     privileged: true
     volumes:
-      - downloads:/downloads
+      - ./downloads:/downloads
       - ./transmission-config:/config
     restart: unless-stopped
     depends_on:
