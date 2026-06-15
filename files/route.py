@@ -133,9 +133,11 @@ async def upload_file(
 
     content = await uploaded_file.read()
     if len(content) > available_size:
-        raise HTTPException(
-            status_code=413,
-            detail="Espace insuffisant pour uploader ce fichier.",
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Espace insuffisant pour uploader ce fichier."},
+            status_code=400,
         )
 
     dest_path = file_manager.get_path(uploaded_file.filename)
