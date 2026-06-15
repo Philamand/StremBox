@@ -12,14 +12,21 @@
         hx-target-error="#error-alert"
         hx-swap="outerHTML"
         hx-encoding="multipart/form-data"
+        hx-indicator="#progress"
+        hx-disabled-elt="#uploaded_file"
     >
         <fieldset class="fieldset">
             <legend class="fieldset-legend">Fichier</legend>
-            <input class="file-input w-full" type="file" name="uploaded_file" />
+            <input
+                id="uploaded_file"
+                class="file-input w-full"
+                type="file"
+                name="uploaded_file"
+            />
         </fieldset>
         <progress
             id="progress"
-            class="progress progress-primary w-56"
+            class="progress progress-primary w-full mt-4 htmx-indicator"
             value="0"
             max="1"
         ></progress>
