@@ -3,4 +3,28 @@
 <ul id="file-list" class="list bg-base-100 rounded-box shadow-md">
     {% include "components/file_list.html" %}
 </ul>
-{% include "components/zip_modal.html" %} {% endblock %}
+<button
+    class="fixed bottom-12 right-6 md:right-12 z-50 btn btn-primary btn-circle"
+    aria-label="Add"
+    title="Ajouter"
+    onclick="file_upload_modal.showModal()"
+>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide lucide-upload-icon lucide-upload"
+    >
+        <path d="M12 3v12" />
+        <path d="m17 8-5-5-5 5" />
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    </svg>
+</button>
+{% include "components/zip_modal.html" %} {% endblock %} {% include
+"components/file_upload_modal.html" %}

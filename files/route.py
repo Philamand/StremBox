@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from aiofiles import open as aopen
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -7,6 +8,7 @@ from fastapi import (
     HTTPException,
     Request,
     Response,
+    UploadFile,
 )
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -106,6 +108,59 @@ async def download_file(
             {"path": file_path + ".zip"},
         )
     return FileResponse(path)
+
+
+@router.post("/")
+async def upload_file(
+    request: Request,
+    file_manager: Annotated[FileManager, Depends()],
+    uploaded_file: UploadFile | None = None,
+    folder: str | None = None,
+):
+    """Upload a file to the user's folder if there is enough space."""
+    if uploaded_file is None:
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Veuillez sélectionner un fichier."},
+            status_code=400,
+        )
+
+    available_size = (
+        request.state.user.transmission_data.size * 1024 * 1024 * 1024
+        - await file_manager.get_folder_size()
+    )
+
+    content = await uploaded_file.read()
+    if len(content) > available_size:
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Espace insuffisant pour uploader ce fichier."},
+            status_code=400,
+        )
+
+    dest_path = file_manager.get_path(uploaded_file.filename)
+    async with aopen(dest_path, "wb") as f:
+        await f.write(content)
+
+    files = await file_manager.list_files(folder)
+    size = await file_manager.get_folder_size()
+
+    headers = {"HX-Reswap": "innerHTML"}
+
+    return templates.TemplateResponse(
+        request,
+        "components/file_list.html",
+        {
+            "files": files,
+            "folder": folder,
+            "is_htmx": True,
+            "size": size,
+            "total_size": request.state.user.transmission_data.size,
+        },
+        headers=headers,
+    )
 
 
 @router.delete("/")
