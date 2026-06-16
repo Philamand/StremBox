@@ -1,5 +1,4 @@
 import asyncio
-from pathlib import Path
 
 from fastapi import Request
 from transmission_rpc import Client, File, Torrent
@@ -106,18 +105,10 @@ class TorrentService:
                     "Pas assez d'espace disponible pour télécharger le torrent."
                 )
 
-        t = await asyncio.to_thread(self.client.get_torrent, added.hashString)
-        download_path = Path(t.download_dir) / t.name
-        if download_path.exists():
-            await asyncio.to_thread(self.client.verify_torrent, added.hashString)
-            while True:
-                t = await asyncio.to_thread(self.client.get_torrent, added.hashString)
-                if t.status not in ("check pending", "checking"):
-                    break
-                await asyncio.sleep(0.5)
-
         if start:
             await asyncio.to_thread(self.client.start_torrent, added.hashString)
+
+        await asyncio.to_thread(self.client.verify_torrent, added.hashString)
 
         return added.hashString
 
