@@ -11,3 +11,5 @@ HANKO_ADMIN = os.getenv("HANKO_ADMIN", "")
 DATABASE_URL = os.getenv("DATABASE_URL_TEST", "database/database.db")
 
 TRANSMISSION_URL = os.getenv("TRANSMISSION_URL", "gluetun")
+
+ORIGIN_URL = os.getenv("ORIGIN_URL", "http://localhost:8000")
