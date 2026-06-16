@@ -138,6 +138,8 @@ class ZipDirectoryService:
             "INSERT INTO zip_directory (path) VALUES (?) RETURNING id",
             (path,),
         )
+        if row is None:
+            raise RuntimeError("Failed to insert zip_directory entry")
         return row["id"]
 
     async def get_zip(self, zip_id: int) -> ZipDirectory:
@@ -146,6 +148,8 @@ class ZipDirectoryService:
             "SELECT * FROM zip_directory WHERE id = ?",
             (zip_id,),
         )
+        if row is None:
+            raise LookupError(f"Zip entry not found for id={zip_id}")
         return ZipDirectory(**row)
 
     async def update_zip(self, zip_id: int):

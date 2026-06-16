@@ -58,7 +58,10 @@ async def get_zip_status(
     zip_service: Annotated[ZipDirectoryService, Depends()],
 ):
     """Return the status of a zip file by ID."""
-    zip = await zip_service.get_zip(zip_id)
+    try:
+        zip = await zip_service.get_zip(zip_id)
+    except LookupError:
+        return Response(status_code=404)
     if zip.done is True:
         return templates.TemplateResponse(
             request,
@@ -95,7 +98,10 @@ async def download_file(
                     {"path": file_path + ".zip"},
                 )
 
-            zip_id = await zip_service.create_zip(file_path + ".zip")
+            try:
+                zip_id = await zip_service.create_zip(file_path + ".zip")
+            except RuntimeError:
+                raise HTTPException(400, "Une erreur est survenue")
             background_tasks.add_task(zip_directory, path, zip_id, zip_service)
             return templates.TemplateResponse(
                 request,
