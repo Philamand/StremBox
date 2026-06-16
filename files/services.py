@@ -9,6 +9,26 @@ from fastapi import Depends, Request
 from core.database import AsyncDatabase
 from files.schemas import FileData, ZipDirectory
 
+
+def get_file_manager(request: Request) -> "FileManager":
+    """Factory dependency that creates a FileManager from the current request."""
+    return FileManager(request)
+
+
+FileManagerDep = Annotated["FileManager", Depends(get_file_manager)]
+
+
+def get_zip_directory_service(
+    db: Annotated[AsyncDatabase, Depends()],
+) -> "ZipDirectoryService":
+    """Factory dependency that creates a ZipDirectoryService."""
+    return ZipDirectoryService(db)
+
+
+ZipDirectoryServiceDep = Annotated[
+    "ZipDirectoryService", Depends(get_zip_directory_service)
+]
+
 ARCHIVE_EXTENSIONS = (
     ".zip",
     ".rar",
@@ -51,7 +71,7 @@ class FileManager:
 
         try:
             names = await os.listdir(path)
-        except FileNotFoundError, PermissionError:
+        except (FileNotFoundError, PermissionError):
             return []
 
         results: list[FileData] = []
@@ -62,7 +82,7 @@ class FileManager:
                 is_dir = await os.path.isdir(full_path)
                 size = await os.path.getsize(full_path) if not is_dir else None
                 last_modified = await os.path.getatime(full_path)
-            except FileNotFoundError, PermissionError:
+            except (FileNotFoundError, PermissionError):
                 continue
 
             is_archive = False
@@ -103,7 +123,7 @@ class FileManager:
         try:
             if not await os.path.isdir(path):
                 return 0
-        except FileNotFoundError, PermissionError:
+        except (FileNotFoundError, PermissionError):
             return 0
 
         total_size = 0
@@ -114,9 +134,9 @@ class FileManager:
                     file_path = _pyos.path.join(root, file)
                     try:
                         total_size += await os.path.getsize(file_path)
-                    except FileNotFoundError, PermissionError:
+                    except (FileNotFoundError, PermissionError):
                         continue
-        except FileNotFoundError, PermissionError:
+        except (FileNotFoundError, PermissionError):
             pass
 
         return total_size
@@ -129,7 +149,7 @@ class FileManager:
 class ZipDirectoryService:
     """Service for managing zip directory entries."""
 
-    def __init__(self, db: Annotated[AsyncDatabase, Depends()]):
+    def __init__(self, db: AsyncDatabase):
         self.db = db
 
     async def create_zip(self, path: str) -> int:

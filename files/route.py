@@ -15,7 +15,7 @@ from fastapi.templating import Jinja2Templates
 
 from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
-from files.services import FileManager, ZipDirectoryService
+from files.services import FileManagerDep, ZipDirectoryServiceDep
 from files.utils import zip_directory
 from users.dependencies import require_auth
 
@@ -23,12 +23,14 @@ router = APIRouter(prefix="/files", dependencies=[Depends(require_auth)])
 templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
 
+HtmxDep = Annotated[bool, Depends(is_htmx_request)]
+
 
 @router.get("/")
 async def list_files(
     request: Request,
-    is_htmx: Annotated[bool, Depends(is_htmx_request)],
-    file_manager: Annotated[FileManager, Depends()],
+    is_htmx: HtmxDep,
+    file_manager: FileManagerDep,
     folder: str | None = None,
 ) -> HTMLResponse:
     """Return the list of files from the configured directory."""
@@ -55,8 +57,8 @@ async def list_files(
 async def get_zip_status(
     request: Request,
     zip_id: int,
-    zip_service: Annotated[ZipDirectoryService, Depends()],
-):
+    zip_service: ZipDirectoryServiceDep,
+) -> Response:
     """Return the status of a zip file by ID."""
     try:
         zip = await zip_service.get_zip(zip_id)
@@ -76,10 +78,13 @@ async def get_zip_status(
 async def download_file(
     request: Request,
     file_path: str,
-    file_manager: Annotated[FileManager, Depends()],
-    zip_service: Annotated[ZipDirectoryService, Depends()],
+    file_manager: FileManagerDep,
+    zip_service: ZipDirectoryServiceDep,
     background_tasks: BackgroundTasks,
-):
+) -> Response:
+    """
+    Download a file or a directory
+    """
     path = file_manager.get_path(file_path)
     is_dir = await file_manager.is_dir(path)
     if is_dir:
@@ -119,10 +124,10 @@ async def download_file(
 @router.post("/")
 async def upload_file(
     request: Request,
-    file_manager: Annotated[FileManager, Depends()],
+    file_manager: FileManagerDep,
     uploaded_file: UploadFile | None = None,
     folder: str | None = None,
-):
+) -> Response:
     """Upload a file to the user's folder if there is enough space."""
     if uploaded_file is None:
         return templates.TemplateResponse(
@@ -172,8 +177,8 @@ async def upload_file(
 @router.delete("/")
 async def delete_file(
     file_path: str,
-    file_manager: Annotated[FileManager, Depends()],
-):
+    file_manager: FileManagerDep,
+) -> dict[str, str]:
     try:
         await file_manager.remove_file(file_path)
     except Exception:
