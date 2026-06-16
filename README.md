@@ -55,7 +55,7 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 
 5. Run the tests:
    ```bash
-   uv run --env-file .uv.env pytest
+   uv run pytest
    ```
 
 6. Run the migrations:
@@ -75,7 +75,7 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 
 9. Start the development server:
    ```bash
-   uv run --env-file .uv.env fastapi dev
+   uv run fastapi dev
    ```
 
 10. Access the Bauxite UI by navigating to `http://localhost:8000` in your browser. Log in using your Hanko account.
