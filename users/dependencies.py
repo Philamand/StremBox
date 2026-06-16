@@ -4,7 +4,7 @@ import aiohttp
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 
-from core.config import HANKO_URL
+from core.config import settings
 from core.htmx import is_htmx_request
 from users.services import UserService
 
@@ -19,7 +19,7 @@ async def get_user(request: Request, user_service: Annotated[UserService, Depend
         return
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            HANKO_URL + "/sessions/validate",
+            settings.hanko_url + "/sessions/validate",
             json={"session_token": credentials},
         ) as response:
             if response.status != 200:

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.routing import APIRoute
 
-from core.config import ORIGIN_URL
+from core.config import settings
 from files.route import router as files_router
 from streams.route import router as streams_router
 from torrents.route import api_router, dashboard_router
@@ -37,7 +37,7 @@ async def auth_exception_handler(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ORIGIN_URL],
+    allow_origins=[settings.origin_url],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],

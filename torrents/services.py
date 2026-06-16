@@ -3,7 +3,7 @@ import asyncio
 from fastapi import Request
 from transmission_rpc import Client, File, Torrent
 
-from core.config import TRANSMISSION_URL
+from core.config import settings
 from torrents.utils import get_torrent_size
 from users.schemas import UserData
 
@@ -17,7 +17,9 @@ class TorrentService:
         if not user.transmission_data or not user.transmission_data.port:
             raise ValueError("Transmission port is not set")
 
-        self.client = Client(host=TRANSMISSION_URL, port=user.transmission_data.port)
+        self.client = Client(
+            host=settings.transmission_url, port=user.transmission_data.port
+        )
 
     async def get_torrents(self) -> list[Torrent]:
         """Get all torrents from Transmission"""

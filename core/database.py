@@ -3,13 +3,13 @@ from typing import AsyncIterator
 
 import aiosqlite
 
-from core.config import DATABASE_URL
+from core.config import settings
 
 
 class AsyncDatabase:
     """Async SQLite database utility."""
 
-    def __init__(self, db_path: str = DATABASE_URL):
+    def __init__(self, db_path: str = settings.database_url):
         self.db_path = db_path
 
     @asynccontextmanager
