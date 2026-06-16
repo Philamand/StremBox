@@ -1,6 +1,7 @@
-from typing import Annotated, Optional
+import asyncio
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import (
     FileResponse,
     RedirectResponse,
@@ -18,15 +19,29 @@ from streams.utils import (
 from torrents.services import TorrentService
 from users.security import check_user_key
 
+
+def get_file_manager(request: Request) -> FileManager:
+    return FileManager(request)
+
+
+FileManagerDep = Annotated[FileManager, Depends(get_file_manager)]
+
+
+def get_torrent_service(request: Request) -> TorrentService:
+    return TorrentService(request)
+
+
+TorrentServiceDep = Annotated[TorrentService, Depends(get_torrent_service)]
+
 router = APIRouter(prefix="/streams", dependencies=[Depends(check_user_key)])
 
 
 @router.get("/{user_key}")
 async def get_stream(
     request: Request,
-    file_manager: Annotated[FileManager, Depends()],
-    file_path: Optional[str] = None,
-):
+    file_manager: FileManagerDep,
+    file_path: Annotated[str | None, Query()] = None,
+) -> StreamingResponse:
     """Return a stream of the file at the given path."""
     if not file_path:
         raise HTTPException(status_code=400, detail="file_path is required")
@@ -55,9 +70,9 @@ async def get_stream(
 @router.head("/{user_key}")
 async def head_stream(
     request: Request,
-    file_manager: Annotated[FileManager, Depends()],
-    file_path: Optional[str] = None,
-):
+    file_manager: FileManagerDep,
+    file_path: Annotated[str | None, Query()] = None,
+) -> Response:
     """Return headers for the stream of the file at the given path."""
     if not file_path:
         raise HTTPException(status_code=400, detail="file_path is required")
@@ -85,15 +100,15 @@ async def head_stream(
 @router.get("/download/{user_key}/{torrent_hash}")
 async def download_stream(
     request: Request,
-    torrent_service: Annotated[TorrentService, Depends()],
-    file_service: Annotated[FileManager, Depends()],
+    torrent_service: TorrentServiceDep,
+    file_service: FileManagerDep,
     torrent_hash: str,
-    tracker: str,
-    api_key: str,
-    torrent_id: Optional[int] = None,
-    season: Optional[int] = None,
-    episode: Optional[int] = None,
-):
+    tracker: Annotated[str, Query()],
+    api_key: Annotated[str, Query()],
+    torrent_id: Annotated[int | None, Query()] = None,
+    season: Annotated[int | None, Query()] = None,
+    episode: Annotated[int | None, Query()] = None,
+) -> FileResponse | RedirectResponse:
     try:
         await torrent_service.get_torrent(torrent_hash)
     except KeyError:
@@ -123,7 +138,8 @@ async def download_stream(
             raise HTTPException(status_code=500, detail=str(e))
 
     torrent_files = await torrent_service.get_torrent_files(torrent_hash)
-    file_path = resolve_file_path(
+    file_path = await asyncio.to_thread(
+        resolve_file_path,
         torrent_files[0].name,
         request.state.user.transmission_data.download_folder,
         season,
