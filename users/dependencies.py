@@ -1,19 +1,27 @@
 from typing import Annotated
 
 import aiohttp
-from fastapi import Depends, Request
+from fastapi import Depends, Path, Request
 from fastapi.exceptions import HTTPException
 
 from core.config import settings
+from core.database import AsyncDatabaseDep
 from core.htmx import is_htmx_request
+from users.schemas import UserData
 from users.services import UserService
 
 
-class NotAuthenticatedException(Exception):
-    pass
+def get_user_service(db: AsyncDatabaseDep) -> UserService:
+    """Factory dependency that creates a UserService."""
+    return UserService(db=db)
 
 
-async def get_user(request: Request, user_service: Annotated[UserService, Depends()]):
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+
+UserKeyDep = Annotated[str, Path(description="Per-user key embedded in the URL")]
+
+
+async def get_user(request: Request, user_service: UserServiceDep) -> UserData | None:
     credentials = request.cookies.get("hanko")
     if not credentials:
         return
@@ -40,9 +48,20 @@ async def get_user(request: Request, user_service: Annotated[UserService, Depend
             return user
 
 
-async def require_auth(request: Request, user=Depends(get_user)):
+GetUserDep = Annotated[UserData | None, Depends(get_user)]
+
+
+async def require_auth(request: Request, user: GetUserDep) -> UserData:
     """Dependency that requires authentication and raises NotAuthenticatedException if not authenticated."""
     if not user:
         if is_htmx_request(request):
             raise HTTPException(status_code=401)
         raise NotAuthenticatedException()
+    return user
+
+
+RequireAuthDep = Annotated[UserData, Depends(require_auth)]
+
+
+class NotAuthenticatedException(Exception):
+    pass

@@ -1,7 +1,4 @@
 import uuid
-from typing import Annotated
-
-from fastapi import Depends
 
 from core.database import AsyncDatabase
 from users.schemas import TransmissionData, UserData
@@ -10,7 +7,7 @@ from users.schemas import TransmissionData, UserData
 class UserService:
     """User service for managing user data."""
 
-    def __init__(self, db: Annotated[AsyncDatabase, Depends()]):
+    def __init__(self, db: AsyncDatabase):
         self.db = db
 
     async def get_user(

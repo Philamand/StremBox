@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import Annotated, AsyncIterator
 
 import aiosqlite
+from fastapi import Depends
 
 from core.config import settings
 
@@ -51,3 +52,6 @@ class AsyncDatabase:
             row = await cursor.fetchone()
             await db.commit()
             return row
+
+
+AsyncDatabaseDep = Annotated[AsyncDatabase, Depends()]

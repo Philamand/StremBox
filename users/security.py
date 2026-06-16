@@ -1,18 +1,19 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Path, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from users.services import UserService
+from users.dependencies import UserKeyDep, UserServiceDep
+from users.schemas import UserData
 
 security = HTTPBearer()
 
 
 async def check_user_key(
     request: Request,
-    user_service: Annotated[UserService, Depends()],
-    user_key: str = Path(..., description="Per-user key embedded in the URL"),
-) -> None:
+    user_service: UserServiceDep,
+    user_key: UserKeyDep,
+) -> UserData:
     """Checks the user key and raises an HTTPException if it is invalid."""
 
     user = await user_service.get_user(api_key=user_key)
@@ -22,20 +23,19 @@ async def check_user_key(
 
     request.state.user = user
 
+    return user
+
 
 async def validate_bearer_token(
     request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-    user_service: Annotated[UserService, Depends()],
-) -> None:
+    user_service: UserServiceDep,
+) -> UserData:
     """
     Validate the bearer token from the request.
 
-    Args:
-        credentials: The HTTP authorization credentials from the request header
-
     Returns:
-        The valid bearer token
+        The authenticated user
 
     Raises:
         HTTPException: If the token is invalid or missing
@@ -58,3 +58,5 @@ async def validate_bearer_token(
         raise HTTPException(status_code=401, detail="Invalid user key")
 
     request.state.user = user
+
+    return user

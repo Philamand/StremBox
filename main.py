@@ -44,7 +44,7 @@ app.add_middleware(
     max_age=86400,
 )
 
-app.include_router(auth_router, tags=["auth"])
+app.include_router(auth_router)
 app.include_router(files_router, tags=["files"])
 app.include_router(streams_router, tags=["streams"])
 app.include_router(api_router, tags=["torrents"])
