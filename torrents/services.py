@@ -1,6 +1,7 @@
 import asyncio
+from typing import Annotated
 
-from fastapi import Request
+from fastapi import Depends, Request
 from transmission_rpc import Client, File, Torrent
 
 from core.config import settings
@@ -229,3 +230,11 @@ class TorrentService:
         """Get the files of a torrent"""
         torrent = await asyncio.to_thread(self.client.get_torrent, torrent_hash)
         return await asyncio.to_thread(torrent.get_files)
+
+
+def get_torrent_service(request: Request) -> TorrentService:
+    """Factory dependency that creates a TorrentService from the current request."""
+    return TorrentService(request)
+
+
+TorrentServiceDep = Annotated[TorrentService, Depends(get_torrent_service)]
