@@ -1,20 +1,12 @@
-<dialog
-    id="file_upload_modal"
-    class="modal"
-    aria-labelledby="file-upload-modal-title"
->
+{% from "macros/modals.html" import modal_dialog %}
+{% call modal_dialog("file_upload_modal", "file-upload-modal-title") %}
     {% include "components/file_upload_modal_box.html" %}
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
+{% endcall %}
 
 <script>
-    document
-        .querySelector("#file_upload_modal")
-        .addEventListener("htmx:afterRequest", function (evt) {
-            if (evt.detail.xhr.status === 200) {
-                file_upload_modal.close();
-            }
-        });
+    document.querySelector("#file_upload_modal").addEventListener("htmx:afterRequest", function (evt) {
+        if (evt.detail.xhr.status === 200) {
+            file_upload_modal.close();
+        }
+    });
 </script>

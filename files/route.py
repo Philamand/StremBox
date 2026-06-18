@@ -36,6 +36,12 @@ async def list_files(
     """Return the list of files from the configured directory."""
     files = await file_manager.list_files(folder)
     size = await file_manager.get_folder_size()
+
+    parent_folder = None
+    if folder:
+        parts = folder.split("/")
+        parent_folder = "/".join(parts[:-1]) if len(parts) > 1 else None
+
     if is_htmx:
         template = "components/file_list.html"
     else:
@@ -46,6 +52,7 @@ async def list_files(
         {
             "files": files,
             "folder": folder,
+            "parent_folder": parent_folder,
             "is_htmx": is_htmx,
             "size": size,
             "total_size": request.state.user.transmission_data.size,
@@ -158,6 +165,11 @@ async def upload_file(
     files = await file_manager.list_files(folder)
     size = await file_manager.get_folder_size()
 
+    parent_folder = None
+    if folder:
+        parts = folder.split("/")
+        parent_folder = "/".join(parts[:-1]) if len(parts) > 1 else None
+
     headers = {"HX-Reswap": "innerHTML"}
 
     return templates.TemplateResponse(
@@ -166,6 +178,7 @@ async def upload_file(
         {
             "files": files,
             "folder": folder,
+            "parent_folder": parent_folder,
             "is_htmx": True,
             "size": size,
             "total_size": request.state.user.transmission_data.size,

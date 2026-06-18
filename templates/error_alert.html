@@ -1,0 +1,5 @@
+{% import "macros/svg_icons.html" as icons %}
+<div id="error-alert" role="alert" class="alert alert-error mb-4">
+    {{ icons.error_x_icon(class="h-6 w-6 shrink-0 stroke-current") }}
+    <span>{{ message }}</span>
+</div>
