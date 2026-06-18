@@ -226,13 +226,15 @@ class TestAddTorrentStr:
             )
 
             service = TorrentService(mock_request)
+
             # Mock wait_for to immediately raise TimeoutError (avoids real 60s wait).
-            # Note: this abandons the _poll_size coroutine, producing a benign
+            # We close the _poll_size coroutine to prevent a "never awaited"
             # RuntimeWarning during garbage collection.
-            with patch(
-                "asyncio.wait_for",
-                side_effect=asyncio.TimeoutError(),
-            ):
+            def _fake_wait_for(coro, timeout):
+                coro.close()
+                raise asyncio.TimeoutError()
+
+            with patch("asyncio.wait_for", side_effect=_fake_wait_for):
                 with pytest.raises(
                     ValueError,
                     match="Temps expiré",
