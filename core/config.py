@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     bearer_token: str = "test_token"
     hanko_url: str = "http://localhost:8000"
     hanko_admin: str = ""
-    database_url: str = "database/database.db"
+    fastapi_database_url: str = "database/database.db"
     transmission_url: str = "gluetun"
     origin_url: str = "http://localhost:8000"
 

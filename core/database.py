@@ -10,7 +10,7 @@ from core.config import settings
 class AsyncDatabase:
     """Async SQLite database utility."""
 
-    def __init__(self, db_path: str = settings.database_url):
+    def __init__(self, db_path: str = settings.fastapi_database_url):
         self.db_path = db_path
 
     @asynccontextmanager
