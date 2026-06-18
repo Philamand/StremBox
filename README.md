@@ -50,7 +50,7 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 
 4. Run the Docker compose command to start the services:
    ```bash
-   docker compose up -f docker-compose.dev.yml -d
+   docker compose -f docker-compose.dev.yml up -d
    ```
 
 5. Run the tests:
