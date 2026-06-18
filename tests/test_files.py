@@ -337,7 +337,7 @@ class TestFileManager:
                 "files.services.os.path.isfile", new_callable=AsyncMock
             ) as mock_isfile,
             patch("files.services.os.path.isdir", new_callable=AsyncMock) as mock_isdir,
-            patch("files.services.os.rmdir", new_callable=AsyncMock) as mock_rmdir,
+            patch("files.services.shutil.rmtree") as mock_rmdir,
         ):
             mock_isfile.return_value = False
             mock_isdir.return_value = True
