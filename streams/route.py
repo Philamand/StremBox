@@ -108,7 +108,7 @@ async def download_stream(
     torrent_id: Annotated[int | None, Query()] = None,
     season: Annotated[int | None, Query()] = None,
     episode: Annotated[int | None, Query()] = None,
-) -> FileResponse | RedirectResponse:
+):
     try:
         await torrent_service.get_torrent(torrent_hash)
     except KeyError:
