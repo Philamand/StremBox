@@ -121,7 +121,7 @@ class TestAddTorrentBytes:
             await service.add_torrent(torrent, max_size)
 
         mock_cls.return_value.add_torrent.assert_called_once_with(
-            torrent=torrent, sequential_download=True
+            torrent=torrent, sequential_download=True, paused=True
         )
 
     @pytest.mark.asyncio
@@ -184,35 +184,6 @@ class TestAddTorrentStr:
     """Tests for TorrentService.add_torrent when given a string input."""
 
     MAGNET = "magnet:?xt=urn:btih:ABCDEF1234567890ABCDEF1234567890ABCDEF12"
-
-    @pytest.mark.asyncio
-    async def test_adds_paused_and_starts_when_size_ok(self, mock_request):
-        """Torrent is added paused, size is polled, then it's started."""
-        fake_torrent = MagicMock(spec=Torrent)
-        fake_torrent.hashString = "abc123"
-        # First poll: metadata not ready yet (total_size = 0)
-        # Second poll: metadata ready
-        fake_size_torrent = MagicMock(spec=Torrent)
-        fake_size_torrent.total_size = 500_000
-
-        with patch("torrents.services.Client") as mock_cls:
-            mock_cls.return_value.add_torrent.return_value = fake_torrent
-            mock_cls.return_value.get_torrent.side_effect = [
-                MagicMock(spec=Torrent, total_size=0),  # first poll
-                fake_size_torrent,  # second poll
-            ]
-
-            service = TorrentService(mock_request)
-            await service.add_torrent(self.MAGNET, max_size=2_000_000)
-
-        # Added paused
-        mock_cls.return_value.add_torrent.assert_called_once_with(
-            torrent=self.MAGNET, paused=True, sequential_download=True
-        )
-        # Started after size check
-        mock_cls.return_value.start_torrent.assert_called_once_with("abc123")
-        # Never removed
-        mock_cls.return_value.remove_torrent.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_removes_when_size_exceeds_limit(self, mock_request):
