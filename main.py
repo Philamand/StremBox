@@ -32,7 +32,7 @@ app = FastAPI(
 async def auth_exception_handler(
     request: Request, exc: NotAuthenticatedException
 ) -> RedirectResponse:
-    return RedirectResponse(url="/auth", status_code=302)
+    return RedirectResponse(url="/auth/", status_code=302)
 
 
 app.add_middleware(
