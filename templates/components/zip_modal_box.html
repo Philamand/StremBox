@@ -1,21 +1,15 @@
 <div
     id="zip_modal_box"
     class="modal-box"
-    {%
-    if
-    zip_id
-    %}hx-get="/files/status/{{ zip_id }}"
+    {% if zip_id %}
+    hx-get="/files/status/{{ zip_id }}"
     hx-swap="none"
     hx-trigger="every 5s"
-    {%
-    endif
-    %}
+    {% endif %}
 >
     {% if zip_id %}
     <h3 id="zip-modal-title" class="text-lg font-bold">
-        Votre téléchargement est en cours de préparation<span
-            class="loading loading-dots loading-md"
-        ></span>
+        Votre téléchargement est en cours de préparation<span class="loading loading-dots loading-md"></span>
     </h3>
     {% elif path %}
     <h3 id="zip-modal-title" class="text-lg font-bold">

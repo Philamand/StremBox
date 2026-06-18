@@ -1,20 +1,14 @@
 <!doctype html>
-<html>
+<html lang="fr">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         <title>Bauxite</title>
         <style>
-            .htmx-indicator {
-                display: none;
-            }
-            .htmx-request .htmx-indicator {
-                display: inline-block;
-            }
-            .htmx-request.htmx-indicator {
-                display: inline-block;
-            }
+            .htmx-indicator { display: none; }
+            .htmx-request .htmx-indicator { display: inline-block; }
+            .htmx-request.htmx-indicator { display: inline-block; }
         </style>
         <script
             src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
@@ -35,73 +29,25 @@
     </head>
     <body hx-ext="response-targets">
         <main class="pb-16 md:px-16">
-            {% block content %} {% endblock %}
-            <div class="dock">
-                <a
-                    href="/"
-                    {%
-                    if
-                    request.path=="/"
-                    %}class="dock-active"
-                    {%
-                    endif
-                    %}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-download-icon lucide-download"
-                    >
+            {% block content %}{% endblock %}
+            <nav class="dock" aria-label="Navigation principale">
+                <a href="/" {% if request.path == "/" %}class="dock-active"{% endif %}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download-icon lucide-download">
                         <path d="M12 15V3" />
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <path d="m7 10 5 5 5-5" />
                     </svg>
                     <span class="dock-label">Téléchargements</span>
                 </a>
-
-                <a
-                    href="/files/"
-                    {%
-                    if
-                    request.path
-                    !="/"
-                    %}class="dock-active"
-                    {%
-                    endif
-                    %}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-files-icon lucide-files"
-                    >
-                        <path
-                            d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"
-                        />
-                        <path
-                            d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z"
-                        />
-                        <path
-                            d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1"
-                        />
+                <a href="/files/" {% if request.path != "/" %}class="dock-active"{% endif %}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-files-icon lucide-files">
+                        <path d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8" />
+                        <path d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z" />
+                        <path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1" />
                     </svg>
                     <span class="dock-label">Fichiers</span>
                 </a>
-            </div>
+            </nav>
         </main>
     </body>
 </html>

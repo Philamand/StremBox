@@ -1,7 +1,6 @@
 import asyncio
 import os
 import re
-from typing import Optional, Tuple
 
 import aiofiles
 from fastapi import HTTPException, Request
@@ -26,7 +25,7 @@ VIDEO_MIME_TYPES = {
 }
 
 
-def parse_range(header: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
+def parse_range(header: str | None) -> tuple[int | None, int | None]:
     """
     Parse an HTTP Range header string into start and end byte offsets.
 
@@ -70,7 +69,11 @@ def parse_range(header: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
 
 
 async def range_file_reader(
-    request: Request, filepath, start, end=None, chunk_size=256 * 1024
+    request: Request,
+    filepath: str,
+    start: int,
+    end: int | None = None,
+    chunk_size: int = 256 * 1024,
 ):
     """Read a file in byte ranges using chunked reading for memory efficiency."""
     if await request.is_disconnected():
@@ -97,9 +100,13 @@ async def range_file_reader(
         pass
 
 
-def check_season_episode(name: str, target_season: int, target_episode: int) -> bool:
+def check_season_episode(
+    name: str, target_season: int | None, target_episode: int | None
+) -> bool:
     """Checks if the torrent matches the target season/episode."""
     if target_season is None:
+        return True
+    if target_episode is None:
         return True
 
     name_upper = name.upper()
@@ -144,7 +151,7 @@ def check_season_episode(name: str, target_season: int, target_episode: int) -> 
     return False
 
 
-def parse_stream_hash(raw_hash: str) -> Tuple[str, Optional[int], Optional[int]]:
+def parse_stream_hash(raw_hash: str) -> tuple[str, int | None, int | None]:
     """Split a composite stream hash into its base hash and optional season/episode.
 
     Args:
@@ -164,9 +171,9 @@ def parse_stream_hash(raw_hash: str) -> Tuple[str, Optional[int], Optional[int]]
 def resolve_file_path(
     torrent_file: str,
     base_dir: str,
-    season: Optional[int],
-    episode: Optional[int],
-    full_path: Optional[bool] = True,
+    season: int | None,
+    episode: int | None,
+    full_path: bool = True,
 ) -> str:
     """Resolve the path (relative to ``BASE_DIR``) for the requested file.
 
@@ -186,8 +193,6 @@ def resolve_file_path(
     Raises:
         HTTPException 404: When the directory or matching episode file is not found.
     """
-    from fastapi import HTTPException
-
     if season is not None and episode is not None:
         dir_path = base_dir + os.path.dirname(torrent_file)
         if not os.path.isdir(dir_path):
@@ -208,8 +213,8 @@ def resolve_file_path(
 
 
 def build_stream_headers(
-    file_path: str, file_range: Optional[str], start: int, end: int, size: int
-) -> Tuple[dict, int]:
+    file_path: str, file_range: str | None, start: int, end: int, size: int
+) -> tuple[dict, int]:
     """Build HTTP response headers and status code for a streaming response.
 
     Args:

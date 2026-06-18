@@ -1,7 +1,4 @@
-<dialog id="zip_modal" class="modal" aria-labelledby="zip-modal-title">
+{% from "macros/modals.html" import modal_dialog %}
+{% call modal_dialog("zip_modal", "zip-modal-title") %}
     {% include "components/zip_modal_box.html" %}
-
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
+{% endcall %}

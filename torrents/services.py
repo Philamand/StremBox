@@ -1,10 +1,10 @@
 import asyncio
-from pathlib import Path
+from typing import Annotated
 
-from fastapi import Request
+from fastapi import Depends, Request
 from transmission_rpc import Client, File, Torrent
 
-from core.config import TRANSMISSION_URL
+from core.config import settings
 from torrents.utils import get_torrent_size
 from users.schemas import UserData
 
@@ -18,7 +18,9 @@ class TorrentService:
         if not user.transmission_data or not user.transmission_data.port:
             raise ValueError("Transmission port is not set")
 
-        self.client = Client(host=TRANSMISSION_URL, port=user.transmission_data.port)
+        self.client = Client(
+            host=settings.transmission_url, port=user.transmission_data.port
+        )
 
     async def get_torrents(self) -> list[Torrent]:
         """Get all torrents from Transmission"""
@@ -106,18 +108,10 @@ class TorrentService:
                     "Pas assez d'espace disponible pour télécharger le torrent."
                 )
 
-        t = await asyncio.to_thread(self.client.get_torrent, added.hashString)
-        download_path = Path(t.download_dir) / t.name
-        if download_path.exists():
-            await asyncio.to_thread(self.client.verify_torrent, added.hashString)
-            while True:
-                t = await asyncio.to_thread(self.client.get_torrent, added.hashString)
-                if t.status not in ("check pending", "checking"):
-                    break
-                await asyncio.sleep(0.5)
-
         if start:
             await asyncio.to_thread(self.client.start_torrent, added.hashString)
+
+        await asyncio.to_thread(self.client.verify_torrent, added.hashString)
 
         return added.hashString
 
@@ -236,3 +230,11 @@ class TorrentService:
         """Get the files of a torrent"""
         torrent = await asyncio.to_thread(self.client.get_torrent, torrent_hash)
         return await asyncio.to_thread(torrent.get_files)
+
+
+def get_torrent_service(request: Request) -> TorrentService:
+    """Factory dependency that creates a TorrentService from the current request."""
+    return TorrentService(request)
+
+
+TorrentServiceDep = Annotated[TorrentService, Depends(get_torrent_service)]

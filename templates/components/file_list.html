@@ -1,72 +1,23 @@
+{% import "macros/svg_icons.html" as icons %}
 {% for file in files %}
-<li id="file-{{loop.index}}" class="list-row">
+<li id="file-{{ loop.index }}" class="list-row">
     <div>
         {% if file.is_dir %}
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-folder-icon lucide-folder"
-        >
-            <path
-                d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
-            />
-        </svg>
+        {{ icons.folder_icon() }}
         {% elif file.is_archive %}
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-archive-icon lucide-archive"
-        >
-            <rect width="20" height="5" x="2" y="3" rx="1" />
-            <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
-            <path d="M10 12h4" />
-        </svg>
+        {{ icons.archive_icon() }}
         {% else %}
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-file-icon lucide-file"
-        >
-            <path
-                d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
-            />
-            <path d="M14 2v5a1 1 0 0 0 1 1h5" />
-        </svg>
+        {{ icons.file_icon() }}
         {% endif %}
     </div>
     <div>
         <div
-            {%
-            if
-            file.is_dir
-            %}class="text-blue-500"
+            {% if file.is_dir %}
+            class="text-blue-500"
             hx-get="/files/?folder={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
             hx-target="#file-list"
             hx-push-url="true"
-            {%
-            endif
-            %}
+            {% endif %}
         >
             {{ file.name }}
         </div>
@@ -77,66 +28,28 @@
         {% endif %}
     </div>
     <a
-        {%
-        if
-        file.is_dir
-        %}
+        {% if file.is_dir %}
         hx-get="/files/download?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
         hx-swap="outerHTML"
         hx-target="#zip_modal"
         hx-on::after-request="zip_modal.show()"
-        {%
-        else
-        %}
+        {% else %}
         href="/static/{% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
         target="_blank"
-        {%
-        endif
-        %}
+        {% endif %}
         class="btn btn-square btn-ghost"
     >
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-download-icon lucide-download"
-        >
-            <path d="M12 15V3" />
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <path d="m7 10 5 5 5-5" />
-        </svg>
+        {{ icons.download_icon() }}
     </a>
     <button
         class="btn btn-square btn-ghost"
         hx-delete="/files/?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
-        hx-target="#file-{{loop.index}}"
+        hx-target="#file-{{ loop.index }}"
         hx-confirm="Êtes-vous sûr de vouloir supprimer ce fichier ?"
         hx-swap="delete"
     >
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-trash-icon lucide-trash"
-        >
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-            <path d="M3 6h18" />
-            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-        </svg>
+        {{ icons.trash_icon() }}
     </button>
 </li>
-
-{% endfor %} {% if is_htmx %} {% include "components/folder_control.html" %} {%
-endif %}
+{% endfor %}
+{% if is_htmx %}{% include "components/folder_control.html" %}{% endif %}

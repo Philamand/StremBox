@@ -1,0 +1,14 @@
+{% macro modal_dialog(id, labelledby) %}
+<dialog id="{{ id }}" class="modal" aria-labelledby="{{ labelledby }}">
+    {{ caller() }}
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+{% endmacro %}
+
+{% macro modal_box(id) %}
+<div id="{{ id }}" class="modal-box">
+    {{ caller() }}
+</div>
+{% endmacro %}

@@ -3,13 +3,12 @@ from datetime import datetime, timezone
 from jinja2 import Environment
 
 
-def relative_time(timestamp):
+def relative_time(timestamp: datetime | int | None) -> str:
     """Jinja filter: returns French relative time string."""
     if not timestamp:
         return ""
     now = datetime.now(timezone.utc)
     if isinstance(timestamp, datetime):
-        # Ensure timestamp is timezone-aware
         if timestamp.tzinfo is None:
             timestamp = timestamp.replace(tzinfo=timezone.utc)
         delta = now - timestamp
@@ -26,13 +25,13 @@ def relative_time(timestamp):
     months = days // 30
 
     if months > 0:
-        return f"il y a {months} mois" if months > 1 else "il y a 1 mois"
+        return f"il y a {months} mois" if months > 1 else "il y a un mois"
     if days > 0:
-        return f"il y a {days} jours" if days > 1 else "il y a 1 jour"
+        return f"il y a {days} jours" if days > 1 else "il y a un jour"
     if hours > 0:
-        return f"il y a {hours} heures" if hours > 1 else "il y a 1 heure"
+        return f"il y a {hours} heures" if hours > 1 else "il y a une heure"
     if minutes > 0:
-        return f"il y a {minutes} minutes" if minutes > 1 else "il y a 1 minute"
+        return f"il y a {minutes} minutes" if minutes > 1 else "il y a une minute"
     return "à l'instant"
 
 

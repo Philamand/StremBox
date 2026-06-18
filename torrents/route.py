@@ -6,6 +6,7 @@ from fastapi import (
     File,
     Form,
     HTTPException,
+    Query,
     Request,
     Response,
     UploadFile,
@@ -15,9 +16,9 @@ from fastapi.templating import Jinja2Templates
 
 from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
-from files.services import FileManager
+from files.services import FileManagerDep
 from torrents.schemas import DownloadRequest
-from torrents.services import TorrentService
+from torrents.services import TorrentServiceDep
 from users.dependencies import require_auth
 from users.security import validate_bearer_token
 
@@ -27,11 +28,16 @@ templates = Jinja2Templates(directory="templates")
 register_filters(templates.env)
 
 
+def _sorted_by_date(torrent_list: list) -> list:
+    """Sort torrents by added_date descending."""
+    return sorted(torrent_list, key=lambda t: t.added_date, reverse=True)
+
+
 @dashboard_router.get("/")
 async def dashboard(
     request: Request,
     is_htmx: Annotated[bool, Depends(is_htmx_request)],
-    torrent_service: Annotated[TorrentService, Depends()],
+    torrent_service: TorrentServiceDep,
 ) -> HTMLResponse:
     """Render the dashboard page, showing the user's torrent list."""
     if is_htmx:
@@ -40,9 +46,7 @@ async def dashboard(
         template = "dashboard.html"
 
     torrent_list = await torrent_service.get_torrents()
-    torrent_list = sorted(
-        torrent_list, key=lambda torrent: torrent.added_date, reverse=True
-    )
+    torrent_list = _sorted_by_date(torrent_list)
 
     return templates.TemplateResponse(
         request,
@@ -54,11 +58,11 @@ async def dashboard(
 @dashboard_router.post("/")
 async def add_torrent(
     request: Request,
-    torrent_service: Annotated[TorrentService, Depends()],
-    file_service: Annotated[FileManager, Depends()],
-    torrent_file: UploadFile | None = File(None),
-    torrent_magnet: str | None = Form(None),
-    torrent_start: bool = Form(False),
+    torrent_service: TorrentServiceDep,
+    file_service: FileManagerDep,
+    torrent_file: Annotated[UploadFile | None, File()] = None,
+    torrent_magnet: Annotated[str | None, Form()] = None,
+    torrent_start: Annotated[bool, Form()] = False,
 ) -> HTMLResponse:
     """Add a torrent to the user's list, either from a file or a magnet link."""
     if torrent_magnet:
@@ -98,15 +102,13 @@ async def add_torrent(
 async def start_torrent(
     request: Request,
     hash: str,
-    torrent_service: Annotated[TorrentService, Depends()],
-):
+    torrent_service: TorrentServiceDep,
+) -> HTMLResponse:
     """Start a torrent by hash."""
     await torrent_service.start_torrent(hash)
 
     torrent_list = await torrent_service.get_torrents()
-    torrent_list = sorted(
-        torrent_list, key=lambda torrent: torrent.added_date, reverse=True
-    )
+    torrent_list = _sorted_by_date(torrent_list)
 
     return templates.TemplateResponse(
         request,
@@ -119,15 +121,13 @@ async def start_torrent(
 async def stop_torrent(
     request: Request,
     hash: str,
-    torrent_service: Annotated[TorrentService, Depends()],
-):
+    torrent_service: TorrentServiceDep,
+) -> HTMLResponse:
     """Stop a torrent by hash."""
     await torrent_service.stop_torrent(hash)
 
     torrent_list = await torrent_service.get_torrents()
-    torrent_list = sorted(
-        torrent_list, key=lambda torrent: torrent.added_date, reverse=True
-    )
+    torrent_list = _sorted_by_date(torrent_list)
 
     return templates.TemplateResponse(
         request,
@@ -139,9 +139,9 @@ async def stop_torrent(
 @dashboard_router.delete("/{hash}")
 async def delete_torrent(
     hash: str,
-    torrent_service: Annotated[TorrentService, Depends()],
-    delete_files: bool = False,
-):
+    torrent_service: TorrentServiceDep,
+    delete_files: Annotated[bool, Query()] = False,
+) -> dict[str, str]:
     """Delete a torrent by hash."""
     await torrent_service.remove_torrent(hash, delete_files=delete_files)
     return {"message": "Torrent supprimé avec succès"}
@@ -153,8 +153,8 @@ api_router = APIRouter(prefix="/api", dependencies=[Depends(validate_bearer_toke
 
 @api_router.get("/hashes/")
 async def get_hashes(
-    torrent_service: Annotated[TorrentService, Depends()],
-):
+    torrent_service: TorrentServiceDep,
+) -> dict[str, dict]:
     """Get all torrent hashes from Transmission."""
     torrents = await torrent_service.get_torrents()
     hashes_dict = {}
@@ -169,10 +169,10 @@ async def get_hashes(
 @api_router.post("/download/")
 async def download_torrent(
     request: Request,
-    torrent_service: Annotated[TorrentService, Depends()],
-    file_service: Annotated[FileManager, Depends()],
+    torrent_service: TorrentServiceDep,
+    file_service: FileManagerDep,
     download_request: DownloadRequest,
-):
+) -> Response:
     try:
         await torrent_service.get_torrent(download_request.torrent_hash)
     except KeyError:
