@@ -111,6 +111,10 @@ pygments==2.20.0
     #   pytest
     #   rich
 pytest==9.0.3
+    # via
+    #   bauxite (pyproject.toml)
+    #   pytest-asyncio
+pytest-asyncio==1.4.0
     # via bauxite (pyproject.toml)
 python-dotenv==1.2.2
     # via
