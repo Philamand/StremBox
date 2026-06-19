@@ -456,7 +456,7 @@ class StremioOrchestrationService:
         return results
 
     async def get_streams(
-        self, type: str, id: str, user: UserData, auto_dl: bool = True
+        self, type: str, id: str, user: UserData, auto_dl: bool = False
     ) -> StremioStreamsResponse:
         """Build a ``StremioStreamsResponse`` for *type*/*id* on behalf of *user*.
 
