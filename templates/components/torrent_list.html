@@ -19,7 +19,12 @@
                 <p>
                     {{ torrent.peers_sending_to_us }} Seeds - {{ torrent.peers_getting_from_us }} Leechs - {{ torrent.ratio|round(2) }} Ratio
                 </p>
-                <p>Créé {{ torrent.added_date|relative_time }}</p>
+                <div class="w-full flex space-between">
+                    <p>Créé il y a {{ torrent.added_date|relative_time }}</p>
+                    {% if torrent.status == 'downloading' %}
+                    <p class="flex justify-end">Il reste environ {{ torrent.eta|relative_time }}</p>
+                    {% endif %}
+                </div>
             </div>
             <div class="col-span-12 md:col-span-2 flex flex-col items-end">
                 <div class="w-full flex flex-row md:flex-col justify-between">

@@ -1,20 +1,13 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from jinja2 import Environment
 
 
-def relative_time(timestamp: datetime | int | None) -> str:
-    """Jinja filter: returns French relative time string."""
-    if not timestamp:
-        return ""
-    now = datetime.now(timezone.utc)
-    if isinstance(timestamp, datetime):
-        if timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=timezone.utc)
-        delta = now - timestamp
-    else:
-        delta = now - datetime.fromtimestamp(timestamp, tz=timezone.utc)
+def _format_relative_delta(delta: timedelta) -> str:
+    """Format a timedelta as a French relative time string.
 
+    Positive deltas produce "X mois/jours/heures/minutes" strings; negative ones return "dans le futur".
+    """
     total_seconds = int(delta.total_seconds())
     if total_seconds < 0:
         return "dans le futur"
@@ -25,14 +18,37 @@ def relative_time(timestamp: datetime | int | None) -> str:
     months = days // 30
 
     if months > 0:
-        return f"il y a {months} mois" if months > 1 else "il y a un mois"
+        return f"{months} mois" if months > 1 else "un mois"
     if days > 0:
-        return f"il y a {days} jours" if days > 1 else "il y a un jour"
+        return f"{days} jours" if days > 1 else "un jour"
     if hours > 0:
-        return f"il y a {hours} heures" if hours > 1 else "il y a une heure"
+        return f"{hours} heures" if hours > 1 else "une heure"
     if minutes > 0:
-        return f"il y a {minutes} minutes" if minutes > 1 else "il y a une minute"
-    return "à l'instant"
+        return f"{minutes} minutes" if minutes > 1 else "une minute"
+    return "moins d'une minute"
+
+
+def relative_time(value: datetime | int | timedelta | None) -> str:
+    """Jinja filter: returns French relative time string.
+
+    Accepts a datetime, a POSIX timestamp (int), a timedelta, or None.
+      - datetime / int  ->  delta computed from now (UTC)
+      - timedelta       ->  used directly
+    """
+    if not value:
+        return ""
+    if isinstance(value, timedelta):
+        return _format_relative_delta(value)
+
+    now = datetime.now(timezone.utc)
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        delta = now - value
+    else:
+        delta = now - datetime.fromtimestamp(value, tz=timezone.utc)
+
+    return _format_relative_delta(delta)
 
 
 def format_size(bytes_count: int) -> str:
