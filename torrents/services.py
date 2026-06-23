@@ -226,6 +226,29 @@ class TorrentService:
             self.client.remove_torrent, torrent_hash, delete_data=delete_files
         )
 
+    async def verify_torrents_by_file(self, file_path: str) -> None:
+        """Verify all torrents that contain a specific file.
+
+        Searches through all torrents to find those containing a file with
+        the exact matching path.  For each matching torrent, calls
+        ``client.verify_torrent()`` to check the integrity of the data.
+
+        Args:
+            file_path: The file path to search for in torrents.
+        """
+        torrents = await self.get_torrents()
+        matching_hashes = []
+
+        for torrent in torrents:
+            files = await self.get_torrent_files(torrent.hashString)
+            for file in files:
+                if file.name == file_path:
+                    matching_hashes.append(torrent.hashString)
+                    break
+
+        for hash_str in matching_hashes:
+            await asyncio.to_thread(self.client.verify_torrent, hash_str)
+
     async def get_torrent_files(self, torrent_hash: str) -> list[File]:
         """Get the files of a torrent"""
         torrent = await asyncio.to_thread(self.client.get_torrent, torrent_hash)

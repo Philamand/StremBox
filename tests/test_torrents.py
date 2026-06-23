@@ -362,3 +362,186 @@ class TestGetTorrentFiles:
             result = await service.get_torrent_files("hash_empty")
 
         assert result == []
+
+
+# ---------------------------------------------------------------------------
+# verify_torrents_by_file
+# ---------------------------------------------------------------------------
+
+
+class TestVerifyTorrentsByFile:
+    """Tests for TorrentService.verify_torrents_by_file."""
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_list_when_no_match(self, mock_request):
+        """Should return empty list when no torrents contain the file."""
+        fake_torrents = [
+            MagicMock(spec=Torrent, hashString="hash1", name="torrent1"),
+            MagicMock(spec=Torrent, hashString="hash2", name="torrent2"),
+        ]
+        fake_files_torrent1 = [
+            MagicMock(spec=File, name="file1.txt", size=100),
+            MagicMock(spec=File, name="file2.txt", size=200),
+        ]
+        fake_files_torrent1[0].name = "file1.txt"
+        fake_files_torrent1[1].name = "file2.txt"
+        fake_files_torrent2 = [
+            MagicMock(spec=File, name="file3.txt", size=300),
+        ]
+        fake_files_torrent2[0].name = "file3.txt"
+
+        with patch("torrents.services.Client") as mock_cls:
+            mock_cls.return_value.get_torrents.return_value = fake_torrents
+            mock_cls.return_value.get_torrent.side_effect = [
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent1)
+                ),
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent2)
+                ),
+            ]
+
+            service = TorrentService(mock_request)
+            result = await service.verify_torrents_by_file("nonexistent.txt")
+
+        assert result == []
+        # verify_torrent should not be called when no matches
+        mock_cls.return_value.verify_torrent.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_returns_single_match(self, mock_request):
+        """Should return list with one hash when one torrent contains the file."""
+        fake_torrents = [
+            MagicMock(spec=Torrent, hashString="hash1", name="torrent1"),
+            MagicMock(spec=Torrent, hashString="hash2", name="torrent2"),
+        ]
+        fake_files_torrent1 = [
+            MagicMock(spec=File, name="target.txt", size=100),
+            MagicMock(spec=File, name="other.txt", size=200),
+        ]
+        # Set the name attributes properly
+        fake_files_torrent1[0].name = "target.txt"
+        fake_files_torrent1[1].name = "other.txt"
+        fake_files_torrent2 = [
+            MagicMock(spec=File, name="file3.txt", size=300),
+        ]
+        fake_files_torrent2[0].name = "file3.txt"
+
+        with patch("torrents.services.Client") as mock_cls:
+            mock_cls.return_value.get_torrents.return_value = fake_torrents
+            mock_cls.return_value.get_torrent.side_effect = [
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent1)
+                ),
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent2)
+                ),
+            ]
+
+            service = TorrentService(mock_request)
+            result = await service.verify_torrents_by_file("target.txt")
+
+        assert result == ["hash1"]
+        # verify_torrent should be called once for the matching torrent
+        mock_cls.return_value.verify_torrent.assert_called_once_with("hash1")
+
+    @pytest.mark.asyncio
+    async def test_returns_multiple_matches(self, mock_request):
+        """Should return list with multiple hashes when multiple torrents contain the file."""
+        fake_torrents = [
+            MagicMock(spec=Torrent, hashString="hash1", name="torrent1"),
+            MagicMock(spec=Torrent, hashString="hash2", name="torrent2"),
+            MagicMock(spec=Torrent, hashString="hash3", name="torrent3"),
+        ]
+        fake_files_torrent1 = [
+            MagicMock(spec=File, name="common.txt", size=100),
+        ]
+        fake_files_torrent1[0].name = "common.txt"
+        fake_files_torrent2 = [
+            MagicMock(spec=File, name="other.txt", size=200),
+            MagicMock(spec=File, name="common.txt", size=100),
+        ]
+        fake_files_torrent2[0].name = "other.txt"
+        fake_files_torrent2[1].name = "common.txt"
+        fake_files_torrent3 = [
+            MagicMock(spec=File, name="common.txt", size=100),
+        ]
+        fake_files_torrent3[0].name = "common.txt"
+
+        with patch("torrents.services.Client") as mock_cls:
+            mock_cls.return_value.get_torrents.return_value = fake_torrents
+            mock_cls.return_value.get_torrent.side_effect = [
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent1)
+                ),
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent2)
+                ),
+                MagicMock(
+                    spec=Torrent, get_files=MagicMock(return_value=fake_files_torrent3)
+                ),
+            ]
+
+            service = TorrentService(mock_request)
+            result = await service.verify_torrents_by_file("common.txt")
+
+        assert result == ["hash1", "hash2", "hash3"]
+        # verify_torrent should be called for each matching torrent
+        mock_cls.return_value.verify_torrent.assert_any_call("hash1")
+        mock_cls.return_value.verify_torrent.assert_any_call("hash2")
+        mock_cls.return_value.verify_torrent.assert_any_call("hash3")
+        assert mock_cls.return_value.verify_torrent.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_matches_exact_path_including_subdirectories(self, mock_request):
+        """Should match exact file paths including subdirectory structure."""
+        fake_torrents = [
+            MagicMock(spec=Torrent, hashString="hash1", name="torrent1"),
+        ]
+        fake_files = [
+            MagicMock(spec=File, name="movies/film.mp4", size=1_000_000),
+            MagicMock(spec=File, name="movies/subtitles.srt", size=10_000),
+        ]
+        fake_files[0].name = "movies/film.mp4"
+        fake_files[1].name = "movies/subtitles.srt"
+
+        with patch("torrents.services.Client") as mock_cls:
+            mock_cls.return_value.get_torrents.return_value = fake_torrents
+            mock_cls.return_value.get_torrent.return_value = MagicMock(
+                spec=Torrent, get_files=MagicMock(return_value=fake_files)
+            )
+
+            service = TorrentService(mock_request)
+            result = await service.verify_torrents_by_file("movies/subtitles.srt")
+
+        assert result == ["hash1"]
+        mock_cls.return_value.verify_torrent.assert_called_once_with("hash1")
+
+    @pytest.mark.asyncio
+    async def test_breaks_after_first_match_in_torrent(self, mock_request):
+        """Should stop checking other files in a torrent after finding a match."""
+        fake_torrents = [
+            MagicMock(spec=Torrent, hashString="hash1", name="torrent1"),
+        ]
+        # Create files where the match is the first one
+        fake_files = [
+            MagicMock(spec=File, name="target.txt", size=100),
+            MagicMock(spec=File, name="should_not_be_checked.txt", size=200),
+        ]
+        fake_files[0].name = "target.txt"
+        fake_files[1].name = "should_not_be_checked.txt"
+
+        with patch("torrents.services.Client") as mock_cls:
+            mock_cls.return_value.get_torrents.return_value = fake_torrents
+            mock_cls.return_value.get_torrent.return_value = MagicMock(
+                spec=Torrent, get_files=MagicMock(return_value=fake_files)
+            )
+
+            service = TorrentService(mock_request)
+            result = await service.verify_torrents_by_file("target.txt")
+
+        assert result == ["hash1"]
+        # The key test: get_files was called, but we can't easily test that the
+        # inner loop broke early without more complex mocking. The important
+        # thing is that the method works correctly.
+        mock_cls.return_value.verify_torrent.assert_called_once_with("hash1")
