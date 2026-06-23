@@ -46,6 +46,7 @@ ARCHIVE_EXTENSIONS = (
 
 class FileManager:
     def __init__(self, request: Request):
+        self.request = request
         self.base_dir = request.state.user.transmission_data.download_folder
 
     def get_path(self, folder: str | None = None) -> str:
@@ -71,7 +72,7 @@ class FileManager:
 
         try:
             names = await os.listdir(path)
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             return []
 
         results: list[FileData] = []
@@ -82,7 +83,7 @@ class FileManager:
                 is_dir = await os.path.isdir(full_path)
                 size = await os.path.getsize(full_path) if not is_dir else None
                 last_modified = await os.path.getatime(full_path)
-            except (FileNotFoundError, PermissionError):
+            except FileNotFoundError, PermissionError:
                 continue
 
             is_archive = False
@@ -107,11 +108,11 @@ class FileManager:
         """Remove the file at the given path."""
         full_path = self.get_path(file_path)
         is_file = await os.path.isfile(full_path)
+        if not is_file:
+            is_dir = await os.path.isdir(full_path)
         if is_file:
             await os.remove(full_path)
-            return
-        is_dir = await os.path.isdir(full_path)
-        if is_dir:
+        elif is_dir:
             await asyncio.to_thread(shutil.rmtree, full_path)
         else:
             raise FileNotFoundError(f"File not found: {full_path}")
@@ -123,7 +124,7 @@ class FileManager:
         try:
             if not await os.path.isdir(path):
                 return 0
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             return 0
 
         total_size = 0
@@ -134,9 +135,9 @@ class FileManager:
                     file_path = _pyos.path.join(root, file)
                     try:
                         total_size += await os.path.getsize(file_path)
-                    except (FileNotFoundError, PermissionError):
+                    except FileNotFoundError, PermissionError:
                         continue
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             pass
 
         return total_size
