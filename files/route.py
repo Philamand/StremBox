@@ -17,6 +17,7 @@ from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
 from files.services import FileManagerDep, ZipDirectoryServiceDep
 from files.utils import zip_directory
+from torrents.services import TorrentServiceDep
 from users.dependencies import require_auth
 
 router = APIRouter(prefix="/files", dependencies=[Depends(require_auth)])
@@ -191,9 +192,12 @@ async def upload_file(
 async def delete_file(
     file_path: str,
     file_manager: FileManagerDep,
+    torrent_service: TorrentServiceDep,
+    background_tasks: BackgroundTasks,
 ) -> dict[str, str]:
     try:
         await file_manager.remove_file(file_path)
+        background_tasks.add_task(torrent_service.verify_torrents_by_file, file_path)
     except Exception:
         raise HTTPException(status_code=404, detail="Fichier non trouvé")
     return {"message": "Fichier supprimé avec succès"}
