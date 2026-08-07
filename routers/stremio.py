@@ -4,7 +4,7 @@ from constants import MANIFEST
 from dependencies import check_user_key
 from schemas.stremio import StremioStreamsResponse
 from schemas.users import UserData
-from services.stremio import C411Service, StremioOrchestrationService, Torr9Service
+from services.stremio import C411Service, StremioOrchestrationService, Tr4kerService
 
 router = APIRouter(dependencies=[Depends(check_user_key)])
 
@@ -42,16 +42,16 @@ async def get_torrent_streams(
     else:
         c411_service = None
 
-    if user.torr9_key:
-        torr9_service = Torr9Service(user.torr9_key)
+    if user.tr4ker_key:
+        tr4ker_service = Tr4kerService(user.tr4ker_key)
     else:
-        torr9_service = None
+        tr4ker_service = None
 
     stremio_service = StremioOrchestrationService(
         user.librebox_url,
         user.librebox_token,
         c411_service=c411_service,
-        torr9_service=torr9_service,
+        tr4ker_service=tr4ker_service,
     )
 
     response = await stremio_service.get_streams(type=type, id=id, user=user)

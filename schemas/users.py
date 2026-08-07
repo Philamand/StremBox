@@ -9,7 +9,7 @@ class UserCreateData(BaseModel):
     librebox_url: str
     librebox_token: str
     c411_key: str | None = None
-    torr9_key: str | None = None
+    tr4ker_key: str | None = None
     lacale_key: str | None = None
 
 
@@ -20,5 +20,5 @@ class UserData(BaseModel):
     librebox_url: str
     librebox_token: str
     c411_key: str | None = None
-    torr9_key: str | None = None
+    tr4ker_key: str | None = None
     lacale_key: str | None = None

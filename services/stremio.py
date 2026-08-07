@@ -2,7 +2,7 @@ import asyncio
 import logging
 import urllib.parse
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import aiohttp
 from aiohttp import ClientTimeout
@@ -53,7 +53,7 @@ class C411Service:
         self.apikey = apikey
         self.base_url = "https://c411.org/api"
 
-    async def search(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def search(self, params: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Perform a generic search against the C411 API and normalize the response.
 
@@ -161,11 +161,11 @@ class C411Service:
 
     async def search_movie(
         self,
-        title: Optional[str] = None,
-        year: Optional[int] = None,
-        imdb_id: Optional[str] = None,
-        tmdb_id: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        title: str | None = None,
+        year: int | None = None,
+        imdb_id: str | None = None,
+        tmdb_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Search for movies using title/year or external identifiers.
 
@@ -195,12 +195,12 @@ class C411Service:
 
     async def search_series(
         self,
-        title: Optional[str] = None,
-        season: Optional[int] = None,
-        episode: Optional[int] = None,
-        imdb_id: Optional[str] = None,
-        tmdb_id: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        title: str | None = None,
+        season: int | None = None,
+        episode: int | None = None,
+        imdb_id: str | None = None,
+        tmdb_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Search for TV series torrents (optionally constrained by season/episode).
 
@@ -237,65 +237,55 @@ class C411Service:
         return await self.search(params)
 
 
-class Torr9Service:
-    def __init__(self, passkey):
-        self.passkey = passkey
-        self.base_url = "https://api.torr9.net/api/v1/torznab"
+class Tr4kerService:
+    def __init__(self, apikey):
+        self.apikey = apikey
+        self.base_url = "https://tr4ker.net/torznab"
 
     async def search(self, params):
-        if not self.passkey:
+        if not self.apikey:
             return []
 
-        params["apikey"] = self.passkey
-
-        # Log request (masking passkey)
-        log_params = params.copy()
-        log_params["apikey"] = "***PASSKEY***"
-        logging.info(
-            f"Torr9 Search: {self.base_url}?{urllib.parse.urlencode(log_params)}"
-        )
+        params["apikey"] = self.apikey
+        log_q = params.get("tmdbid") or params.get("imdbid") or params.get("q", "")
+        logging.info(f"Tr4ker Search: {self.base_url}?t={params.get('t')}&{log_q}")
 
         async with aiohttp.ClientSession(trust_env=True) as session:
             try:
                 async with session.get(
-                    self.base_url, params=params, timeout=ClientTimeout(total=20)
+                    self.base_url,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as response:
                     if response.status == 200:
                         text = await response.text()
-                        return self._parse_xml(text)
+                        results = self._parse_xml(text)
+                        logging.info(f"Tr4ker found {len(results)} results")
+                        return results
                     else:
-                        logging.warning(f"Torr9 Error {response.status}")
-                        body = await response.text()
-                        logging.warning(f"Torr9 Body: {body[:200]}")
+                        logging.warning(f"Tr4ker Error {response.status}")
             except Exception as e:
-                logging.error(f"Torr9 Exception: {e}")
+                logging.error(f"Tr4ker Exception: {e}")
         return []
 
     def _parse_xml(self, xml_text):
-        """Parse Torznab XML response"""
         try:
             root = ET.fromstring(xml_text)
         except ET.ParseError as e:
-            logging.error(f"Torr9 XML Parse Error: {e}")
+            logging.error(f"Tr4ker XML Parse Error: {e}")
             return []
 
-        # Torznab namespace
         ns = {"torznab": "http://torznab.com/schemas/2015/feed"}
-
         items = root.findall(".//item")
-        logging.info(f"Torr9 found {len(items)} results")
 
-        normalized = []
+        results = []
         for item in items:
             title = item.findtext("title", "")
-            guid = item.findtext("guid", "")
-            size_text = item.findtext("size", "0")
-
-            # Enclosure (download link)
+            link = item.findtext("link", "")
             enclosure = item.find("enclosure")
-            download_link = enclosure.get("url", "") if enclosure is not None else ""
+            download_link = enclosure.get("url", "") if enclosure is not None else link
+            size = int(enclosure.get("length", 0)) if enclosure is not None else 0
 
-            # Torznab attributes
             info_hash = None
             seeders = 0
             leechers = 0
@@ -307,66 +297,58 @@ class Torr9Service:
                     info_hash = value.lower() if value else None
                 elif name == "seeders":
                     seeders = int(value) if value else 0
-                    if leechers != 0:
-                        leechers -= seeders
-                elif name == "peers":
-                    if seeders != 0 and value:
-                        leechers = int(value) - seeders
-                    else:
-                        leechers = int(value) if value else 0
+                elif name == "leechers":
+                    leechers = int(value) if value else 0
+                elif name == "size" and value:
+                    size = int(value)
 
-            # Fallback to guid as hash
-            if not info_hash:
-                info_hash = guid.lower() if guid else None
+            results.append(
+                {
+                    "name": title,
+                    "size": size,
+                    "tracker_name": "Tr4ker",
+                    "info_hash": info_hash,
+                    "magnet": None,
+                    "link": download_link,
+                    "source": "tr4ker",
+                    "seeders": seeders,
+                    "leechers": leechers,
+                }
+            )
 
-            result = {
-                "name": title,
-                "size": int(size_text) if size_text else 0,
-                "tracker_name": "Torr9",
-                "info_hash": info_hash,
-                "magnet": None,
-                "link": download_link,
-                "source": "torr9",
-                "seeders": seeders,
-                "leechers": leechers,
-            }
-            normalized.append(result)
-
-        return normalized
+        return results
 
     async def search_movie(self, title=None, year=None, imdb_id=None, tmdb_id=None):
-        params = {"t": "movie"}
-        if imdb_id:
-            if not str(imdb_id).startswith("tt"):
-                imdb_id = f"tt{imdb_id}"
-            params["imdbid"] = imdb_id
-        elif tmdb_id:
-            params["tmdbid"] = tmdb_id
-        else:
-            params["q"] = f"{title} {year}"
-
-        return await self.search(params)
+        if tmdb_id:
+            return await self.search({"t": "movie", "tmdbid": tmdb_id})
+        return await self.search({"t": "search", "q": f"{title} {year}".strip()})
 
     async def search_series(
         self, title=None, season=None, episode=None, imdb_id=None, tmdb_id=None
     ):
-        params = {"t": "tvsearch"}
         if imdb_id:
-            if not str(imdb_id).startswith("tt"):
-                imdb_id = f"tt{imdb_id}"
-            params["imdbid"] = imdb_id
-        elif tmdb_id:
-            params["tmdbid"] = tmdb_id
-        elif title:
-            params["q"] = title
+            params = {"t": "tvsearch", "imdbid": tmdb_id}
+            if season is not None:
+                params["season"] = season
+            if episode is not None:
+                params["episode"] = episode
+            results = await self.search(params)
+        else:
+            if season is not None and episode is not None:
+                q = f"{title} S{int(season):02d}E{int(episode):02d}"
+            elif season is not None:
+                q = f"{title} S{int(season):02d}"
+            else:
+                q = title
+            results = await self.search({"t": "search", "q": q})
 
-        # Torznab filters for season/episode
         if season is not None:
-            params["season"] = season
-        if episode is not None:
-            params["episode"] = episode
-
-        return await self.search(params)
+            results = [
+                r
+                for r in results
+                if check_season_episode(r.get("name", ""), season, episode)
+            ]
+        return results
 
 
 class StremioOrchestrationService:
@@ -379,7 +361,7 @@ class StremioOrchestrationService:
 
     Args:
         c411_service: Configured C411 tracker client.
-        torr9_service: Configured Torr9 tracker client.
+        tr4ker_service: Configured Tr4ker tracker client.
         torrent_service: DB-backed torrent service (get/create records).
         stream_service: Redis-backed stream link service.
     """
@@ -389,31 +371,31 @@ class StremioOrchestrationService:
         librebox_url: str,
         librebox_token: str,
         c411_service: C411Service | None = None,
-        torr9_service: Torr9Service | None = None,
+        tr4ker_service: Tr4kerService | None = None,
     ) -> None:
         self.c411 = c411_service
-        self.torr9 = torr9_service
+        self.tr4ker = tr4ker_service
         self.librebox_url = librebox_url
         self.librebox_token = librebox_token
 
     async def _search_movie(self, imdb_id: str) -> list[dict]:
-        """Run parallel C411 + Torr9 searches for a movie and return deduplicated results."""
+        """Run parallel C411 + Tr4ker searches for a movie and return deduplicated results."""
         name, year = await get_torrent_name(imdb_id, "movie")
-        if self.c411 and self.torr9:
-            c411_results, torr9_results = await asyncio.gather(
+        if self.c411 and self.tr4ker:
+            c411_results, tr4ker_results = await asyncio.gather(
                 self.c411.search_movie(imdb_id=imdb_id),
-                self.torr9.search_movie(imdb_id=imdb_id),
+                self.tr4ker.search_movie(title=name),
             )
         elif self.c411:
             c411_results = await self.c411.search_movie(imdb_id=imdb_id)
-            torr9_results = []
-        elif self.torr9:
-            torr9_results = await self.torr9.search_movie(imdb_id=imdb_id)
+            tr4ker_results = []
+        elif self.tr4ker:
+            tr4ker_results = await self.tr4ker.search_movie(title=name)
             c411_results = []
         else:
             return []
         results: list[dict] = c411_results
-        for r in torr9_results:
+        for r in tr4ker_results:
             if check_title_match(r["name"], None, name, year, True):
                 results.append(r)
         return results
@@ -421,25 +403,23 @@ class StremioOrchestrationService:
     async def _search_series(
         self, imdb_id: str, season: int, episode: int
     ) -> list[dict]:
-        """Run parallel C411 + Torr9 searches for a series episode and return deduplicated results."""
+        """Run parallel C411 + Tr4ker searches for a series episode and return deduplicated results."""
         name, year = await get_torrent_name(imdb_id, "series")
-        if self.c411 and self.torr9:
-            c411_results, torr9_results = await asyncio.gather(
+        if self.c411 and self.tr4ker:
+            c411_results, tr4ker_results = await asyncio.gather(
                 self.c411.search_series(
                     season=season, episode=episode, imdb_id=imdb_id
                 ),
-                self.torr9.search_series(
-                    season=season, episode=episode, imdb_id=imdb_id
-                ),
+                self.tr4ker.search_series(title=name, season=season, episode=episode),
             )
         elif self.c411:
             c411_results = await self.c411.search_series(
                 season=season, episode=episode, imdb_id=imdb_id
             )
-            torr9_results = []
-        elif self.torr9:
-            torr9_results = await self.torr9.search_series(
-                season=season, episode=episode, imdb_id=imdb_id
+            tr4ker_results = []
+        elif self.tr4ker:
+            tr4ker_results = await self.tr4ker.search_series(
+                title=name, season=season, episode=episode
             )
             c411_results = []
         else:
@@ -448,7 +428,7 @@ class StremioOrchestrationService:
         for r in c411_results:
             if check_season_episode(r["name"], season, episode):
                 results.append(r)
-        for r in torr9_results:
+        for r in tr4ker_results:
             if check_season_episode(r["name"], season, episode) and check_title_match(
                 r["name"], None, name, year, False
             ):
@@ -495,8 +475,8 @@ class StremioOrchestrationService:
 
             if tracker == "c411":
                 api_key = user.c411_key
-            elif tracker == "torr9":
-                api_key = user.torr9_key
+            elif tracker == "tr4ker":
+                api_key = user.tr4ker_key
             else:
                 api_key = None
 
@@ -523,7 +503,7 @@ class StremioOrchestrationService:
             else:
                 speed_emoji = ""
                 stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['info_hash']}?tracker={tracker}&api_key={api_key}"
-                if tracker == "torr9":
+                if tracker == "tr4ker":
                     stream_url += f"&torrent_id={torrent_id}"
                 if season and episode:
                     stream_url += f"&season={season}&episode={episode}"
