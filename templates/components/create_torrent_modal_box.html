@@ -1,0 +1,30 @@
+<div id="create_torrent_modal_box" class="modal-box">
+    <div id="error-alert"></div>
+
+    <h3 id="create_torrent-modal-title" class="text-lg font-bold mb-4">
+        Créer un torrent
+    </h3>
+
+    <form
+        hx-post="/create"
+        hx-target="#create_torrent_modal_box"
+        hx-target-error="#error-alert"
+        hx-swap="outerHTML"
+        hx-encoding="multipart/form-data"
+        hx-disabled-elt="this"
+    >
+        <input id="file_path" type="hidden" name="file_path" value="" />
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">URL du Tracker</legend>
+            <input
+                type="text"
+                name="tracker"
+                class="input w-full"
+                placeholder="Type here"
+            />
+        </fieldset>
+        <button class="btn btn-primary mt-4 w-full" type="submit">
+            Créer un Torrent
+        </button>
+    </form>
+</div>

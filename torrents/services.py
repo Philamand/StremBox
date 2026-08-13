@@ -1,6 +1,7 @@
 import asyncio
 from typing import Annotated
 
+import docker
 from fastapi import Depends, Request
 from transmission_rpc import Client, File, Torrent
 
@@ -21,6 +22,20 @@ class TorrentService:
         self.client = Client(
             host=settings.transmission_url, port=user.transmission_data.port
         )
+
+    def create_torrent(self, tracker: str, file_path: str):
+        client = docker.from_env()
+        container = client.containers.get("transmission")
+
+        file_name = file_path.split("/")[-1]
+
+        exit_code, output = container.exec_run(
+            f"transmission-create -o /downloads/{file_name}.torrent -t {tracker} /downloads/{file_path}"
+        )
+
+        if exit_code != 0:
+            raise RuntimeError(output.decode())
+        print(output)
 
     async def get_torrents(self) -> list[Torrent]:
         """Get all torrents from Transmission"""
@@ -92,7 +107,7 @@ class TorrentService:
                 size = await asyncio.wait_for(
                     _poll_size(added.hashString), timeout=60.0
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await asyncio.to_thread(
                     self.client.remove_torrent, added.hashString, delete_data=True
                 )
@@ -150,7 +165,7 @@ class TorrentService:
 
         try:
             await asyncio.wait_for(_poll(min_percent), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             t = await asyncio.to_thread(self.client.get_torrent, hash_string)
             if t.rate_download > 0:
                 return
@@ -213,7 +228,7 @@ class TorrentService:
 
         try:
             await asyncio.wait_for(coro, timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise ValueError(
                 "Le téléchargement n'est pas terminé dans le temps imparti."
             )

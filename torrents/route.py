@@ -147,6 +147,18 @@ async def delete_torrent(
     return {"message": "Torrent supprimé avec succès"}
 
 
+@dashboard_router.post("/create")
+def create_torrent(
+    response: Response,
+    torrent_service: TorrentServiceDep,
+    tracker: Annotated[str, Form()],
+    file_path: Annotated[str, Form()],
+):
+    torrent_service.create_torrent(tracker, file_path)
+    response.headers["HX-Refresh"] = "true"
+    return {"message": "Torrent créé avec succès"}
+
+
 # ── API router ───────────────────────────────────────────────────────────
 api_router = APIRouter(prefix="/api", dependencies=[Depends(validate_bearer_token)])
 

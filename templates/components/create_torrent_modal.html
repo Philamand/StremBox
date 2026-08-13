@@ -1,0 +1,12 @@
+{% from "macros/modals.html" import modal_dialog %}
+{% call modal_dialog("create_torrent_modal", "create_torrent-modal-title") %}
+    {% include "components/create_torrent_modal_box.html" %}
+{% endcall %}
+
+<script>
+    document.querySelector("#create_torrent_modal").addEventListener("htmx:afterRequest", function (evt) {
+        if (evt.detail.xhr.status === 200) {
+            create_torrent_modal.close();
+        }
+    });
+</script>
