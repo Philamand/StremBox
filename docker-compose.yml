@@ -79,9 +79,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - downloads:/app/downloads
       - database:/app/database
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       transmission:
         condition: service_started
