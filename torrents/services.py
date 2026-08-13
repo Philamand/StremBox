@@ -35,7 +35,6 @@ class TorrentService:
 
         if exit_code != 0:
             raise RuntimeError(output.decode())
-        print(output)
 
     async def get_torrents(self) -> list[Torrent]:
         """Get all torrents from Transmission"""
