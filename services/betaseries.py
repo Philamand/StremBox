@@ -1,0 +1,22 @@
+import os
+
+import aiohttp
+
+
+class BetaSeriesService:
+    def __init__(self):
+        self.base_url = "https://api.betaseries.com"
+        self.api_key = os.environ.get("BETASERIES_API_KEY", None)
+
+    async def get_show_french_title(self, imdb_id) -> str | None:
+        if self.api_key is None:
+            return None
+
+        url = f"{self.base_url}/shows/display"
+        params = {"imdb_id": imdb_id, "summary": "true"}
+
+        async with aiohttp.ClientSession() as session:
+            headers = {"X-BetaSeries-Key": self.api_key}
+            async with session.get(url, params=params, headers=headers) as response:
+                data = await response.json()
+                return data.get("show", {}).get("title")

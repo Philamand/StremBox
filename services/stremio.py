@@ -13,6 +13,7 @@ from schemas.stremio import (
 )
 from schemas.users import UserData
 from services.bauxite import BauxiteService
+from services.betaseries import BetaSeriesService
 from utils.stremio import (
     check_season_episode,
     check_title_match,
@@ -405,6 +406,10 @@ class StremioOrchestrationService:
     ) -> list[dict]:
         """Run parallel C411 + Tr4ker searches for a series episode and return deduplicated results."""
         name, year = await get_torrent_name(imdb_id, "series")
+        french_title = None
+        if self.tr4ker:
+            betaseries_service = BetaSeriesService()
+            french_title = await betaseries_service.get_show_french_title(imdb_id)
         if self.c411 and self.tr4ker:
             c411_results, tr4ker_results = await asyncio.gather(
                 self.c411.search_series(
@@ -430,7 +435,7 @@ class StremioOrchestrationService:
                 results.append(r)
         for r in tr4ker_results:
             if check_season_episode(r["name"], season, episode) and check_title_match(
-                r["name"], None, name, year, False
+                r["name"], french_title, name, year, False
             ):
                 results.append(r)
         return results
