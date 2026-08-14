@@ -15,8 +15,8 @@ from fastapi.templating import Jinja2Templates
 
 from core.htmx import is_htmx_request
 from core.jinja_filters import register_filters
-from files.services import FileManagerDep, ZipDirectoryServiceDep
-from files.utils import zip_directory
+from files.services import FileManagerDep, UnzipServiceDep, ZipDirectoryServiceDep
+from files.utils import unzip_archive, zip_directory
 from torrents.services import TorrentServiceDep
 from users.dependencies import require_auth
 
@@ -80,6 +80,92 @@ async def get_zip_status(
             headers={"HX-Reswap": "outerHTML"},
         )
     return Response(status_code=200)
+
+
+@router.get("/unzip/status/{unzip_id}")
+async def get_unzip_status(
+    request: Request,
+    unzip_id: int,
+    unzip_service: UnzipServiceDep,
+) -> Response:
+    """Return the status of an extraction by ID."""
+    try:
+        extraction = await unzip_service.get_extraction(unzip_id)
+    except LookupError:
+        return Response(status_code=404)
+    if extraction.done is True:
+        Response(status_code=200, headers={"HX-Refresh": "true"})
+    return Response(status_code=200)
+
+
+@router.post("/unzip")
+async def unzip_archive_route(
+    request: Request,
+    file_path: str,
+    file_manager: FileManagerDep,
+    unzip_service: UnzipServiceDep,
+    background_tasks: BackgroundTasks,
+) -> Response:
+    """
+    Initiate extraction of an archive file.
+    """
+    import os as _pyos
+
+    source_path = file_manager.get_path(file_path)
+
+    if not await file_manager.exists(source_path):
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Archive introuvable."},
+            status_code=404,
+        )
+
+    available_size = (
+        request.state.user.transmission_data.size * 1024 * 1024 * 1024
+        - await file_manager.get_folder_size()
+    )
+
+    try:
+        archive_size = await file_manager.get_size(source_path)
+    except Exception:
+        archive_size = 0
+
+    if available_size < archive_size:
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Espace insuffisant pour extraire cette archive."},
+            status_code=400,
+        )
+
+    base_name = _pyos.path.splitext(_pyos.path.basename(file_path))[0]
+    dir_name = _pyos.path.dirname(file_path)
+    destination_folder = f"{dir_name}/{base_name}" if dir_name else base_name
+    destination_path = file_manager.get_path(destination_folder)
+
+    if await file_manager.exists(destination_path):
+        return templates.TemplateResponse(
+            request,
+            "components/error_alert.html",
+            {"message": "Un dossier avec ce nom existe déjà."},
+            status_code=400,
+        )
+
+    try:
+        unzip_id = await unzip_service.create_extraction(file_path, destination_folder)
+    except RuntimeError:
+        raise HTTPException(400, "Erreur lors de la création de la tâche")
+
+    background_tasks.add_task(
+        unzip_archive, source_path, destination_path, unzip_id, unzip_service
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "components/unzip_modal.html",
+        {"unzip_id": unzip_id},
+    )
 
 
 @router.get("/download")

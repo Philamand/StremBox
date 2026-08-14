@@ -1,0 +1,30 @@
+<div
+    id="unzip_modal_box"
+    class="modal-box"
+    {% if unzip_id %}
+    hx-get="/files/unzip/status/{{ unzip_id }}"
+    hx-swap="none"
+    hx-trigger="every 5s"
+    {% endif %}
+>
+    {% if unzip_id %}
+    <h3 id="unzip-modal-title" class="text-lg font-bold">
+        Extraction de l'archive en cours<span class="loading loading-dots loading-md"></span>
+    </h3>
+    {% elif done %}
+    <h3 id="unzip-modal-title" class="text-lg font-bold">
+        Extraction terminée
+    </h3>
+    <p>Fichiers extraits vers: {{ destination_path }}</p>
+    <div class="modal-action">
+        <button class="btn btn-primary" onclick="unzip_modal.close()">Fermer</button>
+    </div>
+    {% else %}
+    <h3 id="unzip-modal-title" class="text-lg font-bold">
+        Une erreur est survenue
+    </h3>
+    <div class="modal-action">
+        <button class="btn btn-primary" onclick="unzip_modal.close()">Fermer</button>
+    </div>
+    {% endif %}
+</div>

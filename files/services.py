@@ -7,10 +7,10 @@ from aiofiles import os
 from fastapi import Depends, Request
 
 from core.database import AsyncDatabase
-from files.schemas import FileData, ZipDirectory
+from files.schemas import FileData, UnzipDirectory, ZipDirectory
 
 
-def get_file_manager(request: Request) -> "FileManager":
+def get_file_manager(request: Request) -> FileManager:
     """Factory dependency that creates a FileManager from the current request."""
     return FileManager(request)
 
@@ -20,7 +20,7 @@ FileManagerDep = Annotated["FileManager", Depends(get_file_manager)]
 
 def get_zip_directory_service(
     db: Annotated[AsyncDatabase, Depends()],
-) -> "ZipDirectoryService":
+) -> ZipDirectoryService:
     """Factory dependency that creates a ZipDirectoryService."""
     return ZipDirectoryService(db)
 
@@ -28,6 +28,17 @@ def get_zip_directory_service(
 ZipDirectoryServiceDep = Annotated[
     "ZipDirectoryService", Depends(get_zip_directory_service)
 ]
+
+
+def get_unzip_service(
+    db: Annotated[AsyncDatabase, Depends()],
+) -> UnzipService:
+    """Factory dependency that creates an UnzipService."""
+    return UnzipService(db)
+
+
+UnzipServiceDep = Annotated["UnzipService", Depends(get_unzip_service)]
+
 
 ARCHIVE_EXTENSIONS = (
     ".zip",
@@ -183,4 +194,43 @@ class ZipDirectoryService:
         """Delete a zip file entry."""
         await self.db.commit_execute(
             "DELETE FROM zip_directory WHERE id = ?", (zip_id,)
+        )
+
+
+class UnzipService:
+    """Service for managing archive extraction entries."""
+
+    def __init__(self, db: AsyncDatabase):
+        self.db = db
+
+    async def create_extraction(self, source_path: str, destination_path: str) -> int:
+        """Create an extraction entry and return the ID."""
+        row = await self.db.commit_fetch_one(
+            "INSERT INTO unzip_directory (source_path, destination_path) VALUES (?, ?) RETURNING id",
+            (source_path, destination_path),
+        )
+        if row is None:
+            raise RuntimeError("Failed to insert unzip_directory entry")
+        return row["id"]
+
+    async def get_extraction(self, unzip_id: int) -> UnzipDirectory:
+        """Return the extraction entry by ID."""
+        row = await self.db.fetch_one(
+            "SELECT * FROM unzip_directory WHERE id = ?",
+            (unzip_id,),
+        )
+        if row is None:
+            raise LookupError(f"Extraction entry not found for id={unzip_id}")
+        return UnzipDirectory(**row)
+
+    async def update_extraction(self, unzip_id: int):
+        """Update an extraction entry to mark as done."""
+        await self.db.commit_execute(
+            "UPDATE unzip_directory SET done = true WHERE id = ?", (unzip_id,)
+        )
+
+    async def delete_extraction(self, unzip_id: int):
+        """Delete an extraction entry."""
+        await self.db.commit_execute(
+            "DELETE FROM unzip_directory WHERE id = ?", (unzip_id,)
         )

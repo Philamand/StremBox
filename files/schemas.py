@@ -13,3 +13,10 @@ class ZipDirectory(BaseModel):
     id: int
     done: bool
     path: str
+
+
+class UnzipDirectory(BaseModel):
+    id: int
+    done: bool
+    source_path: str
+    destination_path: str
