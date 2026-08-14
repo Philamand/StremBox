@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import Request
 
-from files.schemas import FileData
-from files.services import ARCHIVE_EXTENSIONS, FileManager
+from files.schemas import FileData, UnzipDirectory
+from files.services import ARCHIVE_EXTENSIONS, FileManager, UnzipService
 
 
 class TestFileManager:
@@ -603,3 +603,118 @@ class TestArchiveExtensions:
     def test_archive_extensions_non_empty(self):
         """Test that ARCHIVE_EXTENSIONS is not empty."""
         assert len(ARCHIVE_EXTENSIONS) > 0
+
+
+class TestUnzipService:
+    """Test suite for UnzipService class."""
+
+    @pytest.fixture
+    def mock_db(self):
+        """Create a mock database."""
+        db = MagicMock()
+        return db
+
+    @pytest.fixture
+    def unzip_service(self, mock_db):
+        """Create an UnzipService instance with mocked database."""
+        return UnzipService(mock_db)
+
+    @pytest.mark.asyncio
+    async def test_create_extraction(self, unzip_service, mock_db):
+        """Test create_extraction creates an entry and returns ID."""
+        mock_db.commit_fetch_one = AsyncMock(
+            return_value={
+                "id": 1,
+                "source_path": "test.zip",
+                "destination_path": "test",
+            }
+        )
+
+        result = await unzip_service.create_extraction("test.zip", "test")
+
+        assert result == 1
+        mock_db.commit_fetch_one.assert_called_once()
+        call_args = mock_db.commit_fetch_one.call_args[0]
+        assert "INSERT INTO unzip_directory" in call_args[0]
+        assert call_args[1] == ("test.zip", "test")
+
+    @pytest.mark.asyncio
+    async def test_create_extraction_raises_on_failure(self, unzip_service, mock_db):
+        """Test create_extraction raises RuntimeError when insertion fails."""
+        mock_db.commit_fetch_one = AsyncMock(return_value=None)
+
+        with pytest.raises(RuntimeError) as exc_info:
+            await unzip_service.create_extraction("test.zip", "test")
+
+        assert "Failed to insert unzip_directory entry" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_get_extraction(self, unzip_service, mock_db):
+        """Test get_extraction returns the extraction entry."""
+        mock_db.fetch_one = AsyncMock(
+            return_value={
+                "id": 1,
+                "done": False,
+                "source_path": "test.zip",
+                "destination_path": "test",
+            }
+        )
+
+        result = await unzip_service.get_extraction(1)
+
+        assert isinstance(result, UnzipDirectory)
+        assert result.id == 1
+        assert result.source_path == "test.zip"
+        assert result.destination_path == "test"
+        mock_db.fetch_one.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_get_extraction_raises_on_not_found(self, unzip_service, mock_db):
+        """Test get_extraction raises LookupError when entry not found."""
+        mock_db.fetch_one = AsyncMock(return_value=None)
+
+        with pytest.raises(LookupError) as exc_info:
+            await unzip_service.get_extraction(999)
+
+        assert "Extraction entry not found for id=999" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_update_extraction(self, unzip_service, mock_db):
+        """Test update_extraction marks task as done."""
+        mock_db.commit_execute = AsyncMock()
+
+        await unzip_service.update_extraction(1)
+
+        mock_db.commit_execute.assert_called_once()
+        call_args = mock_db.commit_execute.call_args[0]
+        assert "UPDATE unzip_directory SET done = true WHERE id = ?" in call_args[0]
+        assert call_args[1] == (1,)
+
+    @pytest.mark.asyncio
+    async def test_delete_extraction(self, unzip_service, mock_db):
+        """Test delete_extraction removes the entry."""
+        mock_db.commit_execute = AsyncMock()
+
+        await unzip_service.delete_extraction(1)
+
+        mock_db.commit_execute.assert_called_once()
+        call_args = mock_db.commit_execute.call_args[0]
+        assert "DELETE FROM unzip_directory WHERE id = ?" in call_args[0]
+        assert call_args[1] == (1,)
+
+
+class TestUnzipDirectorySchema:
+    """Test suite for UnzipDirectory schema."""
+
+    def test_unzip_directory_schema(self):
+        """Test UnzipDirectory schema."""
+        unzip_dir = UnzipDirectory(
+            id=1,
+            done=True,
+            source_path="/path/to/archive.zip",
+            destination_path="/path/to/destination",
+        )
+        assert unzip_dir.id == 1
+        assert unzip_dir.done is True
+        assert unzip_dir.source_path == "/path/to/archive.zip"
+        assert unzip_dir.destination_path == "/path/to/destination"

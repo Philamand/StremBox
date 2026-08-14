@@ -38,15 +38,36 @@
         target="_blank"
         {% endif %}
         class="btn btn-square btn-ghost"
+        title="Télécharger"
     >
         {{ icons.download_icon() }}
     </a>
+    {% if file.is_archive and not file.is_dir %}
+    <button
+        class="btn btn-square btn-ghost"
+        hx-post="/files/unzip?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
+        hx-target="#unzip_modal"
+        hx-swap="outerHTML"
+        hx-on::after-request="unzip_modal.show()"
+        title="Extraire"
+    >
+        {{ icons.archive_open_icon() }}
+    </button>
+    {% endif %}
+    <button
+        class="btn btn-square btn-ghost"
+        hx-on:click="document.getElementById('file_path').value = '{% if folder %}{{ folder }}/{% endif %}{{ file.name }}'; create_torrent_modal.show()"
+        title="Créer un torrent"
+    >
+        {{ icons.file_plus_icon() }}
+    </button>
     <button
         class="btn btn-square btn-ghost"
         hx-delete="/files/?file_path={% if folder %}{{ folder }}/{% endif %}{{ file.name }}"
         hx-target="#file-{{ loop.index }}"
         hx-confirm="Êtes-vous sûr de vouloir supprimer ce fichier ?"
         hx-swap="delete"
+        title="Supprimer"
     >
         {{ icons.trash_icon() }}
     </button>
