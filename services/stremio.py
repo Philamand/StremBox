@@ -16,9 +16,7 @@ from services.bauxite import BauxiteService
 from services.betaseries import BetaSeriesService
 from utils.stremio import (
     check_season_episode,
-    check_title_match,
     extract_download_params,
-    get_torrent_name,
     get_torrent_tracker_and_id,
     parse_torrent_name,
     sort_dicts_by_seeders_desc,
@@ -327,8 +325,8 @@ class Tr4kerService:
     async def search_series(
         self, title=None, season=None, episode=None, imdb_id=None, tmdb_id=None
     ):
-        if imdb_id:
-            params = {"t": "tvsearch", "imdbid": tmdb_id}
+        if tmdb_id:
+            params = {"t": "tvsearch", "tmdbid": tmdb_id}
             if season is not None:
                 params["season"] = season
             if episode is not None:
@@ -381,41 +379,40 @@ class StremioOrchestrationService:
 
     async def _search_movie(self, imdb_id: str) -> list[dict]:
         """Run parallel C411 + Tr4ker searches for a movie and return deduplicated results."""
-        name, year = await get_torrent_name(imdb_id, "movie")
+        if self.tr4ker:
+            betaseries_service = BetaSeriesService()
+            tmdb_id = await betaseries_service.get_tmdb_id(imdb_id, movie=True)
         if self.c411 and self.tr4ker:
             c411_results, tr4ker_results = await asyncio.gather(
                 self.c411.search_movie(imdb_id=imdb_id),
-                self.tr4ker.search_movie(title=name),
+                self.tr4ker.search_movie(tmdb_id=tmdb_id),
             )
         elif self.c411:
             c411_results = await self.c411.search_movie(imdb_id=imdb_id)
             tr4ker_results = []
         elif self.tr4ker:
-            tr4ker_results = await self.tr4ker.search_movie(title=name)
+            (self.tr4ker.search_movie(tmdb_id=tmdb_id),)
             c411_results = []
         else:
             return []
-        results: list[dict] = c411_results
-        for r in tr4ker_results:
-            if check_title_match(r["name"], None, name, year, True):
-                results.append(r)
+        results: list[dict] = c411_results + tr4ker_results
         return results
 
     async def _search_series(
         self, imdb_id: str, season: int, episode: int
     ) -> list[dict]:
         """Run parallel C411 + Tr4ker searches for a series episode and return deduplicated results."""
-        name, year = await get_torrent_name(imdb_id, "series")
-        french_title = None
         if self.tr4ker:
             betaseries_service = BetaSeriesService()
-            french_title = await betaseries_service.get_show_french_title(imdb_id)
+            tmdb_id = await betaseries_service.get_tmdb_id(imdb_id)
         if self.c411 and self.tr4ker:
             c411_results, tr4ker_results = await asyncio.gather(
                 self.c411.search_series(
                     season=season, episode=episode, imdb_id=imdb_id
                 ),
-                self.tr4ker.search_series(title=name, season=season, episode=episode),
+                self.tr4ker.search_series(
+                    season=season, episode=episode, tmdb_id=tmdb_id
+                ),
             )
         elif self.c411:
             c411_results = await self.c411.search_series(
@@ -423,8 +420,10 @@ class StremioOrchestrationService:
             )
             tr4ker_results = []
         elif self.tr4ker:
-            tr4ker_results = await self.tr4ker.search_series(
-                title=name, season=season, episode=episode
+            tr4ker_results = (
+                await self.tr4ker.search_series(
+                    season=season, episode=episode, tmdb_id=tmdb_id
+                ),
             )
             c411_results = []
         else:
@@ -434,9 +433,7 @@ class StremioOrchestrationService:
             if check_season_episode(r["name"], season, episode):
                 results.append(r)
         for r in tr4ker_results:
-            if check_season_episode(r["name"], season, episode) and check_title_match(
-                r["name"], french_title, name, year, False
-            ):
+            if check_season_episode(r["name"], season, episode):
                 results.append(r)
         return results
 
