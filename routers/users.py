@@ -22,7 +22,7 @@ async def index(request: Request):
 async def create_user(
     request: Request,
     data: Annotated[UserCreateData, Form()],
-    service: UserService = Depends(get_user_service),
+    service: Annotated[UserService, Depends(get_user_service)],
 ):
     """Create a new user."""
     user_id = await service.create_user(data)
@@ -33,7 +33,9 @@ async def create_user(
 
 @router.get("/{user_id}/", response_class=HTMLResponse)
 async def get_user(
-    request: Request, user_id: str, service: UserService = Depends(get_user_service)
+    request: Request,
+    user_id: str,
+    service: Annotated[UserService, Depends(get_user_service)],
 ):
     """Get a user by ID and display the setup page."""
     try:
@@ -51,7 +53,7 @@ async def update_user(
     request: Request,
     data: Annotated[UserCreateData, Form()],
     user_id: str,
-    service: UserService = Depends(get_user_service),
+    service: Annotated[UserService, Depends(get_user_service)],
 ):
     """Update a user by ID."""
     try:
