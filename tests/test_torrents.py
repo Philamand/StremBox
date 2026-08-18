@@ -4,7 +4,6 @@ Tests for the TorrentService class.
 This file was AI-generated.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -232,14 +231,13 @@ class TestAddTorrentStr:
             # RuntimeWarning during garbage collection.
             def _fake_wait_for(coro, timeout):
                 coro.close()
-                raise asyncio.TimeoutError()
+                raise TimeoutError
 
-            with patch("asyncio.wait_for", side_effect=_fake_wait_for):
-                with pytest.raises(
-                    ValueError,
-                    match="Temps expiré",
-                ):
-                    await service.add_torrent(self.MAGNET, max_size=1_000_000)
+            with (
+                patch("asyncio.wait_for", side_effect=_fake_wait_for),
+                pytest.raises(ValueError, match="Temps expiré"),
+            ):
+                await service.add_torrent(self.MAGNET, max_size=1_000_000)
 
         # Must have been removed
         mock_cls.return_value.remove_torrent.assert_called_once_with(
