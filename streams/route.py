@@ -134,7 +134,7 @@ async def download_stream(
                 torrent_hash, timeout=60.0, min_percent=0.05
             )
 
-        except Exception as e:
+        except ValueError as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     torrent_files = await torrent_service.get_torrent_files(torrent_hash)

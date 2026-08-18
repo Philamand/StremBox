@@ -128,7 +128,7 @@ async def unzip_archive_route(
 
     try:
         archive_size = await file_manager.get_size(source_path)
-    except Exception:
+    except OSError:
         archive_size = 0
 
     if available_size < archive_size:
@@ -284,6 +284,6 @@ async def delete_file(
     try:
         await file_manager.remove_file(file_path)
         background_tasks.add_task(torrent_service.verify_torrents_by_file, file_path)
-    except Exception:
+    except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Fichier non trouvé")
     return {"message": "Fichier supprimé avec succès"}

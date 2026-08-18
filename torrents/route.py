@@ -205,7 +205,7 @@ async def download_torrent(
                 torrent=torrent_url, max_size=available_size
             )
 
-        except Exception as e:
+        except ValueError as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     return Response(status_code=200)
