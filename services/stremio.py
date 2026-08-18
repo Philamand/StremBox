@@ -1,6 +1,4 @@
 import asyncio
-import logging
-import urllib.parse
 import xml.etree.ElementTree as ET
 from typing import Any
 
@@ -79,13 +77,6 @@ class C411Service:
         params["apikey"] = self.apikey
         params["o"] = "json"
 
-        # Log request (masking apikey)
-        log_params = params.copy()
-        log_params["apikey"] = "***APIKEY***"
-        logging.info(
-            f"C411 Search: {self.base_url}?{urllib.parse.urlencode(log_params)}"
-        )
-
         async with aiohttp.ClientSession(trust_env=True) as session:
             try:
                 async with session.get(
@@ -99,8 +90,6 @@ class C411Service:
                         # Handle single item case (JSON conversion of XML sometimes makes single item an object instead of list)
                         if isinstance(items, dict):
                             items = [items]
-
-                        logging.info(f"C411 found {len(items)} results")
 
                         normalized = []
                         for res in items:
@@ -150,12 +139,8 @@ class C411Service:
                             }
                             normalized.append(item)
                         return normalized
-                    else:
-                        logging.warning(f"C411 Error {response.status}")
-                        text = await response.text()
-                        logging.warning(f"C411 Body: {text[:200]}")
-            except Exception as e:
-                logging.error(f"C411 Exception: {e}")
+            except TimeoutError, aiohttp.ClientError, ValueError:
+                pass
         return []
 
     async def search_movie(
@@ -246,8 +231,6 @@ class Tr4kerService:
             return []
 
         params["apikey"] = self.apikey
-        log_q = params.get("tmdbid") or params.get("imdbid") or params.get("q", "")
-        logging.info(f"Tr4ker Search: {self.base_url}?t={params.get('t')}&{log_q}")
 
         async with aiohttp.ClientSession(trust_env=True) as session:
             try:
@@ -259,19 +242,15 @@ class Tr4kerService:
                     if response.status == 200:
                         text = await response.text()
                         results = self._parse_xml(text)
-                        logging.info(f"Tr4ker found {len(results)} results")
                         return results
-                    else:
-                        logging.warning(f"Tr4ker Error {response.status}")
-            except Exception as e:
-                logging.error(f"Tr4ker Exception: {e}")
+            except TimeoutError, aiohttp.ClientError:
+                pass
         return []
 
     def _parse_xml(self, xml_text):
         try:
             root = ET.fromstring(xml_text)
-        except ET.ParseError as e:
-            logging.error(f"Tr4ker XML Parse Error: {e}")
+        except ET.ParseError:
             return []
 
         ns = {"torznab": "http://torznab.com/schemas/2015/feed"}
@@ -484,7 +463,7 @@ class StremioOrchestrationService:
 
             details = parse_torrent_name(result["name"])
 
-            if result["info_hash"] in hashes.keys():
+            if result["info_hash"] in hashes:
                 torrent = hashes[result["info_hash"]]
 
                 if torrent["percent_done"] < 1:
