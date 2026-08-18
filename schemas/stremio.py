@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -7,8 +5,8 @@ class StremioStreamData(BaseModel):
     """Represents a stream returned by Stremio."""
 
     title: str
-    url: Optional[str] = None
-    externalUrl: Optional[str] = None
+    url: str | None = None
+    externalUrl: str | None = None
     filename: str
     videoSize: int
 
