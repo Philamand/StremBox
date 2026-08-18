@@ -1,4 +1,3 @@
-import logging
 import re
 import unicodedata
 from urllib.parse import urlparse
@@ -177,8 +176,7 @@ async def get_torrent_name(imdb_id: str, media_type: str):
                     else None
                 )
                 return name, year
-        except Exception as e:
-            logging.error(f"Error fetching torrent name for {imdb_id}: {e}")
+        except aiohttp.ClientError, KeyError, ValueError:
             return None, None
 
 
@@ -296,7 +294,6 @@ def check_title_match(torrent_name, title_fr, title_en, year=None, is_movie=Fals
         "volume",
         "part",
         "party",
-        "uncut",
         "dual",
         "hdtv",
     }
@@ -326,10 +323,7 @@ def check_title_match(torrent_name, title_fr, title_en, year=None, is_movie=Fals
         if next_word in tech_tags:
             return True
 
-        if next_word in norm_fr.split() or next_word in norm_en.split():
-            return True
-
-        return False
+        return next_word in norm_fr.split() or next_word in norm_en.split()
 
     title_match = is_strict_match(norm_fr, norm_torrent) or is_strict_match(
         norm_en, norm_torrent
@@ -497,6 +491,5 @@ def get_torrent_tracker_and_id(link: str) -> tuple:
                 torrent_id = match.group(1)
 
         return tracker, torrent_id
-    except Exception as e:
-        logging.error(f"Error extracting torrent ID from {link}: {e}")
+    except ValueError, AttributeError:
         return None, None
