@@ -131,7 +131,7 @@ async def download_stream(
                 torrent=torrent_url, max_size=available_size
             )
             await torrent_service.wait_for_download_start(
-                torrent_hash, timeout=60.0, min_percent=0.05
+                torrent_hash, timeout=60.0, min_percent=0.01
             )
 
         except ValueError as e:
