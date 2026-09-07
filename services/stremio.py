@@ -483,7 +483,7 @@ class StremioOrchestrationService:
                 stream_url = f"{self.librebox_url}/streams/{self.librebox_token}?file_path={file_path}"
             else:
                 speed_emoji = ""
-                stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['info_hash']}?tracker={tracker}&api_key={api_key}"
+                stream_url = f"{self.librebox_url}/streams/download/{self.librebox_token}/{result['info_hash']}?torrent_url={result['link']}"
                 if tracker == "tr4ker":
                     stream_url += f"&torrent_id={torrent_id}"
                 if season and episode:
