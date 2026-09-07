@@ -16,7 +16,6 @@ from services.betaseries import BetaSeriesService
 from utils.stremio import (
     check_season_episode,
     extract_download_params,
-    get_torrent_tracker_and_id,
     parse_torrent_name,
     sort_dicts_by_seeders_desc,
 )
@@ -453,15 +452,6 @@ class StremioOrchestrationService:
         slow_streams: list[StremioStreamData] = []
 
         for result in results:
-            tracker, torrent_id = get_torrent_tracker_and_id(result["link"])
-
-            if tracker == "c411":
-                api_key = user.c411_key
-            elif tracker == "tr4ker":
-                api_key = user.tr4ker_key
-            else:
-                api_key = None
-
             details = parse_torrent_name(result["name"])
 
             if result["info_hash"] in hashes:
