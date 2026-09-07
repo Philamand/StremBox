@@ -184,15 +184,12 @@ async def download_torrent(
     torrent_service: TorrentServiceDep,
     file_service: FileManagerDep,
     download_request: DownloadRequest,
+    torrent_url: str | None = None,
 ) -> Response:
     try:
         await torrent_service.get_torrent(download_request.torrent_hash)
     except KeyError:
-        if download_request.tracker == "c411":
-            torrent_url = f"https://c411.org/api?t=get&id={download_request.torrent_hash}&apikey={download_request.api_key}"
-        elif download_request.tracker == "torr9" and download_request.torrent_id:
-            torrent_url = f"https://api.torr9.net/api/v1/rss/torrents/{download_request.torrent_id}/download?passkey={download_request.api_key}"
-        else:
+        if not torrent_url:
             raise HTTPException(status_code=400, detail="Invalid tracker")
 
         available_size = (
