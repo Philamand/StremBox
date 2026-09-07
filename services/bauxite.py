@@ -1,7 +1,6 @@
 from typing import Any
 
-import aiohttp
-
+from http_client import get_session
 from schemas.bauxite import DownloadRequest
 
 
@@ -14,20 +13,20 @@ class BauxiteService:
 
     async def get_torrent_hashes(self) -> dict[str, Any]:
         """Get a list of torrent hashes from the API."""
-        async with aiohttp.ClientSession() as session:
-            headers = {"Authorization": f"Bearer {self.bearer_token}"}
-            async with session.get(
-                f"{self.base_url}/api/hashes/", headers=headers
-            ) as response:
-                return await response.json()
+        session = get_session()
+        headers = {"Authorization": f"Bearer {self.bearer_token}"}
+        async with session.get(
+            f"{self.base_url}/api/hashes/", headers=headers
+        ) as response:
+            return await response.json()
 
     async def download_torrent(self, request: DownloadRequest) -> None:
         """Start the download of a torrent using the provided request data."""
-        async with aiohttp.ClientSession() as session:
-            headers = {"Authorization": f"Bearer {self.bearer_token}"}
-            async with session.post(
-                f"{self.base_url}/api/download/",
-                headers=headers,
-                json=request.model_dump(),
-            ) as response:
-                await response.json()
+        session = get_session()
+        headers = {"Authorization": f"Bearer {self.bearer_token}"}
+        async with session.post(
+            f"{self.base_url}/api/download/",
+            headers=headers,
+            json=request.model_dump(),
+        ) as response:
+            await response.json()

@@ -1,10 +1,13 @@
 import json
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, cast
+from typing import cast
 
 import asyncpg
 from fastapi import FastAPI
+
+from http_client import close_http_session, init_http_session
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -18,7 +21,8 @@ async def lifespan(app: FastAPI):
 
     On startup this function creates a global asyncpg connection pool and registers
     JSON codecs so that PostgreSQL `json`/`jsonb` values are decoded to Python
-    objects automatically. On shutdown it closes the pool cleanly.
+    objects automatically, and a shared aiohttp ClientSession. On shutdown it
+    closes both cleanly.
 
     This should be passed to FastAPI(...) as the `lifespan` argument.
 
@@ -37,9 +41,11 @@ async def lifespan(app: FastAPI):
         timeout=15,
         command_timeout=60,
     )
+    await init_http_session()
 
     yield
 
+    await close_http_session()
     await _pool.close()
     _pool = None
 
@@ -87,7 +93,7 @@ def get_pool() -> asyncpg.Pool:
     return _pool
 
 
-async def get_db_conn() -> AsyncGenerator[asyncpg.Connection, None]:
+async def get_db_conn() -> AsyncGenerator[asyncpg.Connection]:
     """
     FastAPI dependency that yields a database connection from the pool.
 

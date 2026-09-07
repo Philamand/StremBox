@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import aiohttp
 
+from http_client import get_session
 from schemas.bauxite import DownloadRequest
 
 
@@ -163,21 +164,21 @@ async def get_torrent_name(imdb_id: str, media_type: str):
     Returns:
         tuple: A tuple containing the torrent name (str) and year (int or None).
     """
-    async with aiohttp.ClientSession(trust_env=True) as session:
-        try:
-            async with session.get(
-                f"https://v3-cinemeta.strem.io/meta/{media_type}/{imdb_id}.json"
-            ) as response:
-                data = await response.json()
-                name = data.get("meta", {}).get("name")
-                year = (
-                    int(data.get("meta", {}).get("year").split("–")[0])
-                    if data.get("meta", {}).get("year")
-                    else None
-                )
-                return name, year
-        except aiohttp.ClientError, KeyError, ValueError:
-            return None, None
+    session = get_session()
+    try:
+        async with session.get(
+            f"https://v3-cinemeta.strem.io/meta/{media_type}/{imdb_id}.json"
+        ) as response:
+            data = await response.json()
+            name = data.get("meta", {}).get("name")
+            year = (
+                int(data.get("meta", {}).get("year").split("–")[0])
+                if data.get("meta", {}).get("year")
+                else None
+            )
+            return name, year
+    except aiohttp.ClientError, KeyError, ValueError:
+        return None, None
 
 
 def normalize_title(title: str) -> str:

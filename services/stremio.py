@@ -5,6 +5,7 @@ from typing import Any
 import aiohttp
 from aiohttp import ClientTimeout
 
+from http_client import get_session
 from schemas.stremio import (
     StremioStreamData,
     StremioStreamsResponse,
@@ -77,70 +78,70 @@ class C411Service:
         params["apikey"] = self.apikey
         params["o"] = "json"
 
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            try:
-                async with session.get(
-                    self.base_url, params=params, timeout=ClientTimeout(total=20)
-                ) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        channel = data.get("channel", {})
-                        items = channel.get("item", [])
+        session = get_session()
+        try:
+            async with session.get(
+                self.base_url, params=params, timeout=ClientTimeout(total=20)
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    channel = data.get("channel", {})
+                    items = channel.get("item", [])
 
-                        # Handle single item case (JSON conversion of XML sometimes makes single item an object instead of list)
-                        if isinstance(items, dict):
-                            items = [items]
+                    # Handle single item case (JSON conversion of XML sometimes makes single item an object instead of list)
+                    if isinstance(items, dict):
+                        items = [items]
 
-                        normalized = []
-                        for res in items:
-                            # Extract torznab attributes
-                            attrs = res.get("torznab:attr", [])
-                            if isinstance(attrs, dict):
-                                attrs = [attrs]
+                    normalized = []
+                    for res in items:
+                        # Extract torznab attributes
+                        attrs = res.get("torznab:attr", [])
+                        if isinstance(attrs, dict):
+                            attrs = [attrs]
 
-                            info_hash = None
-                            seeders = 0
-                            leechers = 0
+                        info_hash = None
+                        seeders = 0
+                        leechers = 0
 
-                            for attr in attrs:
-                                attr_data = attr.get("@attributes", {})
-                                name = attr_data.get("name")
-                                value = attr_data.get("value")
+                        for attr in attrs:
+                            attr_data = attr.get("@attributes", {})
+                            name = attr_data.get("name")
+                            value = attr_data.get("value")
 
-                                if name == "infohash":
-                                    info_hash = value
-                                elif name == "seeders":
-                                    seeders = int(value) if value else 0
-                                    if leechers != 0:
-                                        leechers -= seeders
-                                elif name == "peers":
-                                    if seeders != 0 and value:
-                                        leechers = int(value) - seeders
-                                    else:
-                                        leechers = int(value) if value else 0
+                            if name == "infohash":
+                                info_hash = value
+                            elif name == "seeders":
+                                seeders = int(value) if value else 0
+                                if leechers != 0:
+                                    leechers -= seeders
+                            elif name == "peers":
+                                if seeders != 0 and value:
+                                    leechers = int(value) - seeders
+                                else:
+                                    leechers = int(value) if value else 0
 
-                            # Fallback hash to guid if infohash not found (guid is often hash in torznab)
-                            if not info_hash:
-                                info_hash = res.get("guid")
+                        # Fallback hash to guid if infohash not found (guid is often hash in torznab)
+                        if not info_hash:
+                            info_hash = res.get("guid")
 
-                            enclosure = res.get("enclosure", {}).get("@attributes", {})
-                            download_link = enclosure.get("url")
+                        enclosure = res.get("enclosure", {}).get("@attributes", {})
+                        download_link = enclosure.get("url")
 
-                            item = {
-                                "name": res.get("title"),
-                                "size": int(res.get("size", 0)),
-                                "tracker_name": "C411",
-                                "info_hash": info_hash,
-                                "magnet": None,
-                                "link": download_link,
-                                "source": "c411",
-                                "seeders": seeders,
-                                "leechers": leechers,
-                            }
-                            normalized.append(item)
-                        return normalized
-            except TimeoutError, aiohttp.ClientError, ValueError:
-                pass
+                        item = {
+                            "name": res.get("title"),
+                            "size": int(res.get("size", 0)),
+                            "tracker_name": "C411",
+                            "info_hash": info_hash,
+                            "magnet": None,
+                            "link": download_link,
+                            "source": "c411",
+                            "seeders": seeders,
+                            "leechers": leechers,
+                        }
+                        normalized.append(item)
+                    return normalized
+        except TimeoutError, aiohttp.ClientError, ValueError:
+            pass
         return []
 
     async def search_movie(
@@ -232,19 +233,19 @@ class Tr4kerService:
 
         params["apikey"] = self.apikey
 
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            try:
-                async with session.get(
-                    self.base_url,
-                    params=params,
-                    timeout=aiohttp.ClientTimeout(total=20),
-                ) as response:
-                    if response.status == 200:
-                        text = await response.text()
-                        results = self._parse_xml(text)
-                        return results
-            except TimeoutError, aiohttp.ClientError:
-                pass
+        session = get_session()
+        try:
+            async with session.get(
+                self.base_url,
+                params=params,
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as response:
+                if response.status == 200:
+                    text = await response.text()
+                    results = self._parse_xml(text)
+                    return results
+        except TimeoutError, aiohttp.ClientError:
+            pass
         return []
 
     def _parse_xml(self, xml_text):

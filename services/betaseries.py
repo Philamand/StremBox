@@ -1,6 +1,6 @@
 import os
 
-import aiohttp
+from http_client import get_session
 
 
 class BetaSeriesService:
@@ -15,11 +15,11 @@ class BetaSeriesService:
         url = f"{self.base_url}/shows/display"
         params = {"imdb_id": imdb_id, "summary": "true"}
 
-        async with aiohttp.ClientSession() as session:
-            headers = {"X-BetaSeries-Key": self.api_key}
-            async with session.get(url, params=params, headers=headers) as response:
-                data = await response.json()
-                return data.get("show", {}).get("title")
+        session = get_session()
+        headers = {"X-BetaSeries-Key": self.api_key}
+        async with session.get(url, params=params, headers=headers) as response:
+            data = await response.json()
+            return data.get("show", {}).get("title")
 
     async def get_tmdb_id(self, imdb_id: str, movie: bool = False) -> str | None:
         if self.api_key is None:
@@ -31,10 +31,10 @@ class BetaSeriesService:
             url = f"{self.base_url}/shows/display"
         params = {"imdb_id": imdb_id, "summary": "true"}
 
-        async with aiohttp.ClientSession() as session:
-            headers = {"X-BetaSeries-Key": self.api_key}
-            async with session.get(url, params=params, headers=headers) as response:
-                data = await response.json()
-                if movie:
-                    return data.get("movie", {}).get("tmdb_id")
-                return data.get("show", {}).get("themoviedb_id")
+        session = get_session()
+        headers = {"X-BetaSeries-Key": self.api_key}
+        async with session.get(url, params=params, headers=headers) as response:
+            data = await response.json()
+            if movie:
+                return data.get("movie", {}).get("tmdb_id")
+            return data.get("show", {}).get("themoviedb_id")
