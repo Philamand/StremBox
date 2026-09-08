@@ -1,5 +1,7 @@
 import os
 
+from http_client import get_session
+
 
 class TraktError(Exception):
     pass
@@ -21,3 +23,14 @@ class TraktService:
             "trakt-api-key": self.api_key,
             "authorization": f"Bearer {self.access_token}",
         }
+
+    async def get_unwatched_movies(self) -> list[int]:
+        url = f"{self.base_url}/users/me/watchlist/movies/title"
+        params = {"hide": "unreleased"}
+
+        session = get_session()
+        async with session.get(
+            url, params=params, headers=self._get_headers()
+        ) as response:
+            data = await response.json()
+            return [item["movie"]["ids"]["tmdb"] for item in data]
