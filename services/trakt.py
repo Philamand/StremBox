@@ -34,3 +34,18 @@ class TraktService:
         ) as response:
             data = await response.json()
             return [item["movie"]["ids"]["tmdb"] for item in data]
+
+    async def get_unfinished_shows(self) -> list[int]:
+        url = f"{self.base_url}/users/me/watched/shows"
+        params = {"hidden": "false", "specials": "false"}
+
+        session = get_session()
+        async with session.get(
+            url, params=params, headers=self._get_headers()
+        ) as response:
+            data = await response.json()
+            return [
+                item["show"]["ids"]["tmdb"]
+                for item in data
+                if item["plays"] < item["show"]["aired_episodes"]
+            ]
