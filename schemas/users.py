@@ -11,6 +11,7 @@ class UserCreateData(BaseModel):
     c411_key: str | None = None
     tr4ker_key: str | None = None
     lacale_key: str | None = None
+    trakt_slug: str | None = None
 
 
 class UserData(BaseModel):
@@ -22,3 +23,4 @@ class UserData(BaseModel):
     c411_key: str | None = None
     tr4ker_key: str | None = None
     lacale_key: str | None = None
+    trakt_slug: str | None = None

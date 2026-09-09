@@ -120,6 +120,19 @@
                     />
                 </div>
 
+                <div class="mb-3">
+                    <label for="traktSlug" class="form-label">Trakt Slug</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="traktSlug"
+                        name="trakt_slug"
+                        {% if user %}
+                        value="{{ user.trakt_slug }}"
+                        {% endif %}
+                    />
+                </div>
+
                 <button type="submit" class="btn btn-primary">Générer</button>
             </form>
         </div>

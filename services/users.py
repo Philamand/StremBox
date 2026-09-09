@@ -12,24 +12,26 @@ class UserService:
     async def create_user(self, user: UserCreateData) -> str:
         """Create a new user and return the user's ID."""
         result = await self.conn.fetch(
-            "INSERT INTO users (librebox_url, librebox_token, c411_key, tr4ker_key, lacale_key) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+            "INSERT INTO users (librebox_url, librebox_token, c411_key, tr4ker_key, lacale_key, trakt_slug) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
             user.librebox_url,
             user.librebox_token,
             user.c411_key,
             user.tr4ker_key,
             user.lacale_key,
+            user.trakt_slug,
         )
         return result[0]["id"]
 
     async def update_user(self, user_id: str, user: UserCreateData) -> None:
         """Update an existing user with the given data."""
         result = await self.conn.execute(
-            "UPDATE users SET librebox_url = $1, librebox_token = $2, c411_key = $3, tr4ker_key = $4, lacale_key = $5 WHERE id = $6",
+            "UPDATE users SET librebox_url = $1, librebox_token = $2, c411_key = $3, tr4ker_key = $4, lacale_key = $5, trakt_slug = $6 WHERE id = $7",
             user.librebox_url,
             user.librebox_token,
             user.c411_key,
             user.tr4ker_key,
             user.lacale_key,
+            user.trakt_slug,
             user_id,
         )
 
