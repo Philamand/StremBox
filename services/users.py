@@ -49,3 +49,16 @@ class UserService:
             raise ValueError("User not found")
 
         return UserData(**result[0])
+
+    async def get_all_users(self, filter_without_trakt_slug: bool = False) -> list[UserData]:
+        """Get all users, optionally filtering out those without a trakt_slug."""
+        if filter_without_trakt_slug:
+            result = await self.conn.fetch(
+                "SELECT * FROM users WHERE trakt_slug IS NOT NULL",
+            )
+        else:
+            result = await self.conn.fetch(
+                "SELECT * FROM users",
+            )
+
+        return [UserData(**row) for row in result]
