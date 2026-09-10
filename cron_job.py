@@ -27,8 +27,9 @@ async def main():
             trakt_service = TraktService()
 
             for user in users:
-                movies = await trakt_service.get_unwatched_movies(user.trakt_slug)
-                shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
+                if user.trakt_slug:
+                    movies = await trakt_service.get_unwatched_movies(user.trakt_slug)
+                    shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
 
     finally:
         await pool.close()
