@@ -356,7 +356,7 @@ class StremioOrchestrationService:
         self.librebox_url = librebox_url
         self.librebox_token = librebox_token
 
-    async def _search_movie(self, imdb_id: str) -> list[dict]:
+    async def search_movie(self, imdb_id: str) -> list[dict]:
         """Run parallel C411 + Tr4ker searches for a movie and return deduplicated results."""
         if self.tr4ker:
             betaseries_service = BetaSeriesService()
@@ -377,9 +377,7 @@ class StremioOrchestrationService:
         results: list[dict] = c411_results + tr4ker_results
         return results
 
-    async def _search_series(
-        self, imdb_id: str, season: int, episode: int
-    ) -> list[dict]:
+    async def search_serie(self, imdb_id: str, season: int, episode: int) -> list[dict]:
         """Run parallel C411 + Tr4ker searches for a series episode and return deduplicated results."""
         if self.tr4ker:
             betaseries_service = BetaSeriesService()
@@ -437,9 +435,9 @@ class StremioOrchestrationService:
             imdb_id = parts[0]
             season = int(parts[1])
             episode = int(parts[2])
-            results = await self._search_series(imdb_id, season, episode)
+            results = await self.search_serie(imdb_id, season, episode)
         else:
-            results = await self._search_movie(id)
+            results = await self.search_movie(id)
             season = None
             episode = None
 
