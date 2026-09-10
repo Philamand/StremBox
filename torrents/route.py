@@ -178,6 +178,29 @@ async def get_hashes(
     return hashes_dict
 
 
+@api_router.post("/add/")
+async def add_torrent_api(
+    request: Request,
+    torrent_service: TorrentServiceDep,
+    file_service: FileManagerDep,
+    torrent_url: Annotated[str, Query()],
+) -> dict[str, str]:
+    """Add a torrent from a URL and return its info-hash."""
+    available_size = (
+        request.state.user.transmission_data.size * 1024 * 1024 * 1024
+        - await file_service.get_folder_size()
+    )
+
+    try:
+        torrent_id = await torrent_service.add_torrent(
+            torrent=torrent_url, max_size=available_size
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"torrent_id": torrent_id}
+
+
 @api_router.post("/download/")
 async def download_torrent(
     request: Request,
