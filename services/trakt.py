@@ -24,7 +24,7 @@ class TraktService:
             "authorization": f"Bearer {self.access_token}",
         }
 
-    async def get_unwatched_movies(self, user_slug: str) -> list[int]:
+    async def get_unwatched_movies(self, user_slug: str) -> list[str]:
         url = f"{self.base_url}/users/{user_slug}/watchlist/movies/title"
         params = {"hide": "unreleased"}
 
@@ -33,9 +33,9 @@ class TraktService:
             url, params=params, headers=self._get_headers()
         ) as response:
             data = await response.json()
-            return [item["movie"]["ids"]["tmdb"] for item in data]
+            return [item["movie"]["ids"]["imdb"] for item in data]
 
-    async def get_unwatched_shows(self, user_slug: str) -> list[int]:
+    async def get_unwatched_shows(self, user_slug: str) -> list[str]:
         url = f"{self.base_url}/users/{user_slug}/watchlist/shows/title"
         params = {"hide": "unreleased"}
 
@@ -44,9 +44,9 @@ class TraktService:
             url, params=params, headers=self._get_headers()
         ) as response:
             data = await response.json()
-            return [item["show"]["ids"]["tmdb"] for item in data]
+            return [item["show"]["ids"]["imdb"] for item in data]
 
-    async def get_unfinished_shows(self, user_slug: str) -> list[int]:
+    async def get_unfinished_shows(self, user_slug: str) -> list[str]:
         url = f"{self.base_url}/users/{user_slug}/watched/shows"
         params = {"hidden": "false", "specials": "false"}
 
@@ -56,7 +56,7 @@ class TraktService:
         ) as response:
             data = await response.json()
             return [
-                item["show"]["ids"]["tmdb"]
+                item["show"]["ids"]["imdb"]
                 for item in data
                 if item["plays"] < item["show"]["aired_episodes"]
             ]
