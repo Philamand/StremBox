@@ -8,6 +8,7 @@ from services.bauxite import BauxiteService
 from services.stremio import C411Service, StremioOrchestrationService, Tr4kerService
 from services.trakt import TraktService
 from services.users import UserService
+from utils.stremio import sort_dicts_by_seeders_desc
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -53,8 +54,9 @@ async def main():
                     # shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
 
                     for movie in movies:
-                        in_library = False
                         results = await stremio_service.search_movie(str(movie))
+                        results = sort_dicts_by_seeders_desc(results)
+                        in_library = False
 
                         for result in results:
                             if result["info_hash"] in hashes:
