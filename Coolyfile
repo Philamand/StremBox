@@ -1,0 +1,23 @@
+FROM python:3.14-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/venv/bin:$PATH"
+
+WORKDIR /app
+
+RUN python -m venv /app/venv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL -o /usr/local/bin/dbmate \
+       "https://github.com/amacneil/dbmate/releases/latest/download/dbmate-linux-amd64" \
+    && chmod +x /usr/local/bin/dbmate
+RUN dbmate --url="${DATABASE_URL}" --no-dump-schema --wait --wait-timeout 60s up
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
