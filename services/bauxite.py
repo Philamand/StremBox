@@ -30,3 +30,14 @@ class BauxiteService:
             json=request.model_dump(),
         ) as response:
             await response.json()
+
+    async def add_torrent_download(self, torrent_url: str) -> None:
+        """Add a torrent download to the queue."""
+        session = get_session()
+        headers = {"Authorization": f"Bearer {self.bearer_token}"}
+        async with session.post(
+            f"{self.base_url}/api/add/",
+            headers=headers,
+            params={"torrent_url": torrent_url},
+        ) as response:
+            await response.json()
