@@ -51,10 +51,25 @@ async def main():
                     )
 
                     movies = await trakt_service.get_unwatched_movies(user.trakt_slug)
-                    # shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
+                    shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
 
                     for movie in movies:
-                        results = await stremio_service.search_movie(str(movie))
+                        results = await stremio_service.search_movie(movie)
+                        results = sort_dicts_by_seeders_desc(results)
+                        in_library = False
+
+                        for result in results:
+                            if result["info_hash"] in hashes:
+                                in_library = True
+                                break
+
+                        if not in_library and len(results) > 0:
+                            await bauxite_service.add_torrent_download(
+                                results[0]["link"]
+                            )
+
+                    for show in shows:
+                        results = await stremio_service.search_serie(show, season=1, episode=1)
                         results = sort_dicts_by_seeders_desc(results)
                         in_library = False
 
