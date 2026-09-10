@@ -3,6 +3,7 @@ import os
 
 import asyncpg
 
+from http_client import close_http_session, init_http_session
 from services.bauxite import BauxiteService
 from services.stremio import C411Service, StremioOrchestrationService, Tr4kerService
 from services.trakt import TraktService
@@ -12,6 +13,8 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 async def main():
+    await init_http_session()
+
     pool = await asyncpg.create_pool(
         dsn=DATABASE_URL,
         min_size=1,
@@ -65,6 +68,7 @@ async def main():
 
     finally:
         await pool.close()
+        await close_http_session()
 
 
 if __name__ == "__main__":
