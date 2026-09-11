@@ -1,6 +1,7 @@
 import os
 
 from http_client import get_session
+from schemas.trakt import TraktSeason
 
 
 class TraktError(Exception):
@@ -60,3 +61,14 @@ class TraktService:
                 for item in data
                 if item["plays"] < item["show"]["aired_episodes"]
             ]
+
+    async def get_all_seasons(self, show_id: str) -> list[TraktSeason]:
+        url = f"{self.base_url}/shows/{show_id}/seasons"
+        params = {"extended": "episodes"}
+
+        session = get_session()
+        async with session.get(
+            url, params=params, headers=self._get_headers()
+        ) as response:
+            data = await response.json()
+            return [TraktSeason.model_validate(season) for season in data]
