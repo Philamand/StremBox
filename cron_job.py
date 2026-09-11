@@ -52,6 +52,9 @@ async def main():
 
                     movies = await trakt_service.get_unwatched_movies(user.trakt_slug)
                     shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
+                    unfinished_shows = await trakt_service.get_unfinished_shows(
+                        user.trakt_slug
+                    )
 
                     for movie in movies:
                         results = await stremio_service.search_movie(
@@ -86,6 +89,30 @@ async def main():
                             await bauxite_service.add_torrent_download(
                                 results[0]["link"]
                             )
+
+                    for show in unfinished_shows:
+                        next_episode = await trakt_service.get_next_episode(
+                            show.show.ids.tmdb, user.trakt_slug
+                        )
+
+                        if next_episode:
+                            results = await stremio_service.search_serie(
+                                show.show.ids.tmdb,
+                                season=next_episode.season,
+                                episode=next_episode.number,
+                            )
+                            results = sort_dicts_by_seeders_desc(results)
+                            in_library = False
+
+                            for result in results:
+                                if result["info_hash"] in hashes:
+                                    in_library = True
+                                    break
+
+                            if not in_library and len(results) > 0:
+                                await bauxite_service.add_torrent_download(
+                                    results[0]["link"]
+                                )
 
     finally:
         await pool.close()
