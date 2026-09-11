@@ -1,7 +1,7 @@
 import os
 
 from http_client import get_session
-from schemas.trakt import TraktSeason
+from schemas.trakt import TraktHistoryEntry, TraktSeason
 
 
 class TraktError(Exception):
@@ -72,3 +72,13 @@ class TraktService:
         ) as response:
             data = await response.json()
             return [TraktSeason.model_validate(season) for season in data]
+
+    async def get_show_history(
+        self, user_slug: str, item_id: str
+    ) -> list[TraktHistoryEntry]:
+        url = f"{self.base_url}/users/{user_slug}/history/shows/{item_id}"
+
+        session = get_session()
+        async with session.get(url, headers=self._get_headers()) as response:
+            data = await response.json()
+            return [TraktHistoryEntry.model_validate(entry) for entry in data]

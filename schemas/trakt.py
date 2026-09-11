@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class TraktPlexIds(BaseModel):
     guid: str | None = None
+    slug: str | None = None
 
 
 class TraktSeasonIds(BaseModel):
@@ -31,3 +32,28 @@ class TraktSeason(BaseModel):
     ids: TraktSeasonIds
     number: int
     episodes: list[TraktEpisode]
+
+
+class TraktShowIds(BaseModel):
+    imdb: str | None = None
+    plex: TraktPlexIds | None = None
+    slug: str | None = None
+    tmdb: int | None = None
+    tvdb: int | None = None
+    trakt: int | None = None
+
+
+class TraktShow(BaseModel):
+    ids: TraktShowIds
+    title: str
+    year: int | None = None
+    aired_episodes: int | None = None
+
+
+class TraktHistoryEntry(BaseModel):
+    id: int
+    watched_at: str
+    action: str
+    type: str
+    episode: TraktEpisode
+    show: TraktShow
