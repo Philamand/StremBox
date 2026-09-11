@@ -2,6 +2,7 @@ import os
 
 from http_client import get_session
 from schemas.trakt import (
+    TraktEpisode,
     TraktHistoryEntry,
     TraktSeason,
     TraktWatchedShow,
@@ -88,3 +89,23 @@ class TraktService:
         async with session.get(url, headers=self._get_headers()) as response:
             data = await response.json()
             return [TraktHistoryEntry.model_validate(entry) for entry in data]
+
+    async def get_next_episode(
+        self, user_slug: str, show_id: str
+    ) -> TraktEpisode | None:
+        seasons = await self.get_all_seasons(show_id)
+        history = await self.get_show_history(user_slug, show_id)
+
+        watched_ids = {
+            entry.episode.ids.trakt
+            for entry in history
+            if entry.episode.ids.trakt is not None
+        }
+
+        for season in sorted(seasons, key=lambda s: s.number):
+            if season.number == 0:
+                continue
+            for episode in sorted(season.episodes, key=lambda e: e.number):
+                if episode.ids.trakt not in watched_ids:
+                    return episode
+        return None
