@@ -82,6 +82,16 @@ class TraktService:
             data = await response.json()
             return [TraktSeason.model_validate(season) for season in data]
 
+    async def get_all_episodes_season(
+        self, id: str, season: int
+    ) -> list[TraktEpisode]:
+        url = f"{self.base_url}/shows/{id}/seasons/{season}"
+
+        session = get_session()
+        async with session.get(url, headers=self._get_headers()) as response:
+            data = await response.json()
+            return [TraktEpisode.model_validate(episode) for episode in data]
+
     async def get_show_history(
         self, user_slug: str, item_id: str
     ) -> list[TraktHistoryEntry]:
