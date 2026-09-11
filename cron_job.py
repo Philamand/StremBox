@@ -58,7 +58,7 @@ async def main():
 
                     for movie in movies:
                         results = await stremio_service.search_movie(
-                            movie.movie.ids.tmdb
+                            movie.movie.ids.imdb
                         )
                         results = sort_dicts_by_seeders_desc(results)
                         in_library = False
@@ -75,7 +75,7 @@ async def main():
 
                     for show in shows:
                         results = await stremio_service.search_serie(
-                            show.show.ids.tmdb, season=1, episode=1
+                            show.show.ids.imdb, season=1, episode=1
                         )
                         results = sort_dicts_by_seeders_desc(results)
                         in_library = False
@@ -92,12 +92,12 @@ async def main():
 
                     for show in unfinished_shows:
                         next_episode = await trakt_service.get_next_episode(
-                            show.show.ids.tmdb, user.trakt_slug
+                            show.show.ids.imdb, user.trakt_slug
                         )
 
                         if next_episode:
                             results = await stremio_service.search_serie(
-                                show.show.ids.tmdb,
+                                show.show.ids.imdb,
                                 season=next_episode.season,
                                 episode=next_episode.number,
                             )
