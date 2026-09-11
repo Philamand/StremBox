@@ -57,3 +57,27 @@ class TraktHistoryEntry(BaseModel):
     type: str
     episode: TraktEpisode
     show: TraktShow
+
+
+class TraktMovieIds(BaseModel):
+    imdb: str | None = None
+    plex: TraktPlexIds | None = None
+    slug: str | None = None
+    tmdb: int | None = None
+    trakt: int | None = None
+
+
+class TraktMovie(BaseModel):
+    ids: TraktMovieIds
+    title: str
+    year: int | None = None
+
+
+class TraktWatchlistMovie(BaseModel):
+    type: str
+    movie: TraktMovie
+    rank: int
+    id: int
+    listed_at: str
+    notes: str | None = None
+    my_rating: int | None = None

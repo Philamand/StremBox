@@ -1,7 +1,7 @@
 import os
 
 from http_client import get_session
-from schemas.trakt import TraktHistoryEntry, TraktSeason
+from schemas.trakt import TraktHistoryEntry, TraktSeason, TraktWatchlistMovie
 
 
 class TraktError(Exception):
@@ -25,7 +25,7 @@ class TraktService:
             "authorization": f"Bearer {self.access_token}",
         }
 
-    async def get_unwatched_movies(self, user_slug: str) -> list[int]:
+    async def get_unwatched_movies(self, user_slug: str) -> list[TraktWatchlistMovie]:
         url = f"{self.base_url}/users/{user_slug}/watchlist/movies/title"
         params = {"hide": "unreleased"}
 
@@ -34,7 +34,7 @@ class TraktService:
             url, params=params, headers=self._get_headers()
         ) as response:
             data = await response.json()
-            return [item["movie"]["ids"]["tmdb"] for item in data]
+            return [TraktWatchlistMovie.model_validate(item) for item in data]
 
     async def get_unwatched_shows(self, user_slug: str) -> list[int]:
         url = f"{self.base_url}/users/{user_slug}/watchlist/shows/title"

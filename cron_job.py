@@ -51,7 +51,9 @@ async def main():
 
                     for movie in movies:
                         in_library = False
-                        results = await stremio_service.search_movie(str(movie))
+                        results = await stremio_service.search_movie(
+                            str(movie.movie.ids.tmdb)
+                        )
 
                         for result in results:
                             if result["info_hash"] in hashes:
