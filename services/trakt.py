@@ -110,6 +110,24 @@ class TraktService:
             data = await response.json()
             return [TraktMovieHistoryEntry.model_validate(entry) for entry in data]
 
+    async def get_show_watched_history(
+        self, user_slug: str
+    ) -> list[TraktHistoryEntry]:
+        url = f"{self.base_url}/users/{user_slug}/history/shows"
+
+        today = datetime.now().date()
+        params = {
+            "start_at": (today - timedelta(weeks=3)).strftime("%Y-%m-%d"),
+            "end_at": (today - timedelta(weeks=2)).strftime("%Y-%m-%d"),
+        }
+
+        session = get_session()
+        async with session.get(
+            url, params=params, headers=self._get_headers()
+        ) as response:
+            data = await response.json()
+            return [TraktHistoryEntry.model_validate(entry) for entry in data]
+
     async def get_next_episode(
         self, user_slug: str, show_id: str
     ) -> TraktEpisode | None:
