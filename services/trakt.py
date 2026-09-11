@@ -1,7 +1,12 @@
 import os
 
 from http_client import get_session
-from schemas.trakt import TraktHistoryEntry, TraktSeason, TraktWatchlistMovie
+from schemas.trakt import (
+    TraktHistoryEntry,
+    TraktSeason,
+    TraktWatchlistMovie,
+    TraktWatchlistShow,
+)
 
 
 class TraktError(Exception):
@@ -36,7 +41,7 @@ class TraktService:
             data = await response.json()
             return [TraktWatchlistMovie.model_validate(item) for item in data]
 
-    async def get_unwatched_shows(self, user_slug: str) -> list[int]:
+    async def get_unwatched_shows(self, user_slug: str) -> list[TraktWatchlistShow]:
         url = f"{self.base_url}/users/{user_slug}/watchlist/shows/title"
         params = {"hide": "unreleased"}
 
@@ -45,7 +50,7 @@ class TraktService:
             url, params=params, headers=self._get_headers()
         ) as response:
             data = await response.json()
-            return [item["show"]["ids"]["tmdb"] for item in data]
+            return [TraktWatchlistShow.model_validate(item) for item in data]
 
     async def get_unfinished_shows(self, user_slug: str) -> list[int]:
         url = f"{self.base_url}/users/{user_slug}/watched/shows"

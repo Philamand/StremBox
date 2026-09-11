@@ -81,3 +81,13 @@ class TraktWatchlistMovie(BaseModel):
     listed_at: str
     notes: str | None = None
     my_rating: int | None = None
+
+
+class TraktWatchlistShow(BaseModel):
+    type: str
+    show: TraktShow
+    rank: int
+    id: int
+    listed_at: str
+    notes: str | None = None
+    my_rating: int | None = None
