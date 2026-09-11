@@ -95,6 +95,8 @@ async def main():
                             show.show.ids.imdb, user.trakt_slug
                         )
 
+                        print(show.show.title, next_episode)
+
                         if next_episode:
                             results = await stremio_service.search_serie(
                                 show.show.ids.imdb,
