@@ -73,6 +73,14 @@ class TraktMovie(BaseModel):
     year: int | None = None
 
 
+class TraktMovieHistoryEntry(BaseModel):
+    id: int
+    watched_at: str
+    action: str
+    type: str
+    movie: TraktMovie
+
+
 class TraktWatchlistMovie(BaseModel):
     type: str
     movie: TraktMovie
