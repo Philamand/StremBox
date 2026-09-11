@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 
 from http_client import get_session
 from schemas.trakt import (
@@ -96,8 +97,16 @@ class TraktService:
     ) -> list[TraktMovieHistoryEntry]:
         url = f"{self.base_url}/users/{user_slug}/history/movies"
 
+        today = datetime.now().date()
+        params = {
+            "start_at": (today - timedelta(weeks=3)).strftime("%Y-%m-%d"),
+            "end_at": (today - timedelta(weeks=2)).strftime("%Y-%m-%d"),
+        }
+
         session = get_session()
-        async with session.get(url, headers=self._get_headers()) as response:
+        async with session.get(
+            url, params=params, headers=self._get_headers()
+        ) as response:
             data = await response.json()
             return [TraktMovieHistoryEntry.model_validate(entry) for entry in data]
 
