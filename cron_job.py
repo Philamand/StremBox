@@ -3,15 +3,19 @@ import os
 
 import asyncpg
 
+from http_client import close_http_session, init_http_session
 from services.bauxite import BauxiteService
 from services.stremio import C411Service, StremioOrchestrationService, Tr4kerService
 from services.trakt import TraktService
 from services.users import UserService
+from utils.stremio import sort_dicts_by_seeders_desc
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 async def main():
+    await init_http_session()
+
     pool = await asyncpg.create_pool(
         dsn=DATABASE_URL,
         min_size=1,
@@ -47,13 +51,31 @@ async def main():
                     )
 
                     movies = await trakt_service.get_unwatched_movies(user.trakt_slug)
-                    # shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
+                    shows = await trakt_service.get_unwatched_shows(user.trakt_slug)
 
                     for movie in movies:
-                        in_library = False
                         results = await stremio_service.search_movie(
-                            str(movie.movie.ids.tmdb)
+                            movie.movie.ids.tmdb
                         )
+                        results = sort_dicts_by_seeders_desc(results)
+                        in_library = False
+
+                        for result in results:
+                            if result["info_hash"] in hashes:
+                                in_library = True
+                                break
+
+                        if not in_library and len(results) > 0:
+                            await bauxite_service.add_torrent_download(
+                                results[0]["link"]
+                            )
+
+                    for show in shows:
+                        results = await stremio_service.search_serie(
+                            show.show.ids.tmdb, season=1, episode=1
+                        )
+                        results = sort_dicts_by_seeders_desc(results)
+                        in_library = False
 
                         for result in results:
                             if result["info_hash"] in hashes:
@@ -67,6 +89,7 @@ async def main():
 
     finally:
         await pool.close()
+        await close_http_session()
 
 
 if __name__ == "__main__":
