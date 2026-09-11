@@ -91,3 +91,11 @@ class TraktWatchlistShow(BaseModel):
     listed_at: str
     notes: str | None = None
     my_rating: int | None = None
+
+
+class TraktWatchedShow(BaseModel):
+    plays: int
+    last_watched_at: str
+    last_updated_at: str
+    reset_at: str | None = None
+    show: TraktShow

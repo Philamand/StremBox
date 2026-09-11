@@ -4,6 +4,7 @@ from http_client import get_session
 from schemas.trakt import (
     TraktHistoryEntry,
     TraktSeason,
+    TraktWatchedShow,
     TraktWatchlistMovie,
     TraktWatchlistShow,
 )
@@ -52,7 +53,7 @@ class TraktService:
             data = await response.json()
             return [TraktWatchlistShow.model_validate(item) for item in data]
 
-    async def get_unfinished_shows(self, user_slug: str) -> list[int]:
+    async def get_unfinished_shows(self, user_slug: str) -> list[TraktWatchedShow]:
         url = f"{self.base_url}/users/{user_slug}/watched/shows"
         params = {"hidden": "false", "specials": "false"}
 
@@ -62,7 +63,7 @@ class TraktService:
         ) as response:
             data = await response.json()
             return [
-                item["show"]["ids"]["tmdb"]
+                TraktWatchedShow.model_validate(item)
                 for item in data
                 if item["plays"] < item["show"]["aired_episodes"]
             ]
