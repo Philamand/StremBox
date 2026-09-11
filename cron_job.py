@@ -92,7 +92,7 @@ async def main():
 
                     for show in unfinished_shows:
                         next_episode = await trakt_service.get_next_episode(
-                            show.show.ids.slug, user.trakt_slug
+                            user.trakt_slug, show.show.ids.slug
                         )
 
                         if next_episode:
