@@ -5,6 +5,7 @@ from http_client import get_session
 from schemas.trakt import (
     TraktEpisode,
     TraktFavoriteMovieEntry,
+    TraktFavoriteShowEntry,
     TraktHistoryEntry,
     TraktMovieHistoryEntry,
     TraktSeason,
@@ -112,6 +113,16 @@ class TraktService:
         async with session.get(url, headers=self._get_headers()) as response:
             data = await response.json()
             return [TraktFavoriteMovieEntry.model_validate(item) for item in data]
+
+    async def get_favorite_shows(
+        self, user_slug: str, sort: str = "rank"
+    ) -> list[TraktFavoriteShowEntry]:
+        url = f"{self.base_url}/users/{user_slug}/favorites/shows/{sort}"
+
+        session = get_session()
+        async with session.get(url, headers=self._get_headers()) as response:
+            data = await response.json()
+            return [TraktFavoriteShowEntry.model_validate(item) for item in data]
 
     async def get_movie_watched_history(
         self, user_slug: str

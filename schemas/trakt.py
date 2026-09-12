@@ -26,6 +26,12 @@ class TraktColors(BaseModel):
     poster: list[str] | None = None
 
 
+class TraktAirs(BaseModel):
+    day: str | None = None
+    time: str | None = None
+    timezone: str | None = None
+
+
 class TraktSeasonIds(BaseModel):
     plex: TraktPlexIds | None = None
     tmdb: int | None = None
@@ -68,6 +74,48 @@ class TraktShow(BaseModel):
     title: str
     year: int | None = None
     aired_episodes: int | None = None
+
+
+class TraktFavoriteShow(BaseModel):
+    ids: TraktShowIds
+    title: str
+    year: int | None = None
+    tagline: str | None = None
+    overview: str | None = None
+    first_aired: str | None = None
+    last_aired: str | None = None
+    airs: TraktAirs | None = None
+    runtime: int | None = None
+    total_runtime: int | None = None
+    certification: str | None = None
+    network: str | None = None
+    country: str | None = None
+    status: str | None = None
+    rating: int | None = None
+    votes: int | None = None
+    comment_count: int | None = None
+    trailer: str | None = None
+    homepage: str | None = None
+    updated_at: str | None = None
+    language: str | None = None
+    languages: list[str] | None = None
+    available_translations: list[str] | None = None
+    genres: list[str] | None = None
+    subgenres: list[str] | None = None
+    original_title: str | None = None
+    aired_episodes: int | None = None
+    images: TraktImages | None = None
+    colors: TraktColors | None = None
+    social_ids: TraktSocialIds | None = None
+
+
+class TraktFavoriteShowEntry(BaseModel):
+    id: int
+    listed_at: str
+    notes: str | None = None
+    rank: int
+    type: str
+    show: TraktFavoriteShow
 
 
 class TraktHistoryEntry(BaseModel):
