@@ -6,6 +6,26 @@ class TraktPlexIds(BaseModel):
     slug: str | None = None
 
 
+class TraktImages(BaseModel):
+    fanart: list[str] | None = None
+    poster: list[str] | None = None
+    logo: list[str] | None = None
+    clearart: list[str] | None = None
+    banner: list[str] | None = None
+    thumb: list[str] | None = None
+
+
+class TraktSocialIds(BaseModel):
+    twitter: str | None = None
+    facebook: str | None = None
+    instagram: str | None = None
+    wikipedia: str | None = None
+
+
+class TraktColors(BaseModel):
+    poster: list[str] | None = None
+
+
 class TraktSeasonIds(BaseModel):
     plex: TraktPlexIds | None = None
     tmdb: int | None = None
@@ -71,6 +91,45 @@ class TraktMovie(BaseModel):
     ids: TraktMovieIds
     title: str
     year: int | None = None
+
+
+class TraktFavoriteMovie(BaseModel):
+    ids: TraktMovieIds
+    title: str
+    year: int | None = None
+    tagline: str | None = None
+    overview: str | None = None
+    released: str | None = None
+    runtime: int | None = None
+    country: str | None = None
+    status: str | None = None
+    rating: int | None = None
+    votes: int | None = None
+    comment_count: int | None = None
+    trailer: str | None = None
+    homepage: str | None = None
+    updated_at: str | None = None
+    language: str | None = None
+    languages: list[str] | None = None
+    available_translations: list[str] | None = None
+    genres: list[str] | None = None
+    subgenres: list[str] | None = None
+    certification: str | None = None
+    original_title: str | None = None
+    after_credits: bool | None = None
+    during_credits: bool | None = None
+    images: TraktImages | None = None
+    colors: TraktColors | None = None
+    social_ids: TraktSocialIds | None = None
+
+
+class TraktFavoriteMovieEntry(BaseModel):
+    id: int
+    listed_at: str
+    notes: str | None = None
+    rank: int
+    type: str
+    movie: TraktFavoriteMovie
 
 
 class TraktMovieHistoryEntry(BaseModel):
