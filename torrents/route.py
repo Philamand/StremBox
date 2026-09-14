@@ -229,3 +229,13 @@ async def download_torrent(
             raise HTTPException(status_code=500, detail=str(e))
 
     return Response(status_code=200)
+
+
+@api_router.post("/remove/{torrent_hash}/")
+async def remove_torrent(
+    torrent_hash: str,
+    torrent_service: TorrentServiceDep,
+) -> dict[str, str]:
+    """Remove a torrent and its downloaded files."""
+    await torrent_service.remove_torrent(torrent_hash, delete_files=True)
+    return {"message": "Torrent supprimé avec succès"}
