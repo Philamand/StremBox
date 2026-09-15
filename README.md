@@ -1,8 +1,8 @@
-# Bauxite
+# StremBox
 
 **An open-source seedbox built with ease of use in mind. It provides a simple user interface for managing your seedbox and an extensible API to easily integrate with other tools.**
 
-The Bauxite interface is currently in French, with English documentation. Multi language support is planned for future releases.
+The StremBox interface is currently in French, with English documentation. Multi language support is planned for future releases.
 
 ## Table of Contents
 - [Features](#features)
@@ -32,12 +32,12 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 ### Steps
 1. Clone the repository:
    ```bash
-   git https://codeberg.org/Philamand/Bauxite.git
+   git https://codeberg.org/Philamand/StremBox.git
    ```
 
 2. Navigate to the project directory:
    ```bash
-   cd Bauxite
+   cd StremBox
    ```
 
 3. Create a copy of the example env files and update the values as needed:
@@ -78,7 +78,7 @@ The Bauxite interface is currently in French, with English documentation. Multi 
    uv run fastapi dev
    ```
 
-10. Access the Bauxite UI by navigating to `http://localhost:8000` in your browser. Log in using your Hanko account.
+10. Access the StremBox UI by navigating to `http://localhost:8000` in your browser. Log in using your Hanko account.
 
 ## Self-Hosting
 ### Prerequisites
@@ -88,12 +88,12 @@ The Bauxite interface is currently in French, with English documentation. Multi 
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://codeberg.org/Philamand/Bauxite.git
+   git clone https://codeberg.org/Philamand/StremBox.git
    ```
 
 2. Navigate to the project directory:
    ```bash
-   cd Bauxite
+   cd StremBox
    ```
 
 3. Create a copy of the example env files and update the values as needed:
@@ -155,7 +155,7 @@ The Bauxite interface is currently in French, with English documentation. Multi 
    docker compose exec fastapi python cli.py user-add <UserId> 1
    ```
 
-9. Access the Bauxite UI by navigating to `https://<your-domain>` in your browser. Log in using your Hanko account.
+9. Access the StremBox UI by navigating to `https://<your-domain>` in your browser. Log in using your Hanko account.
 
 ## Contributing
 We welcome contributions! Please follow these steps:

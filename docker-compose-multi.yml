@@ -5,7 +5,7 @@ networks:
 services:
   caddy:
     image: caddy:latest
-    container_name: bauxite_caddy
+    container_name: strembox_caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -68,7 +68,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: bauxite_fastapi
+    container_name: strembox_fastapi
     restart: unless-stopped
     env_file:
       - .env

@@ -19,7 +19,7 @@ def use_route_names_as_operation_ids(app: FastAPI) -> None:
 
 
 app = FastAPI(
-    title="Bauxite",
+    title="StremBox",
     description="An open-source seedbox built with ease of use in mind.",
     version="1.0.0",
     docs_url="/docs",

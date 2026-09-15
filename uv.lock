@@ -139,7 +139,7 @@ wheels = [
 ]
 
 [[package]]
-name = "bauxite"
+name = "strembox"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
