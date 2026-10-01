@@ -172,7 +172,7 @@ async def get_hashes(
     hashes_dict = {}
     for torrent in torrents:
         hashes_dict[torrent.hashString] = {
-            "torrent_name": torrent.name,
+            "name": torrent.name,
             "percent_done": torrent.percent_done,
             "files": [file.name for file in torrent.get_files()],
         }
