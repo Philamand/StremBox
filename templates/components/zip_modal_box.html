@@ -15,7 +15,7 @@
     <h3 id="zip-modal-title" class="text-lg font-bold">
         Votre téléchargement est prêt à être téléchargé
     </h3>
-    <a href="/static/{{ path }}" class="btn btn-primary">Télécharger</a>
+    <a href="/static/{{ path|urlencode }}" class="btn btn-primary">Télécharger</a>
     {% else %}
     <h3 id="zip-modal-title" class="text-lg font-bold">
         Une erreur est survenue
