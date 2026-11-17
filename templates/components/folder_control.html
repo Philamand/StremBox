@@ -6,7 +6,7 @@
 >
     <div class="flex">
         {% if folder %}
-        <a href="/files/{% if parent_folder %}?folder={{ parent_folder }}{% endif %}">
+        <a href="/files/{% if parent_folder %}?folder={{ parent_folder|urlencode }}{% endif %}">
             {{ icons.arrow_big_left_icon(class="min-w-[24px] min-h-[24px]") }}
         </a>
         <p class="ml-4">{{ folder }}</p>
